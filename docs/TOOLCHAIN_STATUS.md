@@ -25,3 +25,7 @@ Esse resultado comprova que a toolchain compila um programa mínimo libXenon; n�
 - `default.xex`: não gerado.
 - Não renomear ELF32 para XEX; são formatos diferentes.
 - O caminho XEX requer toolchain/empacotamento compatível com o loader Xbox 360. Nenhum artefato XEX válido foi produzido por este projeto até agora.
+
+
+## Portão de aceite XEX
+Os critérios para aceitar um `default.xex` estão em [docs/DEFAULT_XEX.md](DEFAULT_XEX.md). Nenhum artefato será rotulado XEX sem ser produzido por toolchain compatível, inspecionado e testado no console.
