@@ -19,8 +19,12 @@ int main(void) {
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 16u, 0x64870001u) == 0);
     /* andis. r8,r4,1 => r8=0x00010000 and CR0.GT */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 20u, 0x74880001u) == 0);
+    /* add r9,r4,r5; subf r10,r5,r4 */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 24u, (31u<<26)|(9u<<21)|(4u<<16)|(5u<<11)|(266u<<1)) == 0);
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 28u, (31u<<26)|(10u<<21)|(5u<<16)|(4u<<11)|(40u<<1)) == 0);
     cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE);
     cpu.gpr[4] = 0x0001012au;
+    cpu.gpr[5] = 3u;
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
     assert(cpu.gpr[3] == 42u);
     assert(cpu.pc == CUBEX360_RAM_CACHED_BASE + 4u);
@@ -38,6 +42,10 @@ int main(void) {
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
     assert(cpu.gpr[8] == 0x00010000u);
     assert((cpu.cr & 0xf0000000u) == 0x40000000u);
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[9] == 0x0001012du);
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[10] == 0x00010127u);
     assert(cubex_memory_write32be(&mem, 0, 0x12345678u) == 0);
     assert(cubex_memory_read32be(&mem, 0, &value) == 0 && value == 0x12345678u);
     assert(cubex_memory_read32be(&mem, CUBEX360_MAIN_RAM_SIZE, &value) != 0);
