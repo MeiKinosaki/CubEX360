@@ -1,28 +1,22 @@
-# Status da toolchain — CubEX360
+# Status da toolchain — v1.31b
 
-## Último marco confirmado: ELF32 de diagnóstico
+## Confirmado
+- GitHub Actions concluiu com sucesso a execução [38219582132](https://github.com/MeiKinosaki/CubEX360/actions/runs/38219582132).
+- O artefato foi baixado e verificado como ELF32 PowerPC big-endian, estaticamente ligado.
+- SHA-256: `96d490d9c467eca735f571cfd8327d1838fbb23a791bbf9e64bac7d5c2648854`.
+- A suíte host do pacote local v1.31b passou: 21 executáveis.
+- `make xex-preflight` foi testado e retorna código 2 quando as ferramentas XEX não estão configuradas, como esperado.
 
-A execução [38219582132](https://github.com/MeiKinosaki/CubEX360/actions/runs/38219582132) terminou com sucesso em 12/10/2026. Os passos de build libXenon e upload do artefato foram aprovados.
-
-Artefato: `cubex360_toolchain_probe.elf32`
-- Formato detectado: `ELF 32-bit MSB executable, PowerPC, statically linked, stripped`.
-- SHA-256 calculado novamente após baixar o artefato: `96d490d9c467eca735f571cfd8327d1838fbb23a791bbf9e64bac7d5c2648854`.
-- ZIP de CI disponível na execução do workflow (artefato temporário com expiração em 90 dias).
-
-## O que isso comprova
-- O runner consegue obter o contêiner Free60/libXenon.
-- `xenon-gcc` compila o programa mínimo de diagnóstico.
-- O pipeline publica um ELF32 e inclui verificação de formato e hash.
-
-## O que NÃO comprova
-- O ELF não é o núcleo completo do CubEX360.
-- O núcleo do pacote local v1.30b ainda não foi integrado ao alvo do workflow.
+## Não confirmado
+- O ELF de CI é somente o programa `xenon-probe`; não contém o núcleo completo do CubEX360.
+- O núcleo ainda não foi ligado pelo workflow libXenon.
 - `default.xex` não foi gerado.
-- Não há validação de inicialização em Xbox 360 RGH.
+- Nenhum teste em Xbox 360 RGH foi realizado.
 
 ## Próximas etapas
-1. Publicar integralmente os fontes do núcleo na árvore GitHub.
-2. Atualizar o workflow para compilar e linkar memória, barramento e CPU do núcleo.
-3. Obter e inspecionar um ELF produzido pelo alvo integrado.
-4. Selecionar toolchain/runtime XEX compatível, verificar imports/ABI/estrutura e só então produzir `default.xex`.
-5. Testar o executável no hardware compatível.
+1. Publicar integralmente os fontes do núcleo na árvore GitHub e integrá-los ao alvo libXenon.
+2. Gerar e verificar um ELF do núcleo, distinto do probe.
+3. Identificar uma toolchain/runtime que gere XEX válido para o Xbox 360.
+4. Validar estrutura/imports/ABI do XEX e testar em hardware.
+
+O pacote v1.31b existe como ZIP local; não afirmar que é uma release do GitHub até anexá-lo/publicá-lo realmente.
