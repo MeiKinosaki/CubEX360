@@ -25,3 +25,14 @@ Consulte [status da toolchain](docs/TOOLCHAIN_STATUS.md), [relatório ELF32](doc
 Foi adicionado `core-src/` com um alvo inicial que liga memória principal de 24 MiB, barramento cached/uncached e interpretador limitado. O workflow agora tenta compilar esse alvo separadamente do probe de toolchain e publicar `cubex360_core_smoke.elf32`. O resultado só deve ser considerado confirmado após o job CI terminar e o artefato ser inspecionado.
 
 O alvo suporta apenas um subconjunto de instruções PowerPC e é um smoke test, não um emulador completo. `default.xex` continua pendente.
+
+
+## v1.35b — operações imediatas PowerPC adicionais
+
+O interpretador parcial agora também implementa `ORIS`, `XORI` e `ANDIS.`, além de `ANDI.`. Os testes host foram expandidos para validar os valores resultantes e CR0 quando a instrução atualiza o campo de condição. Os commits mais recentes acionaram o CI; confira o estado antes de tratar essa revisão como aprovada.
+
+- [CPU](core-src/src/cpu.c)
+- [Testes](core-src/tests/test_core_host.c)
+- [CI](https://github.com/MeiKinosaki/CubEX360/actions)
+
+O núcleo continua parcial; `default.xex` ainda não foi gerado.
