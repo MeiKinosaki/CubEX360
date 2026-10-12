@@ -1,27 +1,17 @@
-# CubEX360 v1.25b — lógica do CR
+# CubEX360 v1.26b
 
-Projeto experimental de interpretador parcial de instruções PowerPC/Gekko para servir de base a um emulador de GameCube no Xbox 360.
+Projeto experimental de interpretador parcial PowerPC/Gekko para servir de base a um emulador de GameCube no Xbox 360.
 
-## Mudanças da v1.25b
+## Novidades v1.26b
+- `mfmsr`: leitura do registrador de estado da máquina (MSR) para um GPR.
+- `mtmsr`: gravação de um GPR no MSR.
+- Testes nativos para leitura, gravação e rejeição de campos reservados.
 
-A versão de desenvolvimento local adiciona suporte parcial a oito operações lógicas do registrador de condição (CR):
-- `crand`
-- `crandc`
-- `creqv`
-- `crnand`
-- `crnor`
-- `cror`
-- `crorc`
-- `crxor`
+## Validação local
+O pacote v1.26b foi compilado com C99, `-Wall -Wextra -Werror -O2`. Os 20 executáveis de teste passaram e a integridade do ZIP foi verificada.
 
-A suíte nativa contém 19 executáveis de teste e passou com C99, `-Wall -Wextra -Werror -O2`. O pacote ZIP da v1.25b foi criado e sua integridade verificada.
+## Estado de publicação
+O README e as notas da v1.26b estão documentados no repositório. O ZIP completo foi criado localmente, mas ainda não foi anexado como artefato de release e o código-fonte integral da versão não foi commitado por completo nesta branch.
 
-## Publicação do código
-
-Esta documentação da v1.25b está publicada. O ZIP completo ainda não foi anexado como release, e os arquivos-fonte integrais da versão ainda não foram commitados nesta branch.
-
-## Xbox 360 e limitações
-
-A toolchain libXenon/`xenon-gcc` ainda não foi validada neste ambiente. Não há `xenon.elf` nem `default.xex` gerados ou confirmados, e o teste em Xbox 360 RGH está pendente.
-
-O projeto permanece um interpretador parcial: faltam componentes importantes da CPU Gekko, FPU, MMU/exceções, GPU, DSP, leitura de discos e integração de hardware para compatibilidade ampla com jogos.
+## Limitações
+O suporte a `mfmsr` e `mtmsr` é parcial; privilégios, efeitos colaterais do MSR e exceções ainda não são modelados. A toolchain libXenon/`xenon-gcc` não foi validada; não há `xenon.elf` ou `default.xex` confirmados, e o teste no Xbox 360 RGH permanece pendente. O projeto não é um emulador completo de GameCube.
