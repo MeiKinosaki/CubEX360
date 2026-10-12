@@ -1,0 +1,31 @@
+name: CubEX360 libXenon toolchain probe
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'xenon-probe/**'
+      - '.github/workflows/xenon-build.yml'
+jobs:
+  build-elf32:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build using the Free60 libXenon container
+        run: |
+          set -eu
+          mkdir -p artifacts
+          docker pull free60/libxenon:latest
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/work" \
+            -w /work/xenon-probe \
+            free60/libxenon:latest \
+            bash -lc 'set -eu; export DEVKITXENON="${DEVKITXENON:-/usr/local/xenon}"; export PATH="$DEVKITXENON/bin:$DEVKITXENON/usr/bin:$PATH"; command -v xenon-gcc; make clean; make; test -s cubex360_toolchain_probe.elf32; file cubex360_toolchain_probe.elf32; xenon-objdump -f cubex360_toolchain_probe.elf32'
+          cp xenon-probe/cubex360_toolchain_probe.elf32 artifacts/
+          sha256sum artifacts/cubex360_toolchain_probe.elf32 | tee artifacts/SHA256SUMS.txt
+      - name: Upload Xenon ELF32 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cubex360-libxenon-elf32
+          path: artifacts/*
+          if-no-files-found: error
