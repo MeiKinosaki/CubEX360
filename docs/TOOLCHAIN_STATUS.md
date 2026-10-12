@@ -1,19 +1,20 @@
-# Status da toolchain — CubEX360 v1.30b
+# Status da toolchain — CubEX360
 
-## Novo teste de integração no pacote local
-O pacote v1.30b contém um alvo libXenon que compila os fontes atuais de memória, barramento, estado da CPU e interpretador. O smoke test tenta validar RAM de 24 MiB, o alias de memória, leitura big-endian e a execução de `addi r3,r0,42`.
+## Estado confirmado
+- O workflow anterior compilou um programa mínimo com Free60/libXenon e produziu ELF32 PowerPC big-endian: https://github.com/MeiKinosaki/CubEX360/actions/runs/38217103703
+- O pacote local v1.30b foi extraído e `make clean test` executou com sucesso: 21 testes nativos, incluindo `test_core_smoke`.
+- O workflow foi corrigido para verificar o ELF e publicar relatório e SHA-256.
+- Execuções do workflow após as correções ainda estão em andamento: https://github.com/MeiKinosaki/CubEX360/actions
 
-## Validação local
-- `make clean test`: 21 executáveis nativos passaram, incluindo `test_core_smoke`.
-- Compilação nativa: C99 com `-Wall -Wextra -Werror -O2`.
-- ZIP v1.30b: integridade confirmada.
-- Hash SHA-256 do ZIP: `c193b4695adf09c951279beb1a898660d9a35f10d11166e3e25dc09d8bf75da0`.
+## Limitações
+- O ELF confirmado é somente um probe; não contém o núcleo completo do emulador.
+- Os fontes completos do pacote v1.30b ainda não estão todos commitados nesta árvore.
+- `default.xex` não foi gerado.
+- A toolchain/runtime XEX não foi identificada e validada neste projeto.
+- Teste em Xbox 360 RGH pendente.
 
-## CI e publicação
-O workflow remoto existente validou somente o programa de diagnóstico no run https://github.com/MeiKinosaki/CubEX360/actions/runs/38217103703. A nova compilação do núcleo integrado ainda não foi executada: o pacote v1.30b não foi publicado integralmente na árvore do repositório, então não declarar o build integrado como aprovado.
-
-## Bloqueios
-- Publicar o código-fonte completo v1.30b e atualizar o workflow remoto para compilar o alvo integrado.
-- Confirmar um ELF32 gerado pela nova execução CI.
-- Identificar e validar a cadeia de ferramentas XEX compatível.
-- `default.xex` não foi gerado nem testado no Xbox 360 RGH.
+## Próximas etapas
+1. Confirmar que o workflow revisado passa e verificar o artefato ELF.
+2. Publicar integralmente os fontes do núcleo.
+3. Compilar um ELF que ligue o núcleo CubEX360.
+4. Selecionar uma toolchain XEX compatível, validar formato/imports/ABI e testar em hardware.
