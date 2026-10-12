@@ -31,6 +31,7 @@ clean:
 	rm -rf $(BUILD) $(OUTPUT).elf $(OUTPUT).elf32 $(OUTPUT).elf32.map
 else
 DEPENDS := $(OFILES:.o=.d)
+$(OUTPUT).elf: $(OFILES)
 $(OUTPUT).elf32: $(OUTPUT).elf
 -include $(DEPENDS)
 endif
