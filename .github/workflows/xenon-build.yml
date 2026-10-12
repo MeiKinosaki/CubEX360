@@ -3,12 +3,37 @@ on:
   workflow_dispatch:
   push:
     paths:
+      - 'core-src/**'
       - 'xenon-probe/**'
       - 'scripts/verify-xenon-elf.sh'
       - 'scripts/xex-preflight.sh'
       - '.github/workflows/xenon-build.yml'
 jobs:
-  build-elf32:
+  build-core-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build initial CubEX360 core smoke target
+        run: |
+          set -eu
+          mkdir -p artifacts
+          docker pull free60/libxenon:latest
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/work" \
+            -w /work/core-src \
+            free60/libxenon:latest \
+            bash -lc 'set -eu; export DEVKITXENON="${DEVKITXENON:-/usr/local/xenon}"; export PATH="$DEVKITXENON/bin:$DEVKITXENON/usr/bin:$PATH"; command -v xenon-gcc; make clean; make; test -s cubex360_core_smoke.elf32; file cubex360_core_smoke.elf32; xenon-objdump -f cubex360_core_smoke.elf32'
+          cp core-src/cubex360_core_smoke.elf32 artifacts/
+          ./scripts/verify-xenon-elf.sh artifacts/cubex360_core_smoke.elf32 | tee artifacts/ELF32-REPORT.txt
+          sha256sum artifacts/cubex360_core_smoke.elf32 | tee artifacts/SHA256SUMS.txt
+      - name: Upload core smoke ELF32
+        uses: actions/upload-artifact@v4
+        with:
+          name: cubex360-core-smoke-elf32
+          path: artifacts/*
+          if-no-files-found: error
+  build-probe:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
