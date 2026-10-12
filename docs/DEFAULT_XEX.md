@@ -1,20 +1,26 @@
-# Caminho para `default.xex` — CubEX360
+# Gate de compilação para `default.xex`
 
-## Estado confirmado
+## O que já foi demonstrado
+- O GitHub Actions compila um programa mínimo com Free60/libXenon.
+- O artefato produzido é ELF32 PowerPC big-endian, não XEX.
+- Execução: https://github.com/MeiKinosaki/CubEX360/actions/runs/38217103703
 
-A primeira etapa usa Free60/libXenon. O fluxo oficial gera ELF/ELF32 para execução via XeLL. O workflow `CubEX360 libXenon toolchain probe` tenta compilar um pequeno programa de diagnóstico e publicar o `.elf32` como artefato de CI.
+## Critérios obrigatórios para aceitar um XEX
+1. Compilador/linker e runtime identificados, com versões registradas.
+2. O build deve linkar o núcleo CubEX360, não o programa de diagnóstico.
+3. O artefato deve ser gerado pelo fluxo XEX suportado; não basta mudar a extensão do ELF.
+4. Validar magic/estrutura XEX com ferramenta de inspeção compatível, registrar SHA-256 e conservar logs.
+5. Fazer teste de inicialização em Xbox 360 RGH compatível antes de marcar como funcional.
 
-**`default.xex` não é produzido por esse fluxo.** XEX é outro formato de executável do Xbox 360. Não é correto renomear um ELF para `.xex` nem declarar uma conversão sem um linker/runtime e empacotador XEX compatíveis.
+## Caminhos a avaliar
+- Fluxo de desenvolvimento Xbox 360 que gere executável PE/XEX compatível e permita linkar o programa com os imports/runtime necessários.
+- Ferramentas de empacotamento XEX documentadas e reproduzíveis, desde que a imagem de entrada tenha sido gerada com ABI/sections/imports corretos.
 
-## Etapas necessárias
+## Bloqueios atuais
+- Não há toolchain XEX configurada no repositório ou runner.
+- O ELF libXenon não é diretamente um executável XEX.
+- O núcleo integral do emulador ainda não está integrado ao probe na árvore GitHub atual.
+- Não há `default.xex` gerado nem teste no console.
 
-1. Fazer o workflow ELF32 passar no GitHub Actions e guardar o artefato real com seu SHA-256.
-2. Integrar o núcleo CubEX360 ao alvo libXenon, substituindo o probe isolado.
-3. Escolher e validar uma toolchain/runtime que produza XEX para Xbox 360. libXenon por si só não satisfaz esse requisito; nenhum SDK XEX está configurado neste projeto.
-4. Somente depois de compilar com essa toolchain, validar a estrutura XEX e testar `default.xex` no hardware alvo.
-
-## Regra de publicação
-
-Não publicar ELF renomeado, XEX vazio ou artefato falso. Até a validação de uma toolchain XEX, o alvo desta pipeline é o ELF32 de diagnóstico, não `default.xex`.
-
-Referência libXenon: https://github.com/Free60Project/libxenon
+## Próxima ação
+Manter a etapa libXenon como validação de compilação de baixo nível e, em paralelo, selecionar uma toolchain XEX real antes de criar um job de empacotamento. O workflow não deve emitir arquivo com extensão .xex se não houver ferramenta validada.
