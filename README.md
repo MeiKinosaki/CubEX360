@@ -4,21 +4,21 @@ Projeto experimental de interpretador parcial de instruções PowerPC/Gekko para
 
 ## Estado atual
 
-**Versão de desenvolvimento: v1.22b — transferência do registrador de condição (CR).**
+**Versão de desenvolvimento: v1.23b — transferência entre campos do CR.**
 
-A v1.22b preparada nesta sessão contém:
-- `mfcr`: leitura do registrador CR completo para um registrador geral.
-- `mtcrf`: atualização seletiva dos campos do CR por meio da máscara FXM.
-- Testes nativos em C para os casos de transferência do CR.
+A versão local v1.23b adiciona:
+- `mcrf`: copia um campo de 4 bits do registrador de condição (CR) para outro campo.
+- Testes de regressão que verificam a cópia do campo e a preservação dos demais campos.
+- Regressão da suíte nativa completa: 18 executáveis de teste passaram com C99, `-Wall -Wextra -Werror -O2`.
 
-Consulte [as notas da v1.22b](docs/RELEASE_v1.22b.md) para o escopo e as limitações.
+Veja [as notas da v1.23b](docs/RELEASE_v1.23b.md).
 
-## Importante: estado da publicação
+## Estado de publicação
 
-Este repositório está sendo atualizado com os metadados e as notas da versão v1.22b. O arquivo-fonte ZIP completo gerado durante a sessão ainda **não foi anexado ao GitHub**; portanto, a presença desta página não significa que todo o código da v1.22b esteja publicado no repositório.
+O README e as notas de versão estão sendo atualizados no GitHub. O ZIP completo do código-fonte v1.23b foi gerado e validado localmente, mas ainda não foi anexado como artefato binário nem todos os arquivos da versão foram commitados nesta branch.
 
 ## Compilação e compatibilidade
 
-O pacote de desenvolvimento usa `make clean test` para testes nativos em computador. Isso não comprova uma compilação para Xbox 360. A toolchain libXenon ainda precisa ser validada, e não há `xenon.elf` ou `default.xex` confirmados nesta publicação.
+Os testes nativos são executados com `make clean test` e não comprovam uma compilação para Xbox 360. A toolchain libXenon ainda precisa ser validada; não há `xenon.elf` ou `default.xex` confirmados.
 
-O projeto continua parcial: não implementa toda a CPU Gekko, FPU, MMU/exceções, GPU, DSP, sistema de discos nem os demais componentes necessários para compatibilidade ampla com jogos.
+O projeto permanece parcial: ainda faltam partes substanciais da CPU Gekko, FPU, MMU/exceções, GPU, DSP, leitura de discos e integração do sistema para compatibilidade ampla com jogos.
