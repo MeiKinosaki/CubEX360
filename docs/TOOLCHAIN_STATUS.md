@@ -1,20 +1,28 @@
 # Status da toolchain — CubEX360
 
-## Estado confirmado
-- O workflow anterior compilou um programa mínimo com Free60/libXenon e produziu ELF32 PowerPC big-endian: https://github.com/MeiKinosaki/CubEX360/actions/runs/38217103703
-- O pacote local v1.30b foi extraído e `make clean test` executou com sucesso: 21 testes nativos, incluindo `test_core_smoke`.
-- O workflow foi corrigido para verificar o ELF e publicar relatório e SHA-256.
-- Execuções do workflow após as correções ainda estão em andamento: https://github.com/MeiKinosaki/CubEX360/actions
+## Último marco confirmado: ELF32 de diagnóstico
 
-## Limitações
-- O ELF confirmado é somente um probe; não contém o núcleo completo do emulador.
-- Os fontes completos do pacote v1.30b ainda não estão todos commitados nesta árvore.
+A execução [38219582132](https://github.com/MeiKinosaki/CubEX360/actions/runs/38219582132) terminou com sucesso em 12/10/2026. Os passos de build libXenon e upload do artefato foram aprovados.
+
+Artefato: `cubex360_toolchain_probe.elf32`
+- Formato detectado: `ELF 32-bit MSB executable, PowerPC, statically linked, stripped`.
+- SHA-256 calculado novamente após baixar o artefato: `96d490d9c467eca735f571cfd8327d1838fbb23a791bbf9e64bac7d5c2648854`.
+- ZIP de CI disponível na execução do workflow (artefato temporário com expiração em 90 dias).
+
+## O que isso comprova
+- O runner consegue obter o contêiner Free60/libXenon.
+- `xenon-gcc` compila o programa mínimo de diagnóstico.
+- O pipeline publica um ELF32 e inclui verificação de formato e hash.
+
+## O que NÃO comprova
+- O ELF não é o núcleo completo do CubEX360.
+- O núcleo do pacote local v1.30b ainda não foi integrado ao alvo do workflow.
 - `default.xex` não foi gerado.
-- A toolchain/runtime XEX não foi identificada e validada neste projeto.
-- Teste em Xbox 360 RGH pendente.
+- Não há validação de inicialização em Xbox 360 RGH.
 
 ## Próximas etapas
-1. Confirmar que o workflow revisado passa e verificar o artefato ELF.
-2. Publicar integralmente os fontes do núcleo.
-3. Compilar um ELF que ligue o núcleo CubEX360.
-4. Selecionar uma toolchain XEX compatível, validar formato/imports/ABI e testar em hardware.
+1. Publicar integralmente os fontes do núcleo na árvore GitHub.
+2. Atualizar o workflow para compilar e linkar memória, barramento e CPU do núcleo.
+3. Obter e inspecionar um ELF produzido pelo alvo integrado.
+4. Selecionar toolchain/runtime XEX compatível, verificar imports/ABI/estrutura e só então produzir `default.xex`.
+5. Testar o executável no hardware compatível.
