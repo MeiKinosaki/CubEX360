@@ -1,24 +1,24 @@
-# CubEX360 — toolchain gate v1.29b
+# CubEX360 v1.30b — integração do núcleo na toolchain
 
-Projeto experimental de interpretador parcial PowerPC/Gekko para um emulador de GameCube no Xbox 360.
+Projeto experimental de interpretador parcial PowerPC/Gekko para servir de base a um emulador de GameCube no Xbox 360.
 
-## Marco anterior: ELF32 libXenon
+## Marco v1.30b (pacote local)
 
-O workflow de diagnóstico terminou com sucesso: https://github.com/MeiKinosaki/CubEX360/actions/runs/38217103703
+O pacote de desenvolvimento v1.30b acrescenta um smoke test que liga os fontes atuais de memória, barramento, estado da CPU e interpretador ao programa libXenon. O teste verifica:
+- alocação de 24 MiB de RAM;
+- alias cached/uncached e leitura big-endian do barramento;
+- execução de `addi r3,r0,42` no interpretador.
 
-Ele produziu um ELF32 PowerPC big-endian para testar a toolchain. Esse programa é somente um probe e não contém o núcleo completo do emulador.
+A suíte host tem 21 executáveis de teste; todos passaram com C99, `-Wall -Wextra -Werror -O2`. O ZIP foi verificado localmente. O pacote v1.30b ainda não foi publicado integralmente nesta árvore do GitHub.
 
-## v1.29b — verificações reproduzíveis
-- Adiciona `make verify-xenon-elf ELF32=/caminho/arquivo.elf32` para verificar o tipo ELF32 PowerPC e imprimir SHA-256.
-- Adiciona `make xex-preflight`, que falha de forma explícita enquanto não houver compilador e empacotador XEX compatíveis configurados.
-- A suíte host foi executada localmente: 20 executáveis de teste passaram.
-- Integridade do ZIP da v1.29b verificada.
+## CI e limites
 
-Pacote local: `CubEX360_v1.29b_toolchain_gate.zip`. O pacote ainda não foi anexado como artefato de release e seu código-fonte integral ainda não está commitado nesta branch.
+O workflow já publicado validou um ELF32 de diagnóstico, mas ainda não compilou o novo alvo de núcleo integrado. É necessário publicar os fontes v1.30b e então rodar o workflow atualizado para confirmar o ELF do núcleo.
 
-## Próximas etapas
-1. Publicar o núcleo completo e integrar seu alvo de compilação.
-2. Produzir um ELF do emulador, não apenas do probe.
-3. Validar uma toolchain/runtime XEX real, verificar o executável e testar no Xbox 360 RGH.
+- [Execução anterior do probe libXenon](https://github.com/MeiKinosaki/CubEX360/actions/runs/38217103703)
+- [Status da toolchain](docs/TOOLCHAIN_STATUS.md)
+- [Plano de geração de default.xex](docs/DEFAULT_XEX.md)
 
-**`default.xex` ainda não foi gerado.** Não renomeie ELF para XEX. Consulte [status da toolchain](docs/TOOLCHAIN_STATUS.md) e [plano XEX](docs/DEFAULT_XEX.md).
+## `default.xex`
+
+Não foi gerado. O fluxo libXenon validado até agora gera ELF32; ele não converte automaticamente ELF em XEX. Não renomeie o ELF. O projeto também ainda não é um emulador completo de GameCube, e o teste no Xbox 360 RGH permanece pendente.
