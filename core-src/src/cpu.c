@@ -20,13 +20,15 @@ static void set_cr0(cubex_cpu_state_t *c, uint32_t value) {
 }
 
 cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
-    uint32_t ins, op, rt, ra, imm, next;
+    uint32_t ins, op, rt, ra, rb, xo, imm, next;
     if (!c || !m) return CUBEX_CPU_BAD_ARGUMENT;
     if (cubex_bus_read32be(m, c->pc, &ins)) return CUBEX_CPU_MEMORY_FAULT;
     op = ins >> 26;
     rt = (ins >> 21) & 31u;
     ra = (ins >> 16) & 31u;
     imm = ins & 0xffffu;
+    rb = (ins >> 11) & 31u;
+    xo = (ins >> 1) & 0x3ffu;
     next = c->pc + 4u;
     switch (op) {
     case 14: c->gpr[rt] = (ra ? c->gpr[ra] : 0u) + (uint32_t)sx16(imm); break;
@@ -52,6 +54,16 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
         if (cubex_bus_write32be(m, a, c->gpr[rt])) return CUBEX_CPU_MEMORY_FAULT;
         break;
     }
+    case 31:
+        switch (xo) {
+        case 266: c->gpr[rt] = c->gpr[ra] + c->gpr[rb]; if (ins & 1u) set_cr0(c, c->gpr[rt]); break;
+        case 40: c->gpr[rt] = c->gpr[rb] - c->gpr[ra]; if (ins & 1u) set_cr0(c, c->gpr[rt]); break;
+        case 28: c->gpr[ra] = c->gpr[rt] & c->gpr[rb]; if (ins & 1u) set_cr0(c, c->gpr[ra]); break;
+        case 444: c->gpr[ra] = c->gpr[rt] | c->gpr[rb]; if (ins & 1u) set_cr0(c, c->gpr[ra]); break;
+        case 316: c->gpr[ra] = c->gpr[rt] ^ c->gpr[rb]; if (ins & 1u) set_cr0(c, c->gpr[ra]); break;
+        default: return CUBEX_CPU_UNSUPPORTED;
+        }
+        break;
     case 18: {
         int32_t d = (int32_t)(ins & 0x03fffffcu);
         if (d & 0x02000000) d |= (int32_t)0xfc000000u;
