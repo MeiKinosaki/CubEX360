@@ -36,3 +36,14 @@ O interpretador parcial agora também implementa `ORIS`, `XORI` e `ANDIS.`, alé
 - [CI](https://github.com/MeiKinosaki/CubEX360/actions)
 
 O núcleo continua parcial; `default.xex` ainda não foi gerado.
+
+
+## v1.36b — correção de decodificação lógica
+
+O CI encontrou uma falha nos testes das operações lógicas imediatas: a implementação usava incorretamente os campos de origem/destino nas instruções PPC. A CPU foi corrigida para seguir a codificação PowerPC (`rA` como fonte e `rS/rT` como destino nas instruções lógicas imediatas), e as palavras de máquina nos testes foram corrigidas. As novas execuções do CI estão em andamento; não marcar como aprovado até terminar.
+
+- [Implementação](core-src/src/cpu.c)
+- [Testes corrigidos](core-src/tests/test_core_host.c)
+- [GitHub Actions](https://github.com/MeiKinosaki/CubEX360/actions)
+
+O núcleo continua parcial; `default.xex` ainda não foi gerado.
