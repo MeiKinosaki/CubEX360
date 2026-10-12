@@ -9,6 +9,17 @@ on:
       - 'scripts/xex-preflight.sh'
       - '.github/workflows/xenon-build.yml'
 jobs:
+  host-core-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile core with strict host warnings and run smoke test
+        run: |
+          set -eu
+          cc -std=c99 -Wall -Wextra -Werror -O2 -Icore-src/include \
+            core-src/src/memory.c core-src/src/bus.c core-src/src/cpu.c \
+            core-src/tests/test_core_host.c -o /tmp/cubex360-core-host-test
+          /tmp/cubex360-core-host-test
   build-core-smoke:
     runs-on: ubuntu-latest
     timeout-minutes: 30
