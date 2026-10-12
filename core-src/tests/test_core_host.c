@@ -12,13 +12,13 @@ int main(void) {
     /* andi. r3,r4,0x00ff => r3=0x2a and CR0.GT */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 4u, 0x708300ffu) == 0);
     /* andi. r5,r4,0 => r5=0 and CR0.EQ */
-    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 8u, 0x70a30000u) == 0);
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 8u, 0x70850000u) == 0);
     /* xori r6,r4,0x00ff => r6=0x12d */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 12u, 0x688600ffu) == 0);
     /* oris r7,r4,1 => r7=0x0001012a */
-    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 16u, 0x64970001u) == 0);
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 16u, 0x64870001u) == 0);
     /* andis. r8,r4,1 => r8=0x00010000 and CR0.GT */
-    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 20u, 0x75080001u) == 0);
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 20u, 0x74880001u) == 0);
     cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE);
     cpu.gpr[4] = 0x0001012au;
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
