@@ -1,24 +1,19 @@
-# CubEX360 v1.30b — integração do núcleo na toolchain
+# CubEX360 — toolchain-first development
 
-Projeto experimental de interpretador parcial PowerPC/Gekko para servir de base a um emulador de GameCube no Xbox 360.
+Projeto experimental de interpretador parcial PowerPC/Gekko para um futuro emulador de GameCube no Xbox 360.
 
-## Marco v1.30b (pacote local)
+## Toolchain
+O workflow [CubEX360 libXenon toolchain probe](.github/workflows/xenon-build.yml) compila o programa mínimo `xenon-probe` com Free60/libXenon, verifica o formato ELF32 PowerPC big-endian e publica relatório e SHA-256 como artefatos do CI.
 
-O pacote de desenvolvimento v1.30b acrescenta um smoke test que liga os fontes atuais de memória, barramento, estado da CPU e interpretador ao programa libXenon. O teste verifica:
-- alocação de 24 MiB de RAM;
-- alias cached/uncached e leitura big-endian do barramento;
-- execução de `addi r3,r0,42` no interpretador.
+Último probe confirmado: https://github.com/MeiKinosaki/CubEX360/actions/runs/38217103703
 
-A suíte host tem 21 executáveis de teste; todos passaram com C99, `-Wall -Wextra -Werror -O2`. O ZIP foi verificado localmente. O pacote v1.30b ainda não foi publicado integralmente nesta árvore do GitHub.
+As execuções recentes que testam o workflow revisado estão em andamento:
+https://github.com/MeiKinosaki/CubEX360/actions
 
-## CI e limites
+## Limite atual
+O probe valida a disponibilidade básica da toolchain, não o núcleo completo do CubEX360. O pacote de desenvolvimento v1.30b possui fontes de memória, barramento, estado da CPU e um interpretador parcial; os 21 testes host passaram localmente. Esses fontes ainda não foram todos publicados na árvore principal do repositório nem ligados no ELF de CI.
 
-O workflow já publicado validou um ELF32 de diagnóstico, mas ainda não compilou o novo alvo de núcleo integrado. É necessário publicar os fontes v1.30b e então rodar o workflow atualizado para confirmar o ELF do núcleo.
+## default.xex
+Ainda não foi gerado. libXenon fornece o caminho ELF/ELF32 e não converte automaticamente para XEX. Os scripts `scripts/xex-preflight.sh` e `scripts/verify-xenon-elf.sh` explicitam esses requisitos e bloqueios; não renomeie ELF para XEX.
 
-- [Execução anterior do probe libXenon](https://github.com/MeiKinosaki/CubEX360/actions/runs/38217103703)
-- [Status da toolchain](docs/TOOLCHAIN_STATUS.md)
-- [Plano de geração de default.xex](docs/DEFAULT_XEX.md)
-
-## `default.xex`
-
-Não foi gerado. O fluxo libXenon validado até agora gera ELF32; ele não converte automaticamente ELF em XEX. Não renomeie o ELF. O projeto também ainda não é um emulador completo de GameCube, e o teste no Xbox 360 RGH permanece pendente.
+Próximos passos: confirmar a execução do probe revisado, publicar o núcleo completo, compilar o alvo integrado e, separadamente, validar uma toolchain/runtime XEX e testar o artefato em hardware.
