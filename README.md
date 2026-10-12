@@ -4,21 +4,24 @@ Projeto experimental de interpretador parcial de instruções PowerPC/Gekko para
 
 ## Estado atual
 
-**Versão de desenvolvimento: v1.23b — transferência entre campos do CR.**
+**Versão de desenvolvimento: v1.24b — transferência dos flags XER para o CR (`mcrxr`).**
 
-A versão local v1.23b adiciona:
-- `mcrf`: copia um campo de 4 bits do registrador de condição (CR) para outro campo.
-- Testes de regressão que verificam a cópia do campo e a preservação dos demais campos.
-- Regressão da suíte nativa completa: 18 executáveis de teste passaram com C99, `-Wall -Wextra -Werror -O2`.
+A v1.24b preparada localmente adiciona suporte parcial a `mcrxr crfD`: transfere os flags SO, OV e CA do XER para o campo selecionado do CR e limpa esses três flags no XER. Foram adicionados casos de teste para flags ativos e inativos.
 
-Veja [as notas da v1.23b](docs/RELEASE_v1.23b.md).
+Consulte [as notas da v1.24b](docs/RELEASE_v1.24b.md).
+
+## Validação local
+
+- `make clean test`: 18 executáveis de teste nativos passaram.
+- Compilação C99 com `-Wall -Wextra -Werror -O2`.
+- Integridade do ZIP da v1.24b verificada.
 
 ## Estado de publicação
 
-O README e as notas de versão estão sendo atualizados no GitHub. O ZIP completo do código-fonte v1.23b foi gerado e validado localmente, mas ainda não foi anexado como artefato binário nem todos os arquivos da versão foram commitados nesta branch.
+O README e as notas da versão v1.24b estão publicados nesta branch. O ZIP completo do código-fonte foi criado e testado localmente, mas ainda não foi anexado como artefato binário e o código-fonte integral da versão ainda não foi commitado neste repositório.
 
-## Compilação e compatibilidade
+## Xbox 360 e limitações
 
-Os testes nativos são executados com `make clean test` e não comprovam uma compilação para Xbox 360. A toolchain libXenon ainda precisa ser validada; não há `xenon.elf` ou `default.xex` confirmados.
+A toolchain libXenon ainda não foi validada neste ambiente. Não há `xenon.elf` nem `default.xex` confirmados. Os testes nativos não demonstram execução no console.
 
-O projeto permanece parcial: ainda faltam partes substanciais da CPU Gekko, FPU, MMU/exceções, GPU, DSP, leitura de discos e integração do sistema para compatibilidade ampla com jogos.
+O projeto permanece parcial: faltam partes substanciais da CPU Gekko, FPU, MMU/exceções, GPU, DSP, leitura de discos e integração do sistema para compatibilidade ampla com jogos.
