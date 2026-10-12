@@ -1,27 +1,25 @@
-# CubEX360 v1.28b — foco na toolchain
+# CubEX360 — toolchain bootstrap (v1.28b)
 
-Projeto experimental de interpretador parcial PowerPC/Gekko para servir de base a um emulador de GameCube no Xbox 360.
+Projeto experimental de interpretador parcial PowerPC/Gekko para um emulador de GameCube no Xbox 360.
 
-## Prioridade desta versão
+## Marco de toolchain concluído
 
-A v1.28b concentra-se na infraestrutura de compilação:
-- adiciona `xenon-probe/`, um programa mínimo de diagnóstico para verificar o ambiente libXenon;
-- adiciona o workflow `.github/workflows/xenon-build.yml`, que usa o contêiner Free60/libXenon para tentar gerar um ELF32 no GitHub Actions;
-- documenta separadamente o caminho para `default.xex`.
+O workflow [CubEX360 libXenon toolchain probe](https://github.com/MeiKinosaki/CubEX360/actions/runs/38217103703) terminou com sucesso em 12/10/2026. O contêiner Free60/libXenon compilou um programa mínimo de diagnóstico e publicou o artefato `cubex360_toolchain_probe.elf32`.
 
-O probe verifica o toolchain e a saída de console; não é o emulador e ainda não integra o núcleo PowerPC.
+- Formato verificado localmente: ELF 32-bit, big-endian, PowerPC.
+- SHA-256: `96d490d9c467eca735f571cfd8327d1838fbb23a791bbf9e64bac7d5c2648854`.
+- [Execução CI](https://github.com/MeiKinosaki/CubEX360/actions/runs/38217103703).
+- O artefato de CI é apenas um probe de toolchain, não contém o núcleo de emulação.
 
-## Build do probe
+## Próximas etapas
 
-O workflow pode ser executado em GitHub Actions manualmente ou quando os arquivos do probe mudarem. Se a compilação passar, o artefato `cubex360_toolchain_probe.elf32` e seu SHA-256 ficam disponíveis na execução do workflow.
+1. Adicionar ao repositório o código-fonte integral do núcleo CubEX360.
+2. Criar um alvo libXenon que compile e vincule esse núcleo, em vez do probe isolado.
+3. Validar separadamente a cadeia que produz `default.xex`. LibXenon produz ELF/ELF32 e não converte automaticamente para XEX.
+4. Verificar o XEX gerado e testar em hardware compatível.
 
-## Sobre default.xex
+Consulte [status da toolchain](docs/TOOLCHAIN_STATUS.md) e [caminho para default.xex](docs/DEFAULT_XEX.md).
 
-A toolchain libXenon gera ELF/ELF32 para execução via XeLL; ela não gera `default.xex`. Não é correto renomear um ELF para XEX nem declarar uma conversão sem um runtime e uma toolchain compatíveis. Veja [docs/DEFAULT_XEX.md](docs/DEFAULT_XEX.md).
+## Limitações atuais
 
-## Estado
-- Testes host do núcleo: executados localmente com `make clean test`.
-- ELF32 remoto: pendente de execução do workflow; nenhum artefato de CI foi confirmado ainda.
-- Integração do núcleo no alvo Xbox 360: pendente.
-- `default.xex`: pendente; exige um fluxo de build XEX validado.
-- Teste em Xbox 360 RGH: pendente.
+O probe não é um emulador. O núcleo completo ainda não está presente nesta árvore do repositório; a integração da CPU Gekko, memória, GPU, DSP, FPU e sistema permanece pendente. Não há `default.xex` confirmado.
