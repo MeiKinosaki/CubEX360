@@ -1,31 +1,25 @@
-# Status da toolchain — CubEX360 v1.28b
+# Status da toolchain — v1.29b
 
-## ELF32 de diagnóstico — aprovado
+## ELF32
+O workflow libXenon de diagnóstico terminou com sucesso:
+https://github.com/MeiKinosaki/CubEX360/actions/runs/38217103703
 
-Em 12/10/2026, o workflow [run 38217103703](https://github.com/MeiKinosaki/CubEX360/actions/runs/38217103703) terminou com sucesso.
-- Imagem `free60/libxenon:latest` baixada e `xenon-gcc` encontrado.
-- O Makefile foi corrigido para vincular `$(OFILES)` no alvo ELF.
-- O artefato `cubex360_toolchain_probe.elf32` foi publicado no CI e baixado para inspeção.
-- `file` identificou `ELF 32-bit MSB executable, PowerPC, statically linked, stripped`.
-- SHA-256 verificado: `96d490d9c467eca735f571cfd8327d1838fbb23a791bbf9e64bac7d5c2648854`.
+O artefato é um ELF32 PowerPC big-endian de diagnóstico. Ele não contém o núcleo completo do emulador e não é `default.xex`.
 
-## Limite do marco
+## v1.29b — gates locais
+- `make clean test`: 20 executáveis nativos passaram localmente.
+- `unzip -t CubEX360_v1.29b_toolchain_gate.zip`: integridade verificada.
+- `make verify-xenon-elf ELF32=/caminho/arquivo.elf32`: valida o formato ELF e imprime SHA-256.
+- `make xex-preflight`: testado; retorna código 2 e declara o bloqueio se as ferramentas XEX não estiverem configuradas.
 
-Esse resultado comprova que a toolchain compila um programa mínimo libXenon; não comprova que o núcleo CubEX360 foi compilado, pois os fontes completos do núcleo não estão na árvore atual do repositório. O ELF é apenas um probe de console.
+## Bloqueios
+- O código-fonte completo ainda não está publicado nesta árvore GitHub.
+- O ELF atual é apenas um probe, não uma build do núcleo CubEX360.
+- Não há compilador/empacotador XEX validado neste projeto.
+- `default.xex` não foi gerado nem testado em hardware.
 
 ## Próximas tarefas
-
-1. Publicar os fontes completos do núcleo e seu Makefile de destino.
-2. Integrar o núcleo ao alvo libXenon e compilar um ELF do CubEX360, não o probe.
-3. Validar a compatibilidade do ABI e o fluxo de criação de XEX em um projeto separado.
-4. Verificar o XEX e testar no hardware alvo.
-
-## Estado do XEX
-
-- `default.xex`: não gerado.
-- Não renomear ELF32 para XEX; são formatos diferentes.
-- O caminho XEX requer toolchain/empacotamento compatível com o loader Xbox 360. Nenhum artefato XEX válido foi produzido por este projeto até agora.
-
-
-## Portão de aceite XEX
-Os critérios para aceitar um `default.xex` estão em [docs/DEFAULT_XEX.md](DEFAULT_XEX.md). Nenhum artefato será rotulado XEX sem ser produzido por toolchain compatível, inspecionado e testado no console.
+1. Publicar os fontes completos do núcleo.
+2. Integrar e compilar o núcleo com libXenon.
+3. Identificar toolchain/runtime XEX e verificar imports/estrutura.
+4. Testar o XEX real no Xbox 360 RGH.
