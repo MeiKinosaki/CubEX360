@@ -138,7 +138,7 @@ int main(void) {
     cpu.ctr = 2u;
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
     assert(cpu.ctr == 1u);
-    assert(cpu.pc == CUBEX360_RAM_CACHED_BASE + 116u);
+    assert(cpu.pc == CUBEX360_RAM_CACHED_BASE + 120u);
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
     assert(cpu.gpr[26] == 2u);
     cubex_memory_destroy(&mem);
