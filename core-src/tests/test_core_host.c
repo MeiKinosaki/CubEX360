@@ -31,6 +31,12 @@ int main(void) {
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 72u, (16u<<26)|(12u<<21)|(2u<<16)|(2u<<2)) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 76u, (14u<<26)|(22u<<21)|1u) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 80u, (14u<<26)|(22u<<21)|2u) == 0);
+    /* bc not taken when CR0.EQ is false; bcl always updates LR and branches. */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 84u, (16u<<26)|(12u<<21)|(2u<<16)|(2u<<2)) == 0);
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 88u, (14u<<26)|(23u<<21)|3u) == 0);
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 92u, (16u<<26)|(20u<<21)|(2u<<2)|1u) == 0);
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 96u, (14u<<26)|(24u<<21)|1u) == 0);
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 100u, (14u<<26)|(24u<<21)|2u) == 0);
     /* Misaligned LWZ and unsupported floating-point opcode must fail safely. */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 64u, (32u<<26)|(21u<<21)|(16u<<16)) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 68u, (63u<<26)) == 0);
@@ -106,6 +112,18 @@ int main(void) {
     assert(cpu.pc == CUBEX360_RAM_CACHED_BASE + 80u);
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
     assert(cpu.gpr[22] == 2u);
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 84u);
+    cpu.cr = 0x40000000u;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.pc == CUBEX360_RAM_CACHED_BASE + 88u);
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[23] == 3u);
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 92u);
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.pc == CUBEX360_RAM_CACHED_BASE + 100u);
+    assert(cpu.lr == CUBEX360_RAM_CACHED_BASE + 96u);
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[24] == 2u);
     cubex_memory_destroy(&mem);
     puts("CubEX360 core host smoke: PASS");
     return 0;
