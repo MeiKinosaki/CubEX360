@@ -5,6 +5,8 @@ int main(void) {
     cubex_memory_t mem;
     cubex_cpu_state_t cpu;
     uint32_t value = 0;
+    uint8_t byte_value = 0;
+    uint16_t half_value = 0;
     assert(cubex_memory_init(&mem) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE, 0x3860002au) == 0);
     assert(cubex_bus_read32be(&mem, CUBEX360_RAM_UNCACHED_BASE, &value) == 0);
@@ -76,9 +78,9 @@ int main(void) {
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
     assert(cpu.gpr[18] == 0xffffff80u);
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
-    assert(cubex_memory_read8(&mem, 0x106u, (uint8_t *)&value) == 0 && (value & 0xffu) == 0x5au);
+    assert(cubex_memory_read8(&mem, 0x106u, &byte_value) == 0 && byte_value == 0x5au);
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
-    assert(cubex_memory_read16be(&mem, 0x108u, (uint16_t *)&value) == 0 && (value & 0xffffu) == 0xcafeu);
+    assert(cubex_memory_read16be(&mem, 0x108u, &half_value) == 0 && half_value == 0xcafeu);
     assert(cubex_memory_write32be(&mem, 0, 0x12345678u) == 0);
     assert(cubex_memory_read32be(&mem, 0, &value) == 0 && value == 0x12345678u);
     assert(cubex_memory_read32be(&mem, CUBEX360_MAIN_RAM_SIZE, &value) != 0);
