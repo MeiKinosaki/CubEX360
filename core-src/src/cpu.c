@@ -91,6 +91,26 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
         if (cubex_bus_translate_main_ram(a, &p) || cubex_memory_write16be(m, p, (uint16_t)c->gpr[rt])) return CUBEX_CPU_MEMORY_FAULT;
         break;
     }
+    case 19:
+        if (xo == 16u) {
+            uint32_t bo = (ins >> 21) & 31u;
+            uint32_t bi = (ins >> 16) & 31u;
+            uint32_t target = c->lr & ~3u;
+            int ctr_ok = 1, cr_ok = 1;
+            if (!(bo & 0x04u)) {
+                c->ctr--;
+                ctr_ok = ((c->ctr != 0u) != ((bo & 0x02u) != 0u));
+            }
+            if (!(bo & 0x10u)) {
+                uint32_t cr_bit = (c->cr >> (31u - bi)) & 1u;
+                cr_ok = cr_bit == ((bo & 0x08u) != 0u);
+            }
+            if (ctr_ok && cr_ok) next = target;
+            if (ins & 1u) c->lr = c->pc + 4u;
+        } else {
+            return CUBEX_CPU_UNSUPPORTED;
+        }
+        break;
     case 31:
         switch (xo) {
         case 266: c->gpr[rt] = c->gpr[ra] + c->gpr[rb]; if (ins & 1u) set_cr0(c, c->gpr[rt]); break;
