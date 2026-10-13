@@ -1,4 +1,4 @@
-# CubEX360 — toolchain-first development (v1.31b)
+# CubEX360 — toolchain-first development (v1.41b)
 
 Projeto experimental de interpretador parcial PowerPC/Gekko para um futuro emulador de GameCube no Xbox 360.
 
@@ -54,3 +54,14 @@ O núcleo continua parcial; `default.xex` ainda não foi gerado.
 Adicionado suporte experimental para `MULLI`, `ADDIC` e `ADDIC.`, com casos de regressão no teste nativo. O workflow também ganhou um job com AddressSanitizer e UndefinedBehaviorSanitizer para detectar acessos inválidos e comportamento indefinido no núcleo C.
 
 **Importante:** aguardar a conclusão do CI para validar esta revisão. O núcleo ainda é parcial e `default.xex` ainda não foi gerado.
+
+
+## v1.41b — load/store e segurança de execução
+
+O interpretador parcial recebeu suporte experimental para `LBZ`, `LHZ`, `LHA`, `STB` e `STH`, mantendo `LWZ` e `STW`. Os testes cobrem carregamento sem sinal/com sinal, gravação de byte/meia-palavra, falha de acesso desalinhado e rejeição segura de opcode não suportado. Também foram corrigidos casos de aliasing nos testes host e a semântica de operandos assinados em `MULLI` e do registrador-fonte em `ADDIC`.
+
+- [Código da CPU](core-src/src/cpu.c)
+- [Testes de regressão](core-src/tests/test_core_host.c)
+- [Execuções de CI](https://github.com/MeiKinosaki/CubEX360/actions)
+
+A revisão está aguardando o resultado do CI. O job libXenon atual gera um ELF32 de smoke test, não um executável integrado do emulador. Não há ferramenta XEX validada configurada, portanto `default.xex` permanece bloqueado e não deve ser simulado renomeando o ELF.
