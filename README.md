@@ -87,3 +87,14 @@ A cobertura de desvios indiretos foi ampliada: `BCTR` agora usa o destino em CTR
 ## v1.44b — desvios indiretos PowerPC
 
 Além de `BCLR/BLR`, o núcleo agora implementa a forma `BCCTR/BCTR` e preserva CTR durante o salto indireto. Testes verificam o destino em CTR, o salto sobre a instrução sequencial e o valor não decrementado de CTR. CI da revisão pendente.
+
+
+## v1.45b — comparação imediata e SPR LR/CTR
+
+Adicionado suporte experimental a `CMPWI`/`CMPLWI` (formas imediatas de comparação assinada e não assinada) e a `MFSPR`/`MTSPR` para os SPRs LR e CTR. Foram incluídos testes de atualização do campo CR especificado e de leitura/escrita dos registradores especiais. Uma revisão dos testes corrigiu as máscaras usadas para verificar CR2 e CR3. O CI desta revisão precisa terminar antes de considerá-la aprovada.
+
+- [CPU](core-src/src/cpu.c)
+- [Testes host](core-src/tests/test_core_host.c)
+- [GitHub Actions](https://github.com/MeiKinosaki/CubEX360/actions)
+
+O suporte continua parcial: instruções SPR não implementadas são rejeitadas, e `default.xex` ainda não foi gerado.
