@@ -31,6 +31,18 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
     xo = (ins >> 1) & 0x3ffu;
     next = c->pc + 4u;
     switch (op) {
+    case 7:
+        c->gpr[rt] = (uint32_t)((int64_t)(ra ? c->gpr[ra] : 0u) * (int64_t)sx16(imm));
+        break;
+    case 12:
+    case 13: {
+        uint64_t sum = (uint64_t)(ra ? c->gpr[ra] : 0u) + (uint64_t)(uint32_t)sx16(imm);
+        c->gpr[rt] = (uint32_t)sum;
+        if (sum >> 32) c->xer |= 0x20000000u;
+        else c->xer &= ~0x20000000u;
+        if (op == 13) set_cr0(c, c->gpr[rt]);
+        break;
+    }
     case 14: c->gpr[rt] = (ra ? c->gpr[ra] : 0u) + (uint32_t)sx16(imm); break;
     case 15: c->gpr[rt] = (ra ? c->gpr[ra] : 0u) + ((uint32_t)sx16(imm) << 16); break;
     case 24: c->gpr[ra] = c->gpr[rt] | imm; break;
