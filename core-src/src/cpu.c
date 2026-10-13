@@ -101,6 +101,25 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
         default: return CUBEX_CPU_UNSUPPORTED;
         }
         break;
+    case 16: {
+        uint32_t bo = (ins >> 21) & 31u;
+        uint32_t bi = (ins >> 16) & 31u;
+        int32_t d = (int32_t)(ins & 0x0000fffcu);
+        int ctr_ok = 1, cr_ok = 1;
+        if (d & 0x00008000) d |= (int32_t)0xffff0000u;
+        if (!(bo & 0x04u)) {
+            c->ctr--;
+            ctr_ok = ((c->ctr != 0u) != ((bo & 0x02u) != 0u));
+        }
+        if (!(bo & 0x10u)) {
+            uint32_t cr_bit = (c->cr >> (31u - bi)) & 1u;
+            cr_ok = cr_bit == ((bo & 0x08u) != 0u);
+        }
+        if (ctr_ok && cr_ok)
+            next = (ins & 2u) ? (uint32_t)d : c->pc + (uint32_t)d;
+        if (ins & 1u) c->lr = c->pc + 4u;
+        break;
+    }
     case 18: {
         int32_t d = (int32_t)(ins & 0x03fffffcu);
         if (d & 0x02000000) d |= (int32_t)0xfc000000u;
