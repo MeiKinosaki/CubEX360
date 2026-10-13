@@ -19,6 +19,15 @@ int main(void) {
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 16u, 0x64870001u) == 0);
     /* andis. r8,r4,1 => r8=0x00010000 and CR0.GT */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 20u, 0x74880001u) == 0);
+    /* lbz r15,0(r16); lhz r17,2(r16); lha r18,4(r16); stb r19,6(r16); sth r20,8(r16) */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 44u, (34u<<26)|(15u<<21)|(16u<<16)) == 0);
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 48u, (40u<<26)|(17u<<21)|(16u<<16)|2u) == 0);
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 52u, (42u<<26)|(18u<<21)|(16u<<16)|4u) == 0);
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 56u, (38u<<26)|(19u<<21)|(16u<<16)|6u) == 0);
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 60u, (44u<<26)|(20u<<21)|(16u<<16)|8u) == 0);
+    assert(cubex_memory_write8(&mem, 0x100u, 0xabu) == 0);
+    assert(cubex_memory_write16be(&mem, 0x102u, 0x1234u) == 0);
+    assert(cubex_memory_write16be(&mem, 0x104u, 0xff80u) == 0);
     /* mulli r12,r4,2; addic r13,r4,1; addic. r14,r4,-1 */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 32u, (7u<<26)|(12u<<21)|(4u<<16)|2u) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 36u, (12u<<26)|(13u<<21)|(4u<<16)|1u) == 0);
@@ -28,6 +37,9 @@ int main(void) {
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 28u, (31u<<26)|(10u<<21)|(11u<<16)|(4u<<11)|(40u<<1)) == 0);
     cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE);
     cpu.gpr[4] = 0x0001012au;
+    cpu.gpr[16] = 0x100u;
+    cpu.gpr[19] = 0x5au;
+    cpu.gpr[20] = 0xcafeu;
     cpu.gpr[11] = 3u;
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
     assert(cpu.gpr[3] == 42u);
@@ -57,6 +69,16 @@ int main(void) {
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
     assert(cpu.gpr[14] == 0x00010129u);
     assert((cpu.cr & 0xf0000000u) == 0x40000000u);
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[15] == 0xabu);
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[17] == 0x1234u);
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[18] == 0xffffff80u);
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cubex_memory_read8(&mem, 0x106u, (uint8_t *)&value) == 0 && (value & 0xffu) == 0x5au);
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cubex_memory_read16be(&mem, 0x108u, (uint16_t *)&value) == 0 && (value & 0xffffu) == 0xcafeu);
     assert(cubex_memory_write32be(&mem, 0, 0x12345678u) == 0);
     assert(cubex_memory_read32be(&mem, 0, &value) == 0 && value == 0x12345678u);
     assert(cubex_memory_read32be(&mem, CUBEX360_MAIN_RAM_SIZE, &value) != 0);
