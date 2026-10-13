@@ -98,3 +98,12 @@ Adicionado suporte experimental a `CMPWI`/`CMPLWI` (formas imediatas de compara�
 - [GitHub Actions](https://github.com/MeiKinosaki/CubEX360/actions)
 
 O suporte continua parcial: instruções SPR não implementadas são rejeitadas, e `default.xex` ainda não foi gerado.
+
+
+## v1.46b — comparação entre registradores
+
+Ampliado o interpretador com as formas PowerPC `CMPW` e `CMPLW` para comparação assinada e não assinada entre GPRs, com seleção do campo CR de destino. Os testes usam um operando negativo para distinguir a comparação assinada (LT) da não assinada (GT). O CI ainda precisa confirmar a revisão atual.
+
+- [Implementação](core-src/src/cpu.c)
+- [Testes](core-src/tests/test_core_host.c)
+- [GitHub Actions](https://github.com/MeiKinosaki/CubEX360/actions)
