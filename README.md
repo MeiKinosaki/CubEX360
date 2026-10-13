@@ -74,3 +74,8 @@ Adicionado suporte experimental ao opcode PowerPC `BC`, com avaliação de condi
 
 ### Cobertura adicional de BC
 Os testes também verificam o caminho não tomado quando CR0.EQ está falso e a semântica de `BCL` para atualizar LR. O deslocamento BD dos desvios é codificado já alinhado em bits; o teste usa BD=2 para representar um salto de 8 bytes. A revisão aguarda CI.
+
+
+## v1.43b — retorno por LR e desvios via CTR
+
+Adicionado suporte experimental a `BCLR` (incluindo a forma comum `BLR`) e testes para retorno através de LR. Os testes também cobrem `BC` condicionado por CTR, verificando decremento e salto quando CTR permanece diferente de zero. A revisão aguarda CI. O suporte ainda não equivale a compatibilidade completa com PowerPC/Gekko.
