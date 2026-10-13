@@ -1,4 +1,4 @@
-# CubEX360 — toolchain-first development (v1.41b)
+# CubEX360 — toolchain-first development (v1.42b)
 
 Projeto experimental de interpretador parcial PowerPC/Gekko para um futuro emulador de GameCube no Xbox 360.
 
@@ -65,3 +65,8 @@ O interpretador parcial recebeu suporte experimental para `LBZ`, `LHZ`, `LHA`, `
 - [Execuções de CI](https://github.com/MeiKinosaki/CubEX360/actions)
 
 A revisão está aguardando o resultado do CI. O job libXenon atual gera um ELF32 de smoke test, não um executável integrado do emulador. Não há ferramenta XEX validada configurada, portanto `default.xex` permanece bloqueado e não deve ser simulado renomeando o ELF.
+
+
+## v1.42b — desvio condicional BC
+
+Adicionado suporte experimental ao opcode PowerPC `BC`, com avaliação de condição CR e decremento/avaliação CTR, além de atualização de LR quando LK=1. O teste de regressão verifica o desvio quando CR0.EQ está ativo e confirma que a instrução no caminho ignorado não altera o estado. Uma falha no sanitizer revelou que a codificação de deslocamento do teste usava BD=8 (32 bytes); corrigida para BD=2 (8 bytes). Aguardando CI da revisão.
