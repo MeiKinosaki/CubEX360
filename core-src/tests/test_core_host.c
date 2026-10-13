@@ -37,6 +37,12 @@ int main(void) {
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 92u, (16u<<26)|(20u<<21)|(2u<<2)|1u) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 96u, (14u<<26)|(24u<<21)|1u) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 100u, (14u<<26)|(24u<<21)|2u) == 0);
+    /* blr: bclr 20,0,0 returns through LR; also test CTR-conditioned BC. */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 104u, (19u<<26)|(20u<<21)|(16u<<1)) == 0);
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 108u, (14u<<26)|(25u<<21)|1u) == 0);
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 112u, (16u<<26)|(16u<<21)|(0u<<16)|(2u<<2)) == 0);
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 116u, (14u<<26)|(26u<<21)|1u) == 0);
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 120u, (14u<<26)|(26u<<21)|2u) == 0);
     /* Misaligned LWZ and unsupported floating-point opcode must fail safely. */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 64u, (32u<<26)|(21u<<21)|(16u<<16)) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 68u, (63u<<26)) == 0);
@@ -124,6 +130,17 @@ int main(void) {
     assert(cpu.lr == CUBEX360_RAM_CACHED_BASE + 96u);
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
     assert(cpu.gpr[24] == 2u);
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 104u);
+    cpu.lr = CUBEX360_RAM_CACHED_BASE + 112u;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.pc == CUBEX360_RAM_CACHED_BASE + 112u);
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 112u);
+    cpu.ctr = 2u;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.ctr == 1u);
+    assert(cpu.pc == CUBEX360_RAM_CACHED_BASE + 116u);
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[26] == 2u);
     cubex_memory_destroy(&mem);
     puts("CubEX360 core host smoke: PASS");
     return 0;
