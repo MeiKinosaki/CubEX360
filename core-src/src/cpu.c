@@ -137,6 +137,19 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
         break;
     case 31:
         switch (xo) {
+        case 0:
+        case 32: {
+            uint32_t bf = (ins >> 23) & 7u;
+            if (ins & 0x00200000u) return CUBEX_CPU_UNSUPPORTED;
+            if (xo == 0u) {
+                int32_t a = (int32_t)c->gpr[ra], b = (int32_t)c->gpr[rb];
+                set_compare_field(c, bf, a < b, a > b, a == b);
+            } else {
+                uint32_t a = c->gpr[ra], b = c->gpr[rb];
+                set_compare_field(c, bf, a < b, a > b, a == b);
+            }
+            break;
+        }
         case 339: {
             uint32_t spr = ((ins >> 16) & 31u) | ((ins >> 6) & 0x3e0u);
             if (spr == 8u) c->gpr[rt] = c->lr;
