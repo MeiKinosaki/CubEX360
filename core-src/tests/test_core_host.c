@@ -28,7 +28,7 @@ int main(void) {
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 56u, (38u<<26)|(19u<<21)|(16u<<16)|6u) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 60u, (44u<<26)|(20u<<21)|(16u<<16)|8u) == 0);
     /* bc branch-if-CR0-EQ to +8; intervening addi must be skipped. */
-    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 72u, (16u<<26)|(12u<<21)|(2u<<16)|(8u<<2)) == 0);
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 72u, (16u<<26)|(12u<<21)|(2u<<16)|(2u<<2)) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 76u, (14u<<26)|(22u<<21)|1u) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 80u, (14u<<26)|(22u<<21)|2u) == 0);
     /* Misaligned LWZ and unsupported floating-point opcode must fail safely. */
