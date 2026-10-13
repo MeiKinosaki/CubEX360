@@ -47,3 +47,10 @@ O CI encontrou uma falha nos testes das operações lógicas imediatas: a implem
 - [GitHub Actions](https://github.com/MeiKinosaki/CubEX360/actions)
 
 O núcleo continua parcial; `default.xex` ainda não foi gerado.
+
+
+## v1.40b — operações aritméticas imediatas e sanitizers
+
+Adicionado suporte experimental para `MULLI`, `ADDIC` e `ADDIC.`, com casos de regressão no teste nativo. O workflow também ganhou um job com AddressSanitizer e UndefinedBehaviorSanitizer para detectar acessos inválidos e comportamento indefinido no núcleo C.
+
+**Importante:** aguardar a conclusão do CI para validar esta revisão. O núcleo ainda é parcial e `default.xex` ainda não foi gerado.
