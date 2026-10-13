@@ -27,6 +27,9 @@ int main(void) {
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 52u, (42u<<26)|(18u<<21)|(16u<<16)|4u) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 56u, (38u<<26)|(19u<<21)|(16u<<16)|6u) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 60u, (44u<<26)|(20u<<21)|(16u<<16)|8u) == 0);
+    /* Misaligned LWZ and unsupported floating-point opcode must fail safely. */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 64u, (32u<<26)|(21u<<21)|(16u<<16)) == 0);
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 68u, (63u<<26)) == 0);
     assert(cubex_memory_write8(&mem, 0x100u, 0xabu) == 0);
     assert(cubex_memory_write16be(&mem, 0x102u, 0x1234u) == 0);
     assert(cubex_memory_write16be(&mem, 0x104u, 0xff80u) == 0);
@@ -84,6 +87,15 @@ int main(void) {
     assert(cubex_memory_write32be(&mem, 0, 0x12345678u) == 0);
     assert(cubex_memory_read32be(&mem, 0, &value) == 0 && value == 0x12345678u);
     assert(cubex_memory_read32be(&mem, CUBEX360_MAIN_RAM_SIZE, &value) != 0);
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 64u);
+    cpu.gpr[16] = 0x101u;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_MEMORY_FAULT);
+    assert(cpu.pc == CUBEX360_RAM_CACHED_BASE + 64u);
+    assert(cpu.retired_instructions == 0u);
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 68u);
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_UNSUPPORTED);
+    assert(cpu.pc == CUBEX360_RAM_CACHED_BASE + 68u);
+    assert(cpu.retired_instructions == 0u);
     cubex_memory_destroy(&mem);
     puts("CubEX360 core host smoke: PASS");
     return 0;
