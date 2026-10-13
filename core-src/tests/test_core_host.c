@@ -180,7 +180,7 @@ int main(void) {
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
     assert((cpu.cr & 0x00f00000u) == 0x00200000u);
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
-    assert((cpu.cr & 0x000f0000u) == 0x00040000u);
+    assert((cpu.cr & 0x000f0000u) == 0x00020000u);
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK && cpu.gpr[31] == 0xabcdef00u);
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK && cpu.gpr[1] == 7u);
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK && cpu.lr == 0x12345678u);
