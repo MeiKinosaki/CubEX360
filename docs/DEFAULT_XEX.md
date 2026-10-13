@@ -16,7 +16,7 @@
 - Fluxo de desenvolvimento Xbox 360 que gere executável PE/XEX compatível e permita linkar o programa com os imports/runtime necessários.
 - Ferramentas de empacotamento XEX documentadas e reproduzíveis, desde que a imagem de entrada tenha sido gerada com ABI/sections/imports corretos.
 
-## Bloqueios atuais
+## Estado atualizado em v1.41b\n- O CI tem job host com ASan/UBSan; a última execução aprovada antes dos testes de load/store está em https://github.com/MeiKinosaki/CubEX360/actions/runs/38332557518. A revisão com load/store aguarda seu próprio resultado.\n- O núcleo agora tem testes adicionais de LBZ/LHZ/LHA/STB/STH, acessos desalinhados e opcode não suportado, mas continua um interpretador parcial.\n\n## Bloqueios atuais
 - Não há toolchain XEX configurada no repositório ou runner.
 - O ELF libXenon não é diretamente um executável XEX.
 - O núcleo integral do emulador ainda não está integrado ao probe na árvore GitHub atual.
