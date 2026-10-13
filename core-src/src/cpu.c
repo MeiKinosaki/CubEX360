@@ -12,11 +12,21 @@ void cubex_cpu_reset(cubex_cpu_state_t *c, uint32_t pc) {
     c->pc = pc;
 }
 static int32_t sx16(uint32_t v) { return (int16_t)(v & 0xffffu); }
+static void set_cr_field(cubex_cpu_state_t *c, uint32_t bf, uint32_t field) {
+    uint32_t shift = 28u - (bf * 4u);
+    uint32_t mask = 0xfu << shift;
+    c->cr = (c->cr & ~mask) | ((field & 0xfu) << shift);
+}
 static void set_cr0(cubex_cpu_state_t *c, uint32_t value) {
-    uint32_t field = ((int32_t)value < 0) ? PPC_CR0_LT :
-                     (value == 0u) ? PPC_CR0_EQ : PPC_CR0_GT;
-    if (c->xer & 0x80000000u) field |= PPC_CR0_SO;
-    c->cr = (c->cr & 0x0fffffffu) | field;
+    uint32_t field = ((int32_t)value < 0) ? 8u :
+                     (value == 0u) ? 2u : 4u;
+    if (c->xer & 0x80000000u) field |= 1u;
+    set_cr_field(c, 0u, field);
+}
+static void set_compare_field(cubex_cpu_state_t *c, uint32_t bf, int lt, int gt, int eq) {
+    uint32_t field = lt ? 8u : (gt ? 4u : (eq ? 2u : 0u));
+    if (c->xer & 0x80000000u) field |= 1u;
+    set_cr_field(c, bf, field);
 }
 
 cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
@@ -31,6 +41,20 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
     xo = (ins >> 1) & 0x3ffu;
     next = c->pc + 4u;
     switch (op) {
+    case 10:
+    case 11: {
+        uint32_t bf = (ins >> 23) & 7u;
+        uint32_t ra_value = c->gpr[ra];
+        if (ins & 0x00200000u) return CUBEX_CPU_UNSUPPORTED;
+        if (op == 11) {
+            int32_t a = (int32_t)ra_value, b = sx16(imm);
+            set_compare_field(c, bf, a < b, a > b, a == b);
+        } else {
+            uint32_t b = imm;
+            set_compare_field(c, bf, ra_value < b, ra_value > b, ra_value == b);
+        }
+        break;
+    }
     case 7:
         c->gpr[rt] = (uint32_t)((int64_t)(int32_t)c->gpr[ra] * (int64_t)sx16(imm));
         break;
@@ -113,6 +137,20 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
         break;
     case 31:
         switch (xo) {
+        case 339: {
+            uint32_t spr = ((ins >> 16) & 31u) | ((ins >> 6) & 0x3e0u);
+            if (spr == 8u) c->gpr[rt] = c->lr;
+            else if (spr == 9u) c->gpr[rt] = c->ctr;
+            else return CUBEX_CPU_UNSUPPORTED;
+            break;
+        }
+        case 467: {
+            uint32_t spr = ((ins >> 16) & 31u) | ((ins >> 6) & 0x3e0u);
+            if (spr == 8u) c->lr = c->gpr[rt];
+            else if (spr == 9u) c->ctr = c->gpr[rt];
+            else return CUBEX_CPU_UNSUPPORTED;
+            break;
+        }
         case 266: c->gpr[rt] = c->gpr[ra] + c->gpr[rb]; if (ins & 1u) set_cr0(c, c->gpr[rt]); break;
         case 40: c->gpr[rt] = c->gpr[rb] - c->gpr[ra]; if (ins & 1u) set_cr0(c, c->gpr[rt]); break;
         case 28: c->gpr[ra] = c->gpr[rt] & c->gpr[rb]; if (ins & 1u) set_cr0(c, c->gpr[ra]); break;
