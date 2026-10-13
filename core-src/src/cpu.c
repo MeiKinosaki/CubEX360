@@ -92,12 +92,12 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
         break;
     }
     case 19:
-        if (xo == 16u) {
+        if (xo == 16u || xo == 528u) {
             uint32_t bo = (ins >> 21) & 31u;
             uint32_t bi = (ins >> 16) & 31u;
-            uint32_t target = c->lr & ~3u;
+            uint32_t target = (xo == 16u ? c->lr : c->ctr) & ~3u;
             int ctr_ok = 1, cr_ok = 1;
-            if (!(bo & 0x04u)) {
+            if (xo == 16u && !(bo & 0x04u)) {
                 c->ctr--;
                 ctr_ok = ((c->ctr != 0u) != ((bo & 0x02u) != 0u));
             }
