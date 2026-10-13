@@ -70,3 +70,7 @@ A revisão está aguardando o resultado do CI. O job libXenon atual gera um ELF3
 ## v1.42b — desvio condicional BC
 
 Adicionado suporte experimental ao opcode PowerPC `BC`, com avaliação de condição CR e decremento/avaliação CTR, além de atualização de LR quando LK=1. O teste de regressão verifica o desvio quando CR0.EQ está ativo e confirma que a instrução no caminho ignorado não altera o estado. Uma falha no sanitizer revelou que a codificação de deslocamento do teste usava BD=8 (32 bytes); corrigida para BD=2 (8 bytes). Aguardando CI da revisão.
+
+
+### Cobertura adicional de BC
+Os testes também verificam o caminho não tomado quando CR0.EQ está falso e a semântica de `BCL` para atualizar LR. O deslocamento BD dos desvios é codificado já alinhado em bits; o teste usa BD=2 para representar um salto de 8 bytes. A revisão aguarda CI.
