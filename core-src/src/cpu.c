@@ -124,6 +124,7 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
         if (cubex_bus_translate_main_ram(a, &p) || cubex_memory_write16be(m, p, (uint16_t)c->gpr[rt])) return CUBEX_CPU_MEMORY_FAULT;
         break;
     }
+    case 20:
     case 21: {
         uint32_t sh = (ins >> 11) & 31u;
         uint32_t mb = (ins >> 6) & 31u;
@@ -131,7 +132,10 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
         uint32_t mask = ppc_mask_mb_me(mb, me);
         uint32_t source = c->gpr[rt];
         uint32_t rotated = (source << sh) | (source >> ((32u - sh) & 31u));
-        c->gpr[ra] = rotated & mask;
+        if (op == 20u)
+            c->gpr[ra] = (c->gpr[ra] & ~mask) | (rotated & mask);
+        else
+            c->gpr[ra] = rotated & mask;
         if (ins & 1u) set_cr0(c, c->gpr[ra]);
         break;
     }
@@ -215,6 +219,7 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
         int32_t d = (int32_t)(ins & 0x03fffffcu);
         if (d & 0x02000000) d |= (int32_t)0xfc000000u;
         next = (ins & 2u) ? (uint32_t)d : c->pc + (uint32_t)d;
+        if (ins & 1u) c->lr = c->pc + 4u;
         break;
     }
     default: return CUBEX_CPU_UNSUPPORTED;
