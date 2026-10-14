@@ -294,6 +294,23 @@ int main(void) {
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK && cpu.gpr[29] == 0xfffffff1u);
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK && cpu.gpr[30] == 0xffffff00u);
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK && cpu.gpr[31] == 0xffffffffu);
+    /* ORC and XER SPR move coverage. */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x260u,
+        (31u<<26)|(4u<<21)|(5u<<16)|(412u<<1)) == 0);
+    /* mfspr r6,XER (SPR encoding for SPR 1). */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x264u,
+        (31u<<26)|(6u<<21)|(1u<<16)|(1u<<11)|(339u<<1)) == 0);
+    /* mtspr XER,r7 (SPR encoding for SPR 1). */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x268u,
+        (31u<<26)|(7u<<21)|(1u<<16)|(1u<<11)|(467u<<1)) == 0);
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x260u);
+    cpu.gpr[4] = 0x00ff00ffu;
+    cpu.gpr[5] = 0x0f0f0f0fu;
+    cpu.xer = 0x20000000u;
+    cpu.gpr[7] = 0x80000000u;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK && cpu.gpr[5] == 0xf0f0f0ffu);
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK && cpu.gpr[6] == 0x20000000u);
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK && cpu.xer == 0x80000000u);
     /* Bounded execution loop runs exactly the requested instruction budget. */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x300u, 0x3860002au) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x304u, 0x38830001u) == 0);
