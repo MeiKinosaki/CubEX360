@@ -129,3 +129,10 @@ Adicionado o opcode PowerPC `RLWINM` (rotate left word immediate then AND with m
 **Validação:** aguardar o GitHub Actions do commit atual. O build libXenon segue sendo um ELF32 de smoke test do núcleo, não uma aplicação XEX pronta. Não há evidência de `default.xex` gerado, inicialização em Xbox 360 RGH, GPU/áudio/GameCube IPL ou compatibilidade com jogos.
 
 Consulte [o gate de XEX](docs/DEFAULT_XEX.md) e [a execução de CI](https://github.com/MeiKinosaki/CubEX360/actions).
+
+
+## v1.49b — deslocamentos PowerPC/Gekko
+
+A CPU parcial ganhou as instruções inteiras `SLW`, `SRW` e `SRAWI`. Os deslocamentos lógicos zeram o resultado quando o bit de faixa do registrador de deslocamento está ativo; `SRAWI` propaga o sinal sem depender de deslocamento à direita de inteiro negativo definido pela implementação, atualiza o carry do XER e, na forma com Rc, atualiza CR0. Foram acrescentadas regressões para deslocamentos, carry e atualização de condição.
+
+**Escopo honesto:** isso amplia o subconjunto interpretado, não representa 60% de compatibilidade total da CPU Gekko. Ainda faltam muitas instruções, exceções, MMU, FPU/paired-single, timers/interrupções e integração completa do sistema. `default.xex` segue não gerado.
