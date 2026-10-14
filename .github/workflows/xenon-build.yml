@@ -31,6 +31,19 @@ jobs:
             core-src/src/memory.c core-src/src/bus.c core-src/src/cpu.c \
             core-src/tests/test_core_host.c -o /tmp/cubex360-core-sanitizers
           /tmp/cubex360-core-sanitizers
+  xex-preflight-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ensure XEX build fails closed until real tools are configured
+        run: |
+          set -eu
+          set +e
+          ./scripts/xex-preflight.sh
+          rc=$?
+          set -e
+          test "$rc" -eq 2
+
   build-core-smoke:
     runs-on: ubuntu-latest
     timeout-minutes: 30
