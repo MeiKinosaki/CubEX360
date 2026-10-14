@@ -299,10 +299,10 @@ int main(void) {
         (31u<<26)|(4u<<21)|(5u<<16)|(5u<<11)|(412u<<1)) == 0);
     /* mfspr r6,XER (SPR encoding for SPR 1). */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x264u,
-        (31u<<26)|(6u<<21)|(1u<<16)|(1u<<11)|(339u<<1)) == 0);
+        (31u<<26)|(6u<<21)|(1u<<16)|(339u<<1)) == 0);
     /* mtspr XER,r7 (SPR encoding for SPR 1). */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x268u,
-        (31u<<26)|(7u<<21)|(1u<<16)|(1u<<11)|(467u<<1)) == 0);
+        (31u<<26)|(7u<<21)|(1u<<16)|(467u<<1)) == 0);
     cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x260u);
     cpu.gpr[4] = 0x00ff00ffu;
     cpu.gpr[5] = 0x0f0f0f0fu;
