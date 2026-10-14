@@ -187,8 +187,20 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
             c->gpr[ra] = c->gpr[rt] & ~c->gpr[rb];
             if (ins & 1u) set_cr0(c, c->gpr[ra]);
             break;
+        case 104: /* NEG: negate source register modulo 2^32 */
+            c->gpr[ra] = 0u - c->gpr[rt];
+            if (ins & 1u) set_cr0(c, c->gpr[ra]);
+            break;
         case 124: /* NOR */
             c->gpr[ra] = ~(c->gpr[rt] | c->gpr[rb]);
+            if (ins & 1u) set_cr0(c, c->gpr[ra]);
+            break;
+        case 284: /* EQV */
+            c->gpr[ra] = ~(c->gpr[rt] ^ c->gpr[rb]);
+            if (ins & 1u) set_cr0(c, c->gpr[ra]);
+            break;
+        case 476: /* NAND */
+            c->gpr[ra] = ~(c->gpr[rt] & c->gpr[rb]);
             if (ins & 1u) set_cr0(c, c->gpr[ra]);
             break;
         case 922: /* EXTSH */
