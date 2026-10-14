@@ -176,6 +176,22 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
             }
             break;
         }
+        case 19: /* MFCR: move complete condition register to GPR */
+            c->gpr[rt] = c->cr;
+            break;
+        case 144: { /* MTCRF: move selected CR fields from GPR */
+            uint32_t fxm = (ins >> 12) & 0xffu;
+            uint32_t source = c->gpr[rt];
+            uint32_t field;
+            for (field = 0u; field < 8u; ++field) {
+                if (fxm & (1u << (7u - field))) {
+                    uint32_t shift = 28u - field * 4u;
+                    uint32_t mask = 0xfu << shift;
+                    c->cr = (c->cr & ~mask) | (source & mask);
+                }
+            }
+            break;
+        }
         case 26: { /* CNTLZW: count leading zero bits */
             uint32_t value = c->gpr[rt], count = 0u;
             while (count < 32u && (value & (0x80000000u >> count)) == 0u) ++count;
