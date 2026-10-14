@@ -20,3 +20,28 @@
 4. Validar estrutura/imports/ABI do XEX e testar em hardware.
 
 O pacote v1.31b existe como ZIP local; não afirmar que é uma release do GitHub até anexá-lo/publicá-lo realmente.
+
+## Atualização — toolchain em nuvem e default.xex (2026-10-14)
+
+### Compilação remota já configurada
+O workflow .github/workflows/xenon-build.yml pode ser acionado manualmente no GitHub Actions. Ele:
+- compila e executa os testes host e sanitizers;
+- compila o alvo smoke do núcleo usando Free60/libXenon em container;
+- valida o formato ELF32 PowerPC big-endian e publica os artefatos ELF e relatórios.
+
+Isso é a etapa de toolchain em nuvem que já existe. O artefato é um ELF de smoke test, não o executável final.
+
+### Caminho de XEX investigado
+A documentação pública de RXDK-360/XexTool descreve um empacotador ELF→XEX2 e um fluxo de toolchain Xbox 360. Referências:
+- RXDK-360: https://github.com/Team-Resurgent/RXDK360
+- XexTool e comando pack: https://github.com/Team-Resurgent/XexTool
+- Detalhes do formato e limites do empacotador experimental: https://github.com/Team-Resurgent/RXDK360/blob/main/docs/xex-packing.md
+
+Não é correto simplesmente empacotar o ELF atual como se já fosse o CubEX360 executável: o alvo usa Free60/libXenon, e ABI, entry point, imports do kernel, runtime, layout de memória e chamadas de sistema precisam ser compatíveis com o carregador XEX. O documento de empacotamento também relata limitações de validação em emulador; isso não prova inicialização em hardware real.
+
+### Bloqueio explícito
+- default.xex do CubEX360 completo: NÃO GERADO.
+- Build do núcleo ligado a runtime/imports XEX validados: pendente.
+- Teste no Xbox 360 RGH: pendente.
+
+Próximo marco real: escolher e fixar uma toolchain XEX compatível, criar um alvo de aplicação que use essa ABI/runtime, produzir um XEX de teste, inspecioná-lo com XexTool e executar teste de boot antes de liberar um artefato chamado default.xex. Não renomear ELF nem usar o probe como se fosse o emulador.
