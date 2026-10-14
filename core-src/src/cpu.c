@@ -174,6 +174,35 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
             }
             break;
         }
+        case 24: /* SLW: shift left word */
+            c->gpr[ra] = (c->gpr[rb] & 0x20u) ? 0u :
+                         (c->gpr[rt] << (c->gpr[rb] & 31u));
+            if (ins & 1u) set_cr0(c, c->gpr[ra]);
+            break;
+        case 536: /* SRW: shift right word */
+            c->gpr[ra] = (c->gpr[rb] & 0x20u) ? 0u :
+                         (c->gpr[rt] >> (c->gpr[rb] & 31u));
+            if (ins & 1u) set_cr0(c, c->gpr[ra]);
+            break;
+        case 824: { /* SRAWI: arithmetic right shift immediate */
+            uint32_t sh = (ins >> 11) & 31u;
+            uint32_t source = c->gpr[rt];
+            uint32_t result = source;
+            int discarded_one = 0;
+            if (sh != 0u) {
+                uint32_t discarded_mask = (1u << sh) - 1u;
+                discarded_one = ((source & 0x80000000u) != 0u) &&
+                                ((source & discarded_mask) != 0u);
+                result = source >> sh;
+                if (source & 0x80000000u)
+                    result |= (~0u << (32u - sh));
+            }
+            c->gpr[ra] = result;
+            if (discarded_one) c->xer |= 0x20000000u;
+            else c->xer &= ~0x20000000u;
+            if (ins & 1u) set_cr0(c, result);
+            break;
+        }
         case 339: {
             uint32_t spr = ((ins >> 16) & 31u) | ((ins >> 6) & 0x3e0u);
             if (spr == 8u) c->gpr[rt] = c->lr;
