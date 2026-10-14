@@ -1,4 +1,4 @@
-# CubEX360 — toolchain-first development (v1.42b)
+# CubEX360 — toolchain-first development (v1.48b)
 
 Projeto experimental de interpretador parcial PowerPC/Gekko para um futuro emulador de GameCube no Xbox 360.
 
@@ -116,3 +116,16 @@ Adicionado o opcode PowerPC `RLWINM` (rotate left word immediate then AND with m
 - [Implementação da CPU](core-src/src/cpu.c)
 - [Regressões](core-src/tests/test_core_host.c)
 - [GitHub Actions](https://github.com/MeiKinosaki/CubEX360/actions)
+
+
+## v1.48b — RLWIMI, acesso ao barramento e execução limitada
+
+- Adicionado `RLWIMI` (rotate left word immediate then mask insert), preservando os bits do destino fora da máscara.
+- O barramento de RAM principal agora expõe acessos de 8, 16 e 32 bits para as regiões cached/uncached; loads/stores de byte e meia-palavra da CPU passam por essas funções.
+- Adicionado `cubex_cpu_run`, que executa um orçamento limitado de instruções e propaga erros de memória/opcode em vez de continuar silenciosamente.
+- O alvo `main.c` agora testa uma sequência de duas instruções usando a rotina de execução; testes host cobrem também os aliases do barramento e `RLWIMI`.
+- O workflow inclui um gate que confirma que a geração XEX continua bloqueada sem ferramentas reais configuradas.
+
+**Validação:** aguardar o GitHub Actions do commit atual. O build libXenon segue sendo um ELF32 de smoke test do núcleo, não uma aplicação XEX pronta. Não há evidência de `default.xex` gerado, inicialização em Xbox 360 RGH, GPU/áudio/GameCube IPL ou compatibilidade com jogos.
+
+Consulte [o gate de XEX](docs/DEFAULT_XEX.md) e [a execução de CI](https://github.com/MeiKinosaki/CubEX360/actions).
