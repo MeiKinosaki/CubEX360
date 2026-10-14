@@ -259,7 +259,7 @@ int main(void) {
     assert((cpu.xer & 0x20000000u) == 0u);
     /* xoris r21,r4,0x0001; cntlzw r22,r4; andc r23,r4,r5; nor r24,r4,r5; extsb r25,r26; extsh r27,r28 */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 212u,
-        (27u<<26)|(21u<<21)|(4u<<16)|1u) == 0);
+        (27u<<26)|(4u<<21)|(21u<<16)|1u) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 216u,
         (31u<<26)|(4u<<21)|(22u<<16)|(26u<<1)) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 220u,
