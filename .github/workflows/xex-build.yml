@@ -14,11 +14,17 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Set up Python for candidate validation
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - name: Check configured toolchain
         shell: pwsh
         run: |
           if (-not $env:CUBEX_XEX_BUILD_SCRIPT) { throw 'Configure CUBEX_XEX_BUILD_SCRIPT on the authorized runner.' }
           if (-not (Test-Path -LiteralPath $env:CUBEX_XEX_BUILD_SCRIPT -PathType Leaf)) { throw 'Configured build script was not found.' }
+          if (-not $env:CUBEX_XEX_OUTPUT) { throw 'Configure CUBEX_XEX_OUTPUT on the authorized runner.' }
+          if (-not (Test-Path -LiteralPath $env:CUBEX_XEX_OUTPUT -PathType Leaf)) { throw 'Configured XEX output does not exist before build; verify the runner configuration.' }
       - name: Build XEX using runner-provided toolchain
         shell: pwsh
         run: |
