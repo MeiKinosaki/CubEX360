@@ -1,0 +1,34 @@
+name: CubEX360 XEX build (authorized Windows runner)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-xex:
+    # Deliberately self-hosted: the repository must not assume an XDK is installed on GitHub-hosted runners.
+    runs-on: [self-hosted, Windows, XBOX360-XDK]
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Check configured toolchain
+        shell: pwsh
+        run: |
+          if (-not $env:CUBEX_XEX_BUILD_SCRIPT) { throw 'Configure CUBEX_XEX_BUILD_SCRIPT on the authorized runner.' }
+          if (-not (Test-Path -LiteralPath $env:CUBEX_XEX_BUILD_SCRIPT -PathType Leaf)) { throw 'Configured build script was not found.' }
+      - name: Build and validate XEX container
+        shell: pwsh
+        run: ./scripts/validate-xex-build.ps1
+      - name: Upload candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: CubEX360-default-xex-candidate
+          path: default.xex
+          if-no-files-found: error
+          retention-days: 7
+      - name: Record candidate hash
+        shell: pwsh
+        run: Get-FileHash ./default.xex -Algorithm SHA256 | Format-List
