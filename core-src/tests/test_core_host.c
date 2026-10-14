@@ -11,6 +11,13 @@ int main(void) {
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE, 0x3860002au) == 0);
     assert(cubex_bus_read32be(&mem, CUBEX360_RAM_UNCACHED_BASE, &value) == 0);
     assert(value == 0x3860002au);
+    /* Byte/halfword bus access must share the same RAM through aliases. */
+    assert(cubex_bus_write8(&mem, CUBEX360_RAM_CACHED_BASE + 0x2000u, 0xa5u) == 0);
+    assert(cubex_bus_read8(&mem, CUBEX360_RAM_UNCACHED_BASE + 0x2000u, &byte_value) == 0);
+    assert(byte_value == 0xa5u);
+    assert(cubex_bus_write16be(&mem, CUBEX360_RAM_UNCACHED_BASE + 0x2002u, 0xbeefu) == 0);
+    assert(cubex_bus_read16be(&mem, CUBEX360_RAM_CACHED_BASE + 0x2002u, &half_value) == 0);
+    assert(half_value == 0xbeefu);
     /* andi. r3,r4,0x00ff => r3=0x2a and CR0.GT */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 4u, 0x708300ffu) == 0);
     /* andi. r5,r4,0 => r5=0 and CR0.EQ */
@@ -58,9 +65,10 @@ int main(void) {
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 160u, (31u<<26)|(1u<<21)|(9u<<16)|(339u<<1)) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 164u, (31u<<26)|(2u<<21)|(8u<<16)|(467u<<1)) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 168u, (31u<<26)|(3u<<21)|(9u<<16)|(467u<<1)) == 0);
-    /* rlwinm r5,r4,8,0,23; rlwinm r6,r4,0,24,31 */
+    /* rlwinm and rlwimi: rotate/mask and insert while preserving other bits. */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 180u, (21u<<26)|(4u<<21)|(5u<<16)|(8u<<11)|(23u<<1)) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 184u, (21u<<26)|(4u<<21)|(6u<<16)|(24u<<6)|(31u<<1)) == 0);
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 188u, (20u<<26)|(4u<<21)|(7u<<16)|(24u<<6)|(31u<<1)) == 0);
     /* cmpw cr4,r29,r30; cmplw cr4,r29,r30 */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 172u, (31u<<26)|(4u<<23)|(29u<<16)|(30u<<11)) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 176u, (31u<<26)|(4u<<23)|(29u<<16)|(30u<<11)|(32u<<1)) == 0);
@@ -204,6 +212,11 @@ int main(void) {
     assert(cpu.gpr[5] == 0x01012a00u);
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
     assert(cpu.gpr[6] == 0x2au);
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 188u);
+    cpu.gpr[4] = 0xabcdef2au;
+    cpu.gpr[7] = 0x12345600u;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[7] == 0x1234562au);
     cubex_memory_destroy(&mem);
     puts("CubEX360 core host smoke: PASS");
     return 0;
