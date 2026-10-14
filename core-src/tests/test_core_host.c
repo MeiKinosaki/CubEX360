@@ -217,6 +217,14 @@ int main(void) {
     cpu.gpr[7] = 0x12345600u;
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
     assert(cpu.gpr[7] == 0x1234562au);
+    /* Bounded execution loop runs exactly the requested instruction budget. */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x300u, 0x3860002au) == 0);
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x304u, 0x38830001u) == 0);
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x300u);
+    assert(cubex_cpu_run(&cpu, &mem, 2u) == CUBEX_CPU_OK);
+    assert(cpu.gpr[3] == 42u && cpu.gpr[4] == 43u);
+    assert(cpu.pc == CUBEX360_RAM_CACHED_BASE + 0x308u);
+    assert(cpu.retired_instructions == 2u);
     cubex_memory_destroy(&mem);
     puts("CubEX360 core host smoke: PASS");
     return 0;
