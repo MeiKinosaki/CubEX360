@@ -244,7 +244,7 @@ int main(void) {
     cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 200u);
     cpu.gpr[12] = 0xffffffffu;
     cpu.xer = 0x20000000u;
-    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 204u,
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 200u,
         (31u<<26)|(12u<<21)|(11u<<16)|(824u<<1)|1u) == 0);
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
     assert(cpu.gpr[11] == 0xffffffffu);
