@@ -107,3 +107,12 @@ Ampliado o interpretador com as formas PowerPC `CMPW` e `CMPLW` para comparaçã
 - [Implementação](core-src/src/cpu.c)
 - [Testes](core-src/tests/test_core_host.c)
 - [GitHub Actions](https://github.com/MeiKinosaki/CubEX360/actions)
+
+
+## v1.47b — RLWINM
+
+Adicionado o opcode PowerPC `RLWINM` (rotate left word immediate then AND with mask), com máscara MB/ME que trata corretamente máscaras que atravessam o limite de bits. Inclui testes de rotação de 8 bits com máscara e extração dos 8 bits baixos. CI desta revisão pendente.
+
+- [Implementação da CPU](core-src/src/cpu.c)
+- [Regressões](core-src/tests/test_core_host.c)
+- [GitHub Actions](https://github.com/MeiKinosaki/CubEX360/actions)
