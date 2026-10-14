@@ -69,6 +69,9 @@ int main(void) {
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 180u, (21u<<26)|(4u<<21)|(5u<<16)|(8u<<11)|(23u<<1)) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 184u, (21u<<26)|(4u<<21)|(6u<<16)|(24u<<6)|(31u<<1)) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 188u, (20u<<26)|(4u<<21)|(7u<<16)|(24u<<6)|(31u<<1)) == 0);
+    /* rlwnm r8,r4,r9,8,15; rotate by register then apply wrapped PPC mask. */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 208u,
+        (23u<<26)|(4u<<21)|(8u<<16)|(9u<<11)|(8u<<6)|(15u<<1)) == 0);
     /* slw r13,r14,r15; srw r9,r4,r10; srawi. r11,r12,4 */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 192u,
         (31u<<26)|(14u<<21)|(13u<<16)|(15u<<11)|(24u<<1)) == 0);
@@ -224,6 +227,11 @@ int main(void) {
     cpu.gpr[7] = 0x12345600u;
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
     assert(cpu.gpr[7] == 0x1234562au);
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 208u);
+    cpu.gpr[4] = 0x12345678u;
+    cpu.gpr[9] = 8u;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[8] == 0x00560000u);
     cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 192u);
     cpu.gpr[14] = 0x00000003u;
     cpu.gpr[15] = 4u;
