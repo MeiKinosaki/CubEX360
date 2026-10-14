@@ -228,3 +228,13 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
     c->retired_instructions++;
     return CUBEX_CPU_OK;
 }
+
+cubex_cpu_result_t cubex_cpu_run(cubex_cpu_state_t *c, cubex_memory_t *m, uint64_t instruction_budget) {
+    uint64_t i;
+    if (!c || !m) return CUBEX_CPU_BAD_ARGUMENT;
+    for (i = 0; i < instruction_budget; ++i) {
+        cubex_cpu_result_t result = cubex_cpu_step(c, m);
+        if (result != CUBEX_CPU_OK) return result;
+    }
+    return CUBEX_CPU_OK;
+}
