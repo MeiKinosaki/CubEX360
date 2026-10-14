@@ -35,3 +35,13 @@ O job de XEX deve falhar de forma explícita se as ferramentas não estiverem co
 - Integração de runtime/ABI XEX: pendente.
 - `default.xex` do CubEX360 completo: não gerado.
 - Teste no Xbox 360 RGH: não confirmado.
+## Workflow XEX dedicado (v1.57b — infraestrutura)
+Foi adicionado `.github/workflows/xex-build.yml`, acionado manualmente, para um runner Windows self-hosted rotulado `XBOX360-XDK`. O runner precisa ser provisionado e autorizado pelo mantenedor; não há XDK ou segredo/licença incluído no repositório.
+
+Configuração exigida no runner:
+- `CUBEX_XEX_BUILD_SCRIPT`: caminho para o script local que executa a compilação real com a toolchain instalada.
+- `CUBEX_XEX_OUTPUT`: caminho para o XEX candidato produzido por esse script.
+
+O workflow falha se a configuração não existir, se o build falhar, ou se o arquivo não tiver pelo menos 4096 bytes e magic `XEX2`. O validador calcula SHA-256 e o artefato é publicado com retenção curta para inspeção. Esse gate confirma somente estrutura mínima do contêiner; não confirma imports, ABI, compatibilidade de runtime ou boot no RGH.
+
+**Estado:** workflow e validação mínima versionados; runner Windows e script de build real ainda precisam ser configurados. Nenhum `default.xex` funcional foi produzido por esta alteração.
