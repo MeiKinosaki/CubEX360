@@ -51,3 +51,21 @@ O workflow passou a executar o preflight XEX como gate de CI e exige que ele ret
 5. Só declarar funcional após teste de inicialização em Xbox 360 RGH.
 
 O avanço da CPU segue em paralelo; passar testes de instruções não significa compatibilidade completa com o Gekko. A versão v1.51b amplia um subconjunto de operações inteiras, enquanto FPU, exceções, MMU, timers/IRQ e integração de sistema ainda estão incompletos.
+
+
+## Plano de toolchain na nuvem — atualização 2026-10-14
+
+### Pipeline no GitHub-hosted runner
+- O workflow `.github/workflows/xenon-build.yml` executa testes nativos, sanitizers e compila o smoke target com Free60/libXenon em container.
+- O resultado ELF32 PowerPC big-endian pode ser publicado como artefato do Actions; ele **não** é `default.xex`.
+
+### Caminho para produzir o `default.xex` real
+- **RXDK-360 / XDK:** a integração com o Xbox 360 requer uma instalação válida do XDK/licenças aplicáveis e ferramentas compatíveis. Não é seguro presumir que um runner GitHub limpo já tenha esses componentes.
+- **ELF→XEX experimental:** um empacotador de pesquisa pode montar um contêiner XEX2, mas empacotar o ELF do Free60/libXenon não prova compatibilidade de ABI, runtime, imports ou inicialização. Não usar isso para rotular o artefato como executável funcional do CubEX360.
+
+Referências técnicas para revisão:
+- RXDK-360: https://github.com/Team-Resurgent/RXDK360
+- Documentação ELF→XEX: https://github.com/Team-Resurgent/RXDK360/blob/main/docs/xex-packing.md
+
+### Gate de liberação
+Não publicar nem renomear um ELF como `default.xex`. O job XEX só deve ser habilitado quando um ambiente de build autorizado tiver compiler/linker/packer compatíveis configurados e o build ligar o núcleo real. A validação deve inspecionar a estrutura XEX, guardar SHA-256 e logs e testar a inicialização no Xbox 360 RGH. Até essas condições serem satisfeitas, o artefato XEX permanece **bloqueado**.
