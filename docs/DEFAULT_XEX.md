@@ -28,3 +28,26 @@ Manter a etapa libXenon como validação de compilação de baixo nível e, em p
 
 ## Atualização v1.48b — gate automatizado
 O workflow passou a executar o preflight XEX como gate de CI e exige que ele retorne o código de bloqueio esperado quando `XEX_CC`/`XEX_PACKAGER` não estão configurados. Isso valida que o projeto falha de forma segura; **não** representa 60% de geração de um XEX real. Ainda não foi selecionada uma toolchain/runtime XEX comprovada, nem compilado/validado `default.xex`. Próximo marco: identificar ferramentas reais e compatíveis, compilar um alvo integrado com imports/runtime corretos e validar a estrutura XEX gerada.
+
+
+## v1.51b — plano de toolchain e executável
+
+### Estado verificado
+- O workflow usa Free60/libXenon e valida um ELF32 PowerPC big-endian para smoke test.
+- Esse artefato ainda não é um XEX e o probe não representa o emulador completo.
+- O script `scripts/xex-preflight.sh` bloqueia a etapa de empacotamento quando não há ferramentas configuradas.
+- Não há `default.xex` gerado nem execução comprovada no console.
+
+### Opções em avaliação (não aprovadas para produção)
+- **Free60/libXenon:** compilador e bibliotecas úteis para a camada bare-metal; o pipeline atual produz ELF32.
+- **RXDK360 `elf2xex.py`:** projeto público de pesquisa que descreve empacotamento ELF→XEX. Antes de adoção, precisamos revisar o código, licenciamento, ABI esperada, stubs/imports, entry point, seções e formato de saída, e reproduzir testes de validação. A documentação do projeto não substitui teste no hardware alvo.
+- **XDK/XEX pipeline:** outra possibilidade, mas requer ambiente/toolchain compatível e integração real com o código C atual.
+
+### Critérios para avançar
+1. Fixar repositório, commit e licença da ferramenta selecionada.
+2. Construir um executável mínimo de teste e validar a estrutura XEX com um verificador independente.
+3. Integrar `memory.c`, `bus.c`, `cpu.c` e o runtime necessário num alvo de aplicação, em vez de apenas compilar o smoke ELF.
+4. Guardar logs e SHA-256 do artefato, e nunca renomear ELF para `.xex`.
+5. Só declarar funcional após teste de inicialização em Xbox 360 RGH.
+
+O avanço da CPU segue em paralelo; passar testes de instruções não significa compatibilidade completa com o Gekko. A versão v1.51b amplia um subconjunto de operações inteiras, enquanto FPU, exceções, MMU, timers/IRQ e integração de sistema ainda estão incompletos.
