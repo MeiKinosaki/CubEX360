@@ -1,4 +1,4 @@
-# CubEX360 — toolchain-first development (v1.51b)
+# CubEX360 — toolchain-first development (v1.56b)
 
 Projeto experimental de interpretador parcial PowerPC/Gekko para um futuro emulador de GameCube no Xbox 360.
 
@@ -150,3 +150,11 @@ Adicionado `RLWNM` (rotate left word then AND with mask), usando o deslocamento 
 Expansão do interpretador PowerPC/Gekko com `XORIS`, `CNTLZW`, `ANDC`, `NOR`, `EXTSB` e `EXTSH`, com testes de resultado para cada operação. O CI também deve continuar verificando o alvo integrado de smoke compilado com Free60/libXenon.
 
 **Toolchain/XEX:** a toolchain libXenon disponível no CI gera ELF32 PowerPC big-endian. Isso comprova compilação/linkedição de baixo nível, não geração de XEX. `default.xex` segue bloqueado até selecionar e validar uma toolchain/runtime que produza XEX real com ABI, imports e entry point compatíveis.
+
+
+## Estado atual — v1.56b
+- `MFCR` e `MTCRF` passaram no CI da v1.55b.
+- A v1.56b adiciona operações lógicas sobre bits do registrador CR. O workflow final da correção de testes está verde; veja [GitHub Actions](https://github.com/MeiKinosaki/CubEX360/actions).
+- A toolchain em nuvem compila o núcleo experimental para ELF32 PowerPC big-endian com Free60/libXenon.
+- **`default.xex` ainda não foi gerado.** O ELF atual não deve ser renomeado nem tratado como XEX. A rota de build XEX exige um ambiente Windows com toolchain Xbox 360/XDK autorizado e integração de runtime/ABI/imports ainda pendente.
+- Plano de nuvem: [docs/CLOUD_TOOLCHAIN.md](docs/CLOUD_TOOLCHAIN.md); estado XEX: [docs/DEFAULT_XEX.md](docs/DEFAULT_XEX.md).
