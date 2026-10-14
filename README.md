@@ -1,4 +1,4 @@
-# CubEX360 — toolchain-first development (v1.48b)
+# CubEX360 — toolchain-first development (v1.50b)
 
 Projeto experimental de interpretador parcial PowerPC/Gekko para um futuro emulador de GameCube no Xbox 360.
 
@@ -136,3 +136,10 @@ Consulte [o gate de XEX](docs/DEFAULT_XEX.md) e [a execução de CI](https://git
 A CPU parcial ganhou as instruções inteiras `SLW`, `SRW` e `SRAWI`. Os deslocamentos lógicos zeram o resultado quando o bit de faixa do registrador de deslocamento está ativo; `SRAWI` propaga o sinal sem depender de deslocamento à direita de inteiro negativo definido pela implementação, atualiza o carry do XER e, na forma com Rc, atualiza CR0. Foram acrescentadas regressões para deslocamentos, carry e atualização de condição.
 
 **Escopo honesto:** isso amplia o subconjunto interpretado, não representa 60% de compatibilidade total da CPU Gekko. Ainda faltam muitas instruções, exceções, MMU, FPU/paired-single, timers/interrupções e integração completa do sistema. `default.xex` segue não gerado.
+
+
+## v1.50b — RLWNM e cobertura de rotação
+
+Adicionado `RLWNM` (rotate left word then AND with mask), usando o deslocamento em registrador e a máscara MB/ME. O teste valida rotação de 8 bits e extração do campo mascarado. A suíte de testes agora inclui também os deslocamentos `SLW`, `SRW` e `SRAWI` da versão anterior.
+
+**Validação da versão:** a execução de CI para esta alteração deve ser consultada antes de declarar os testes aprovados. A CPU continua sendo um subconjunto parcial de Gekko; isso não significa 60% de compatibilidade total. O ELF32 de smoke test não é um `default.xex`; a geração e execução em Xbox 360 continuam pendentes.
