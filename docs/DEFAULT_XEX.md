@@ -24,3 +24,7 @@
 
 ## Próxima ação
 Manter a etapa libXenon como validação de compilação de baixo nível e, em paralelo, selecionar uma toolchain XEX real antes de criar um job de empacotamento. O workflow não deve emitir arquivo com extensão .xex se não houver ferramenta validada.
+
+
+## Atualização v1.48b — gate automatizado
+O workflow passou a executar o preflight XEX como gate de CI e exige que ele retorne o código de bloqueio esperado quando `XEX_CC`/`XEX_PACKAGER` não estão configurados. Isso valida que o projeto falha de forma segura; **não** representa 60% de geração de um XEX real. Ainda não foi selecionada uma toolchain/runtime XEX comprovada, nem compilado/validado `default.xex`. Próximo marco: identificar ferramentas reais e compatíveis, compilar um alvo integrado com imports/runtime corretos e validar a estrutura XEX gerada.
