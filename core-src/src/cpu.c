@@ -81,6 +81,7 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
     case 24: c->gpr[ra] = c->gpr[rt] | imm; break;
     case 25: c->gpr[ra] = c->gpr[rt] | (imm << 16); break;
     case 26: c->gpr[ra] = c->gpr[rt] ^ imm; break;
+    case 27: c->gpr[ra] = c->gpr[rt] ^ (imm << 16); break;
     case 28:
         c->gpr[ra] = c->gpr[rt] & imm;
         set_cr0(c, c->gpr[ra]);
@@ -175,6 +176,29 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
             }
             break;
         }
+        case 26: { /* CNTLZW: count leading zero bits */
+            uint32_t value = c->gpr[rt], count = 0u;
+            while (count < 32u && (value & (0x80000000u >> count)) == 0u) ++count;
+            c->gpr[ra] = count;
+            if (ins & 1u) set_cr0(c, count);
+            break;
+        }
+        case 60: /* ANDC */
+            c->gpr[ra] = c->gpr[rt] & ~c->gpr[rb];
+            if (ins & 1u) set_cr0(c, c->gpr[ra]);
+            break;
+        case 124: /* NOR */
+            c->gpr[ra] = ~(c->gpr[rt] | c->gpr[rb]);
+            if (ins & 1u) set_cr0(c, c->gpr[ra]);
+            break;
+        case 922: /* EXTSH */
+            c->gpr[ra] = (uint32_t)(int32_t)(int16_t)c->gpr[rt];
+            if (ins & 1u) set_cr0(c, c->gpr[ra]);
+            break;
+        case 954: /* EXTSB */
+            c->gpr[ra] = (uint32_t)(int32_t)(int8_t)c->gpr[rt];
+            if (ins & 1u) set_cr0(c, c->gpr[ra]);
+            break;
         case 24: /* SLW: shift left word */
             c->gpr[ra] = (c->gpr[rb] & 0x20u) ? 0u :
                          (c->gpr[rt] << (c->gpr[rb] & 31u));
