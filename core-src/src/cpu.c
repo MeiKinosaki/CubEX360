@@ -125,8 +125,9 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
         break;
     }
     case 20:
-    case 21: {
-        uint32_t sh = (ins >> 11) & 31u;
+    case 21:
+    case 23: {
+        uint32_t sh = (op == 23u) ? (c->gpr[rb] & 31u) : ((ins >> 11) & 31u);
         uint32_t mb = (ins >> 6) & 31u;
         uint32_t me = (ins >> 1) & 31u;
         uint32_t mask = ppc_mask_mb_me(mb, me);
