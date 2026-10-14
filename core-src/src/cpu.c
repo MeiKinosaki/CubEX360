@@ -244,6 +244,7 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
             uint32_t spr = ((ins >> 16) & 31u) | ((ins >> 6) & 0x3e0u);
             if (spr == 8u) c->gpr[rt] = c->lr;
             else if (spr == 9u) c->gpr[rt] = c->ctr;
+            else if (spr == 1u) c->gpr[rt] = c->xer;
             else return CUBEX_CPU_UNSUPPORTED;
             break;
         }
@@ -251,12 +252,17 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
             uint32_t spr = ((ins >> 16) & 31u) | ((ins >> 6) & 0x3e0u);
             if (spr == 8u) c->lr = c->gpr[rt];
             else if (spr == 9u) c->ctr = c->gpr[rt];
+            else if (spr == 1u) c->xer = c->gpr[rt];
             else return CUBEX_CPU_UNSUPPORTED;
             break;
         }
         case 266: c->gpr[rt] = c->gpr[ra] + c->gpr[rb]; if (ins & 1u) set_cr0(c, c->gpr[rt]); break;
         case 40: c->gpr[rt] = c->gpr[rb] - c->gpr[ra]; if (ins & 1u) set_cr0(c, c->gpr[rt]); break;
         case 28: c->gpr[ra] = c->gpr[rt] & c->gpr[rb]; if (ins & 1u) set_cr0(c, c->gpr[ra]); break;
+        case 412: /* ORC */
+            c->gpr[ra] = c->gpr[rt] | ~c->gpr[rb];
+            if (ins & 1u) set_cr0(c, c->gpr[ra]);
+            break;
         case 444: c->gpr[ra] = c->gpr[rt] | c->gpr[rb]; if (ins & 1u) set_cr0(c, c->gpr[ra]); break;
         case 316: c->gpr[ra] = c->gpr[rt] ^ c->gpr[rb]; if (ins & 1u) set_cr0(c, c->gpr[ra]); break;
         default: return CUBEX_CPU_UNSUPPORTED;
