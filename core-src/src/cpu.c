@@ -158,7 +158,24 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
             if (ctr_ok && cr_ok) next = target;
             if (ins & 1u) c->lr = c->pc + 4u;
         } else {
-            return CUBEX_CPU_UNSUPPORTED;
+            uint32_t bt = (ins >> 21) & 31u;
+            uint32_t ba = (ins >> 16) & 31u;
+            uint32_t bb = (ins >> 11) & 31u;
+            uint32_t a = (c->cr >> (31u - ba)) & 1u;
+            uint32_t b = (c->cr >> (31u - bb)) & 1u;
+            uint32_t result;
+            switch (xo) {
+            case 33:  result = !(a | b); break;       /* CRNOR */
+            case 129: result = a & !b; break;         /* CRANDC */
+            case 193: result = a ^ b; break;          /* CRXOR */
+            case 225: result = !(a & b); break;       /* CRNAND */
+            case 257: result = a & b; break;          /* CRAND */
+            case 289: result = !(a ^ b); break;       /* CREQV */
+            case 417: result = a | !b; break;         /* CRORC */
+            case 449: result = a | b; break;          /* CROR */
+            default: return CUBEX_CPU_UNSUPPORTED;
+            }
+            c->cr = (c->cr & ~(1u << (31u - bt))) | (result << (31u - bt));
         }
         break;
     case 31:
