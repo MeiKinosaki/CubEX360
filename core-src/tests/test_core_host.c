@@ -323,6 +323,34 @@ int main(void) {
     assert(cpu.gpr[8] == 0x12345678u);
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
     assert(cpu.cr == 0xa2345671u);
+    /* CR logical operations use CR bit indices, not whole-field masks. */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x280u,
+        (19u<<26)|(3u<<21)|(1u<<16)|(2u<<11)|(33u<<1)) == 0); /* CRNOR */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x284u,
+        (19u<<26)|(4u<<21)|(1u<<16)|(2u<<11)|(129u<<1)) == 0); /* CRANDC */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x288u,
+        (19u<<26)|(5u<<21)|(1u<<16)|(2u<<11)|(193u<<1)) == 0); /* CRXOR */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x28cu,
+        (19u<<26)|(6u<<21)|(1u<<16)|(2u<<11)|(225u<<1)) == 0); /* CRNAND */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x290u,
+        (19u<<26)|(7u<<21)|(1u<<16)|(2u<<11)|(257u<<1)) == 0); /* CRAND */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x294u,
+        (19u<<26)|(8u<<21)|(1u<<16)|(2u<<11)|(289u<<1)) == 0); /* CREQV */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x298u,
+        (19u<<26)|(9u<<21)|(1u<<16)|(2u<<11)|(417u<<1)) == 0); /* CRORC */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x29cu,
+        (19u<<26)|(10u<<21)|(1u<<16)|(2u<<11)|(449u<<1)) == 0); /* CROR */
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x280u);
+    cpu.cr = 0x40000000u; /* BI=1 is one; BI=2 is zero. */
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert((cpu.cr & 0x00ffffffu) == 0x00e00000u);
     /* Bounded execution loop runs exactly the requested instruction budget. */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x300u, 0x3860002au) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x304u, 0x38830001u) == 0);
