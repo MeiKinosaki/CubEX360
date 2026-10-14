@@ -311,6 +311,18 @@ int main(void) {
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK && cpu.gpr[5] == 0xf0fff0ffu);
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK && cpu.gpr[6] == 0x20000000u);
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK && cpu.xer == 0x80000000u);
+    /* MFCR reads all CR fields; MTCRF updates only fields selected by FXM. */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x26cu,
+        (31u<<26)|(8u<<21)|(19u<<1)) == 0);
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x270u,
+        (31u<<26)|(9u<<21)|(0x81u<<12)|(144u<<1)) == 0);
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x26cu);
+    cpu.cr = 0x12345678u;
+    cpu.gpr[9] = 0xabcdef01u;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[8] == 0x12345678u);
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.cr == 0xa2345671u);
     /* Bounded execution loop runs exactly the requested instruction budget. */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x300u, 0x3860002au) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x304u, 0x38830001u) == 0);
