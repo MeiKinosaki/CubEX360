@@ -28,7 +28,7 @@ jobs:
         shell: pwsh
         run: |
           & $env:CUBEX_XEX_BUILD_SCRIPT
-          if ($LASTEXITCODE -ne 0) { throw "Configured XEX build failed with exit code $LASTEXITCODE" }
+          if (-not $?) { throw "Configured XEX build script reported failure." }
       - name: Validate XEX candidate
         shell: pwsh
         run: python scripts/validate_xex_build.py
