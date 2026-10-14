@@ -69,6 +69,13 @@ int main(void) {
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 180u, (21u<<26)|(4u<<21)|(5u<<16)|(8u<<11)|(23u<<1)) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 184u, (21u<<26)|(4u<<21)|(6u<<16)|(24u<<6)|(31u<<1)) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 188u, (20u<<26)|(4u<<21)|(7u<<16)|(24u<<6)|(31u<<1)) == 0);
+    /* slw r13,r14,r15; srw r9,r4,r10; srawi. r11,r12,4 */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 192u,
+        (31u<<26)|(14u<<21)|(13u<<16)|(15u<<11)|(24u<<1)) == 0);
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 196u,
+        (31u<<26)|(4u<<21)|(9u<<16)|(10u<<11)|(536u<<1)) == 0);
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 200u,
+        (31u<<26)|(12u<<21)|(11u<<16)|(4u<<11)|(824u<<1)|1u) == 0);
     /* cmpw cr4,r29,r30; cmplw cr4,r29,r30 */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 172u, (31u<<26)|(4u<<23)|(29u<<16)|(30u<<11)) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 176u, (31u<<26)|(4u<<23)|(29u<<16)|(30u<<11)|(32u<<1)) == 0);
@@ -217,6 +224,31 @@ int main(void) {
     cpu.gpr[7] = 0x12345600u;
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
     assert(cpu.gpr[7] == 0x1234562au);
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 192u);
+    cpu.gpr[14] = 0x00000003u;
+    cpu.gpr[15] = 4u;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[13] == 0x30u);
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 196u);
+    cpu.gpr[4] = 0x80000000u;
+    cpu.gpr[10] = 4u;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[9] == 0x08000000u);
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 200u);
+    cpu.gpr[12] = 0xfffffff1u;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[11] == 0xffffffffu);
+    assert((cpu.xer & 0x20000000u) != 0u);
+    assert((cpu.cr & 0xf0000000u) == 0x80000000u);
+    /* Shift by zero clears CA even when the source is negative. */
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 200u);
+    cpu.gpr[12] = 0xffffffffu;
+    cpu.xer = 0x20000000u;
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 204u,
+        (31u<<26)|(12u<<21)|(11u<<16)|(824u<<1)|1u) == 0);
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[11] == 0xffffffffu);
+    assert((cpu.xer & 0x20000000u) == 0u);
     /* Bounded execution loop runs exactly the requested instruction budget. */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x300u, 0x3860002au) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x304u, 0x38830001u) == 0);
