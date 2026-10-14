@@ -281,6 +281,19 @@ int main(void) {
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK && cpu.gpr[24] == 0xffffe00bu);
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK && cpu.gpr[25] == 0xffffff80u);
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK && cpu.gpr[27] == 0xffff8001u);
+    /* NEG, EQV and NAND instruction coverage. */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x240u,
+        (31u<<26)|(4u<<21)|(29u<<16)|(104u<<1)) == 0);
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x244u,
+        (31u<<26)|(4u<<21)|(30u<<16)|(5u<<11)|(284u<<1)) == 0);
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x248u,
+        (31u<<26)|(4u<<21)|(31u<<16)|(5u<<11)|(476u<<1)) == 0);
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x240u);
+    cpu.gpr[4] = 0x0000000fu;
+    cpu.gpr[5] = 0x000000f0u;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK && cpu.gpr[29] == 0xfffffff1u);
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK && cpu.gpr[30] == 0xffffff00u);
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK && cpu.gpr[31] == 0xffffffffu);
     /* Bounded execution loop runs exactly the requested instruction budget. */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x300u, 0x3860002au) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x304u, 0x38830001u) == 0);
