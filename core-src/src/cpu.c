@@ -23,6 +23,15 @@ static void set_cr0(cubex_cpu_state_t *c, uint32_t value) {
     if (c->xer & 0x80000000u) field |= 1u;
     set_cr_field(c, 0u, field);
 }
+static uint32_t ppc_mask_mb_me(uint32_t mb, uint32_t me) {
+    uint32_t mask = 0u, bit = mb & 31u;
+    for (;;) {
+        mask |= 1u << (31u - bit);
+        if (bit == (me & 31u)) break;
+        bit = (bit + 1u) & 31u;
+    }
+    return mask;
+}
 static void set_compare_field(cubex_cpu_state_t *c, uint32_t bf, int lt, int gt, int eq) {
     uint32_t field = lt ? 8u : (gt ? 4u : (eq ? 2u : 0u));
     if (c->xer & 0x80000000u) field |= 1u;
@@ -113,6 +122,17 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
     case 44: {
         uint32_t a = (ra ? c->gpr[ra] : 0u) + (uint32_t)sx16(imm), p;
         if (cubex_bus_translate_main_ram(a, &p) || cubex_memory_write16be(m, p, (uint16_t)c->gpr[rt])) return CUBEX_CPU_MEMORY_FAULT;
+        break;
+    }
+    case 21: {
+        uint32_t sh = (ins >> 11) & 31u;
+        uint32_t mb = (ins >> 6) & 31u;
+        uint32_t me = (ins >> 1) & 31u;
+        uint32_t mask = ppc_mask_mb_me(mb, me);
+        uint32_t source = c->gpr[rt];
+        uint32_t rotated = (source << sh) | (source >> ((32u - sh) & 31u));
+        c->gpr[ra] = rotated & mask;
+        if (ins & 1u) set_cr0(c, c->gpr[ra]);
         break;
     }
     case 19:
