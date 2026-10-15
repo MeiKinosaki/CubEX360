@@ -1,4 +1,4 @@
-# CubEX360 — toolchain-first development (v1.58b)
+# CubEX360 — toolchain-first development (v1.59b)
 
 Projeto experimental de interpretador parcial PowerPC/Gekko para um futuro emulador de GameCube no Xbox 360.
 
@@ -166,3 +166,9 @@ Expansão do interpretador PowerPC/Gekko com `XORIS`, `CNTLZW`, `ANDC`, `NOR`, `
 - **Validação da v1.58b pendente:** conferir os resultados em [GitHub Actions](https://github.com/MeiKinosaki/CubEX360/actions).
 - **`default.xex` do emulador completo não gerado.** O ELF de smoke test não é o executável final.
 - Roadmap de build: [CLOUD_TOOLCHAIN.md](docs/CLOUD_TOOLCHAIN.md); histórico: [DEVELOPMENT_HISTORY.md](docs/DEVELOPMENT_HISTORY.md).
+## Desenvolvimento atual — v1.59b
+- A v1.58b passou no CI para `ADDC`/`SUBFC` e testes de memória.
+- A v1.59b adiciona `ADDE`, `SUBFE`, `ADDME` e `SUBFZE` com testes de regressão; CI ainda pendente.
+- O núcleo continua um interpretador PowerPC parcial. GPU, DSP, drive, IPL, FPU e MMU não estão completos.
+- O build ELF32 é um smoke target; `default.xex` funcional ainda não foi gerado.
+- Acompanhe o [CI](https://github.com/MeiKinosaki/CubEX360/actions) e leia o [status da toolchain](docs/TOOLCHAIN_STATUS.md).
