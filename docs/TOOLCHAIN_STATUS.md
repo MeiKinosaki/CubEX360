@@ -97,3 +97,11 @@ Próximo marco real: escolher e fixar uma toolchain XEX compatível, criar um al
 - v1.59b (`ADDE`, `SUBFE`, `ADDME`, `SUBFZE`) passou nos workflows #83 e #84.
 - O avanço segue concentrado na CPU inteira e robustez do núcleo; FPU, MMU, GPU, DSP, disco e IPL continuam pendentes.
 - O pipeline XEX ainda depende de runner Windows próprio e toolchain/runtime compatíveis. `default.xex` funcional não foi gerado.
+
+
+## Atualização — v1.61b (2026-10-15; CI pendente)
+- Implementadas `ADDO` e `SUBFO` com atualização de OV e SO sticky; forma Rc atualiza CR0.
+- Regressões acrescentadas para overflow assinado, OV limpo no caso seguinte sem overflow e SO preservado.
+- Runs #88 e #89 ainda estavam em andamento/fila na última consulta; aguardar ambos antes de declarar a versão aprovada.
+- O run #87 da correção de teste v1.60b concluiu com sucesso. O run #86 foi uma tentativa anterior que falhou antes da correção.
+- Nenhum `default.xex` funcional foi produzido; XEX depende de runner/toolchain/runtime e integração de ABI ainda não disponíveis/validados.
