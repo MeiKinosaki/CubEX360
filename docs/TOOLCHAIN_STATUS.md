@@ -74,3 +74,4 @@ Próximo marco real: escolher e fixar uma toolchain XEX compatível, criar um al
 - O núcleo continua sendo um interpretador PowerPC parcial, não um emulador de GameCube completo.
 - FPU, exceções/interrupts, MMU, GPU Flipper, DSP, unidade de disco e IPL ainda precisam de implementação e integração.
 - O build Free60/libXenon gera ELF de smoke target, não um `default.xex` validado.
+- Continuação da v1.58b: adicionadas `ADDC` e `SUBFC`, com atualização do indicador XER.CA e testes de carry/no-borrow. Os workflows desta última alteração ainda estão pendentes; aguardar resultado antes de considerar o comportamento validado.
