@@ -420,6 +420,28 @@ int main(void) {
     cpu.xer = 0u;
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
     assert(cpu.gpr[5] == 0xfffffffeu && (cpu.xer & 0x20000000u) != 0u);
+    /* ADDO/SUBFO set OV on signed overflow and keep SO sticky. */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x380u,
+        (31u<<26)|(3u<<21)|(4u<<16)|(5u<<11)|(778u<<1)) == 0); /* addo r3,r4,r5 */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x384u,
+        (31u<<26)|(6u<<21)|(7u<<16)|(8u<<11)|(552u<<1)|1u) == 0); /* subfo. r6,r7,r8 */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x388u,
+        (31u<<26)|(9u<<21)|(10u<<16)|(11u<<11)|(778u<<1)) == 0); /* addo r9,r10,r11 */
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x380u);
+    cpu.gpr[4] = 0x7fffffffu; cpu.gpr[5] = 1u;
+    cpu.gpr[7] = 1u; cpu.gpr[8] = 0x80000000u;
+    cpu.gpr[10] = 1u; cpu.gpr[11] = 2u;
+    cpu.xer = 0u;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[3] == 0x80000000u);
+    assert((cpu.xer & 0xc0000000u) == 0xc0000000u);
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[6] == 0x7fffffffu);
+    assert((cpu.xer & 0xc0000000u) == 0x80000000u);
+    assert((cpu.cr & 0xf0000000u) == 0x40000000u); /* Rc sees positive result */
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[9] == 3u);
+    assert((cpu.xer & 0xc0000000u) == 0x80000000u); /* OV clears, SO stays set */
     /* Bounded execution loop runs exactly the requested instruction budget. */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x300u, 0x3860002au) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x304u, 0x38830001u) == 0);
