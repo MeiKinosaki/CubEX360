@@ -178,3 +178,7 @@ Expansão do interpretador PowerPC/Gekko com `XORIS`, `CNTLZW`, `ANDC`, `NOR`, `
 - A v1.61b adiciona `ADDO` e `SUBFO` para semântica de overflow assinado no XER, com regressões para OV/SO e CR0.
 - Os workflows #88 (implementação) e #89 (testes) ainda precisam terminar antes de validar a revisão.
 - FPU, MMU, GPU Flipper, DSP, unidade de disco, IPL/BIOS e compatibilidade com jogos seguem incompletos. O ELF de smoke test não é `default.xex`.
+
+
+## Auditoria da CPU
+O inventário de opcodes presentes e limitações arquiteturais está em [docs/CPU_COVERAGE.md](docs/CPU_COVERAGE.md). A validação v1.61b ainda está em curso; não interpretar o inventário como cobertura total de Gekko ou compatibilidade com jogos.
