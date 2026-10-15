@@ -174,3 +174,20 @@ Esses percentuais foram estimativas informais anteriores à última falha de CI.
 - Workflows #83 e #84 foram disparados e estavam em execução na última consulta; não considerar v1.59b validada antes de ambos terminarem.
 - v1.58b: workflows #80–#82 concluídos com sucesso para limites/alinhamento de memória e `ADDC`/`SUBFC`.
 - `default.xex` do emulador completo segue não gerado; o workflow XEX exige runner Windows e script de toolchain provisionados.
+
+## v1.60b–v1.61b — cadeia de carry e overflow (2026-10-15)
+
+### v1.60b
+- `ADDZE` e `SUBFME` foram adicionadas à família de aritmética encadeada por `XER.CA`.
+- Run #87 passou após correção de uma expectativa de teste; run #86 é uma execução anterior que falhou e foi corrigida. Isso valida o caso coberto, não todas as combinações de carry.
+- [CI de correção v1.60b](https://github.com/MeiKinosaki/CubEX360/actions/runs/38720276159).
+
+### v1.61b — em validação
+- Adicionadas `ADDO` (XO 778) e `SUBFO` (XO 552) para atualizar `XER.OV` a partir de overflow assinado; `XER.SO` permanece sticky até ser alterado por instruções apropriadas, e Rc atualiza CR0.
+- Testes host cobrem overflow positivo→negativo em soma, overflow em subtração, limpeza de OV no caso sem overflow e persistência de SO.
+- Commits: CPU `8cae8b09cd6171360cd47430aa78466ef206989e`; testes `375fbb0b5245dd5741bee56da68ea0e8fc0f5efb`.
+- Workflows #88 e #89 estão em andamento/fila na última consulta. A v1.61b **ainda não está validada** até os jobs host, sanitizers e smoke build concluírem.
+
+### Limites que permanecem
+- FPU/paired-single, MMU, exceções/interrupções completas, Flipper/VI, DSP, drive, IPL e integração de jogo continuam incompletos.
+- ELF32 de smoke test não equivale a `default.xex`; XEX funcional e boot em RGH seguem não comprovados.
