@@ -151,3 +151,20 @@ Esses percentuais foram estimativas informais anteriores à última falha de CI.
 - GitHub Actions: https://github.com/MeiKinosaki/CubEX360/actions
 - Gate e plano XEX: `docs/DEFAULT_XEX.md`
 - Estado da toolchain: `docs/TOOLCHAIN_STATUS.md`
+
+## v1.57b–v1.58b — registradores e robustez de memória (2026-10-15)
+
+### v1.57b
+- Implementada `MCRXR` para transferir SO/OV/CA do XER ao campo CR selecionado e limpar os bits transferidos.
+- Teste de regressão para o campo CR2 e limpeza de SO/OV/CA.
+- Workflows #78 e #79 concluídos com sucesso: [implementação](https://github.com/MeiKinosaki/CubEX360/actions/runs/38718716181) e [testes](https://github.com/MeiKinosaki/CubEX360/actions/runs/38718736129).
+
+### v1.58b
+- Ampliados testes para limites da RAM, leituras/gravações desalinhadas, endereço de barramento não mapeado e falha de busca de instrução sem aposentadoria de instrução.
+- Workflow XEX ajustado para verificar código de saída do script de build antes da validação do candidato.
+- CI para a v1.58b ainda precisa ser consultado; os testes não são considerados aprovados até execução bem-sucedida.
+
+### Estado de produto
+- O núcleo continua parcial e ainda não oferece emulação completa de GameCube.
+- `default.xex` real e funcional continua não gerado; a toolchain XEX depende de runner Windows próprio e ABI/runtime compatíveis.
+- Não há boot em Xbox 360 RGH nem compatibilidade de jogos comprovados.
