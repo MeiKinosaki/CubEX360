@@ -89,3 +89,11 @@ Próximo marco real: escolher e fixar uma toolchain XEX compatível, criar um al
 3. Expandir load/store e exceções de acesso desalinhado.
 4. Criar ponto de entrada de aplicação que integre o núcleo real ao alvo libXenon; o alvo atual é smoke build.
 5. Só liberar XEX após toolchain, imports/runtime, verificação de contêiner e teste de boot.
+
+## Atualização — v1.60b (2026-10-15)
+- Implementadas `ADDZE` e `SUBFME`, ampliando a família de aritmética encadeada pelo XER.CA.
+- Adicionados testes para transporte em `ADDZE` e caso sem transporte em `SUBFME`.
+- Workflows #85 e #86 estavam na fila na última consulta; não declarar v1.60b validada até o término.
+- v1.59b (`ADDE`, `SUBFE`, `ADDME`, `SUBFZE`) passou nos workflows #83 e #84.
+- O avanço segue concentrado na CPU inteira e robustez do núcleo; FPU, MMU, GPU, DSP, disco e IPL continuam pendentes.
+- O pipeline XEX ainda depende de runner Windows próprio e toolchain/runtime compatíveis. `default.xex` funcional não foi gerado.
