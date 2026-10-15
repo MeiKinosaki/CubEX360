@@ -45,3 +45,20 @@ Não é correto simplesmente empacotar o ELF atual como se já fosse o CubEX360 
 - Teste no Xbox 360 RGH: pendente.
 
 Próximo marco real: escolher e fixar uma toolchain XEX compatível, criar um alvo de aplicação que use essa ABI/runtime, produzir um XEX de teste, inspecioná-lo com XexTool e executar teste de boot antes de liberar um artefato chamado default.xex. Não renomear ELF nem usar o probe como se fosse o emulador.
+
+## Atualização de desenvolvimento — v1.57b (2026-10-15)
+
+- `MCRXR` foi adicionado ao interpretador: transfere SO/OV/CA do XER para o campo CR selecionado e limpa esses três bits no XER.
+- Teste de regressão adicionado para o campo CR2 e limpeza dos bits XER.
+- CI da v1.57b está pendente na última consulta; não marcar como aprovado até os jobs host e ASan/UBSan terminarem com sucesso.
+- O workflow `.github/workflows/xex-build.yml` continua condicionado a runner Windows próprio com toolchain compatível. O repositório não fornece um runner remoto já configurado.
+- Nenhum `default.xex` funcional foi produzido; a geração continua bloqueada até a integração real do núcleo com ABI/runtime/imports XEX e uma toolchain disponível.
+
+### Próxima sequência técnica
+1. Validar `MCRXR` nos testes host e sanitizers.
+2. Corrigir qualquer falha antes de adicionar instruções.
+3. Auditar `MFSPR`/`MTSPR` e XER para máscara de campos e semântica de overflow/carry.
+4. Expandir testes de acesso à memória, alinhamento e endereços fora da RAM.
+5. Separar o núcleo de emulação do smoke target libXenon e integrar um ponto de entrada de aplicação.
+6. Continuar FPU, exceções, MMU, GPU Flipper, DSP, drive e IPL como subsistemas separados; eles continuam ausentes/parciais.
+7. Manter o gate XEX fechado até o build produzir um XEX de verdade e a validação estrutural/imports ser demonstrada.
