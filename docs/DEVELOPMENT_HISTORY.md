@@ -191,3 +191,9 @@ Esses percentuais foram estimativas informais anteriores à última falha de CI.
 ### Limites que permanecem
 - FPU/paired-single, MMU, exceções/interrupções completas, Flipper/VI, DSP, drive, IPL e integração de jogo continuam incompletos.
 - ELF32 de smoke test não equivale a `default.xex`; XEX funcional e boot em RGH seguem não comprovados.
+
+
+### Correção de regressão durante a validação v1.61b
+- O run #89 falhou porque o teste esperava OV limpo após `SUBFO`, mas os operandos de teste também causam overflow assinado. O cálculo esperado foi corrigido; não foi removida a asserção de overflow.
+- Run #90, com a correção, está em andamento na última consulta: https://github.com/MeiKinosaki/CubEX360/actions/runs/38721264668.
+- Inventário audível dos opcodes presentes e das limitações: `docs/CPU_COVERAGE.md`.
