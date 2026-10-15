@@ -406,6 +406,20 @@ int main(void) {
     assert(cpu.gpr[9] == 0u && (cpu.xer & 0x20000000u) != 0u);
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
     assert(cpu.gpr[11] == 0u && (cpu.xer & 0x20000000u) != 0u);
+    /* ADDZE and SUBFME extend the carry-chain instruction family. */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x360u,
+        (31u<<26)|(3u<<21)|(4u<<16)|(202u<<1)) == 0); /* addze r3,r4 */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x364u,
+        (31u<<26)|(5u<<21)|(6u<<16)|(232u<<1)) == 0); /* subfme r5,r6 */
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x360u);
+    cpu.gpr[4] = 0xffffffffu;
+    cpu.gpr[6] = 0u;
+    cpu.xer = 0x20000000u;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[3] == 0u && (cpu.xer & 0x20000000u) != 0u);
+    cpu.xer = 0u;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[5] == 0xfffffffeu && (cpu.xer & 0x20000000u) == 0u);
     /* Bounded execution loop runs exactly the requested instruction budget. */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x300u, 0x3860002au) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x304u, 0x38830001u) == 0);
