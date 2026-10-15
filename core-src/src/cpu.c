@@ -193,6 +193,15 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
             }
             break;
         }
+        case 512: { /* MCRXR: move XER SO/OV/CA to CR field and clear them */
+            uint32_t bf = (ins >> 23) & 7u;
+            uint32_t field = ((c->xer >> 31) & 1u) << 3;
+            field |= ((c->xer >> 30) & 1u) << 2;
+            field |= ((c->xer >> 29) & 1u) << 1;
+            set_cr_field(c, bf, field);
+            c->xer &= ~0xe0000000u;
+            break;
+        }
         case 19: /* MFCR: move complete condition register to GPR */
             c->gpr[rt] = c->cr;
             break;
