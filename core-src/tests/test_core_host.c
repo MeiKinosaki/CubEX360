@@ -438,7 +438,7 @@ int main(void) {
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
     assert(cpu.gpr[6] == 0x7fffffffu);
     assert((cpu.xer & 0xc0000000u) == 0xc0000000u); /* subtraction also overflowed */
-    assert((cpu.cr & 0xf0000000u) == 0x40000000u); /* Rc sees positive result */
+    assert((cpu.cr & 0xf0000000u) == 0x50000000u); /* positive result plus sticky SO */
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
     assert(cpu.gpr[9] == 3u);
     assert((cpu.xer & 0xc0000000u) == 0x80000000u); /* OV clears, SO stays set */
