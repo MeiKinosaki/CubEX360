@@ -298,6 +298,22 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
             else return CUBEX_CPU_UNSUPPORTED;
             break;
         }
+        case 10: { /* ADDC: add with carry-out */
+            uint64_t sum = (uint64_t)c->gpr[ra] + (uint64_t)c->gpr[rb];
+            c->gpr[rt] = (uint32_t)sum;
+            if (sum >> 32) c->xer |= 0x20000000u;
+            else c->xer &= ~0x20000000u;
+            if (ins & 1u) set_cr0(c, c->gpr[rt]);
+            break;
+        }
+        case 8: { /* SUBFC: RB - RA; CA is set when no borrow occurs */
+            uint64_t sum = (uint64_t)c->gpr[rb] + (uint64_t)(~c->gpr[ra]) + 1u;
+            c->gpr[rt] = (uint32_t)sum;
+            if (sum >> 32) c->xer |= 0x20000000u;
+            else c->xer &= ~0x20000000u;
+            if (ins & 1u) set_cr0(c, c->gpr[rt]);
+            break;
+        }
         case 266: c->gpr[rt] = c->gpr[ra] + c->gpr[rb]; if (ins & 1u) set_cr0(c, c->gpr[rt]); break;
         case 40: c->gpr[rt] = c->gpr[rb] - c->gpr[ra]; if (ins & 1u) set_cr0(c, c->gpr[rt]); break;
         case 28: c->gpr[ra] = c->gpr[rt] & c->gpr[rb]; if (ins & 1u) set_cr0(c, c->gpr[ra]); break;
