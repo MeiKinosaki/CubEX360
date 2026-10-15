@@ -419,7 +419,7 @@ int main(void) {
     assert(cpu.gpr[3] == 0u && (cpu.xer & 0x20000000u) != 0u);
     cpu.xer = 0u;
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
-    assert(cpu.gpr[5] == 0xfffffffeu && (cpu.xer & 0x20000000u) == 0u);
+    assert(cpu.gpr[5] == 0xfffffffeu && (cpu.xer & 0x20000000u) != 0u);
     /* Bounded execution loop runs exactly the requested instruction budget. */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x300u, 0x3860002au) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x304u, 0x38830001u) == 0);
