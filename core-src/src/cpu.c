@@ -367,8 +367,32 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
             if (ins & 1u) set_cr0(c, c->gpr[rt]);
             break;
         }
-        case 266: c->gpr[rt] = c->gpr[ra] + c->gpr[rb]; if (ins & 1u) set_cr0(c, c->gpr[rt]); break;
-        case 40: c->gpr[rt] = c->gpr[rb] - c->gpr[ra]; if (ins & 1u) set_cr0(c, c->gpr[rt]); break;
+        case 266: /* ADD */ 
+            c->gpr[rt] = c->gpr[ra] + c->gpr[rb];
+            if (ins & 1u) set_cr0(c, c->gpr[rt]);
+            break;
+        case 778: { /* ADDO: signed overflow enabled */
+            uint32_t a = c->gpr[ra], b = c->gpr[rb], result = a + b;
+            uint32_t overflow = ((~(a ^ b) & (a ^ result)) >> 31) & 1u;
+            c->gpr[rt] = result;
+            c->xer = (c->xer & ~0x40000000u) | (overflow << 30);
+            if (overflow) c->xer |= 0x80000000u; /* SO is sticky */
+            if (ins & 1u) set_cr0(c, result);
+            break;
+        }
+        case 40: /* SUBF: RB - RA */
+            c->gpr[rt] = c->gpr[rb] - c->gpr[ra];
+            if (ins & 1u) set_cr0(c, c->gpr[rt]);
+            break;
+        case 552: { /* SUBFO: signed overflow enabled */
+            uint32_t a = c->gpr[rb], b = c->gpr[ra], result = a - b;
+            uint32_t overflow = (((a ^ b) & (a ^ result)) >> 31) & 1u;
+            c->gpr[rt] = result;
+            c->xer = (c->xer & ~0x40000000u) | (overflow << 30);
+            if (overflow) c->xer |= 0x80000000u; /* SO is sticky */
+            if (ins & 1u) set_cr0(c, result);
+            break;
+        }
         case 28: c->gpr[ra] = c->gpr[rt] & c->gpr[rb]; if (ins & 1u) set_cr0(c, c->gpr[ra]); break;
         case 412: /* ORC */
             c->gpr[ra] = c->gpr[rt] | ~c->gpr[rb];
