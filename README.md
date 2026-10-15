@@ -172,3 +172,9 @@ Expansão do interpretador PowerPC/Gekko com `XORIS`, `CNTLZW`, `ANDC`, `NOR`, `
 - O núcleo continua um interpretador PowerPC parcial. GPU, DSP, drive, IPL, FPU e MMU não estão completos.
 - O build ELF32 é um smoke target; `default.xex` funcional ainda não foi gerado.
 - Acompanhe o [CI](https://github.com/MeiKinosaki/CubEX360/actions) e leia o [status da toolchain](docs/TOOLCHAIN_STATUS.md).
+
+## Desenvolvimento atual — v1.61b (CI pendente)
+- A v1.60b foi corrigida e o workflow #87 terminou com sucesso: [resultado](https://github.com/MeiKinosaki/CubEX360/actions/runs/38720276159).
+- A v1.61b adiciona `ADDO` e `SUBFO` para semântica de overflow assinado no XER, com regressões para OV/SO e CR0.
+- Os workflows #88 (implementação) e #89 (testes) ainda precisam terminar antes de validar a revisão.
+- FPU, MMU, GPU Flipper, DSP, unidade de disco, IPL/BIOS e compatibilidade com jogos seguem incompletos. O ELF de smoke test não é `default.xex`.
