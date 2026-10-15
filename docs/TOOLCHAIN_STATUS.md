@@ -75,3 +75,17 @@ Próximo marco real: escolher e fixar uma toolchain XEX compatível, criar um al
 - FPU, exceções/interrupts, MMU, GPU Flipper, DSP, unidade de disco e IPL ainda precisam de implementação e integração.
 - O build Free60/libXenon gera ELF de smoke target, não um `default.xex` validado.
 - Continuação da v1.58b: adicionadas `ADDC` e `SUBFC`, com atualização do indicador XER.CA e testes de carry/no-borrow. Os workflows desta última alteração ainda estão pendentes; aguardar resultado antes de considerar o comportamento validado.
+
+## Atualização — v1.59b (2026-10-15)
+- Adicionadas as instruções PowerPC `ADDE`, `SUBFE`, `ADDME` e `SUBFZE` para operações encadeadas pelo XER.CA.
+- Testes de regressão publicados para carry/no-borrow e consumo de XER.CA.
+- Workflows da v1.59b estão em execução na última consulta; aguardar conclusão antes de declarar a implementação validada.
+- A v1.58b passou nos workflows de implementação/testes de `ADDC`/`SUBFC` e nos testes de limites da RAM.
+- Continua pendente o runner Windows próprio para o build XEX; não há `default.xex` funcional produzido.
+
+### Próximas áreas
+1. Validar a cadeia de carry com cenários de carry=0 e carry=1, inclusive subtração com empréstimo.
+2. Implementar/validar operações aritméticas restantes, respeitando SO/OV/CA e semântica de OE/Rc.
+3. Expandir load/store e exceções de acesso desalinhado.
+4. Criar ponto de entrada de aplicação que integre o núcleo real ao alvo libXenon; o alvo atual é smoke build.
+5. Só liberar XEX após toolchain, imports/runtime, verificação de contêiner e teste de boot.
