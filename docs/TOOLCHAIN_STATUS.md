@@ -62,3 +62,15 @@ Próximo marco real: escolher e fixar uma toolchain XEX compatível, criar um al
 5. Separar o núcleo de emulação do smoke target libXenon e integrar um ponto de entrada de aplicação.
 6. Continuar FPU, exceções, MMU, GPU Flipper, DSP, drive e IPL como subsistemas separados; eles continuam ausentes/parciais.
 7. Manter o gate XEX fechado até o build produzir um XEX de verdade e a validação estrutural/imports ser demonstrada.
+
+## Atualização — v1.58b (2026-10-15)
+- Adicionados testes de limites da RAM, acessos desalinhados de 16/32 bits e endereço de barramento não mapeado.
+- Adicionado teste de falha de busca de instrução: deve retornar `CUBEX_CPU_MEMORY_FAULT` sem avançar PC nem incrementar `retired_instructions`.
+- Ajustado o workflow XEX para verificar explicitamente o código de saída do script de build, incluindo falhas de ferramentas nativas.
+- A execução CI da v1.58b precisa ser consultada após o commit; não presumir sucesso antes do resultado.
+- O workflow XEX permanece dependente de runner Windows próprio e toolchain configurada; `default.xex` funcional continua não gerado.
+
+### Limitações atuais mantidas
+- O núcleo continua sendo um interpretador PowerPC parcial, não um emulador de GameCube completo.
+- FPU, exceções/interrupts, MMU, GPU Flipper, DSP, unidade de disco e IPL ainda precisam de implementação e integração.
+- O build Free60/libXenon gera ELF de smoke target, não um `default.xex` validado.
