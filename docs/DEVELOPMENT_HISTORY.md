@@ -196,4 +196,6 @@ Esses percentuais foram estimativas informais anteriores à última falha de CI.
 ### Correção de regressão durante a validação v1.61b
 - O run #89 falhou porque o teste esperava OV limpo após `SUBFO`, mas os operandos de teste também causam overflow assinado. O cálculo esperado foi corrigido; não foi removida a asserção de overflow.
 - Run #90, com a correção, está em andamento na última consulta: https://github.com/MeiKinosaki/CubEX360/actions/runs/38721264668.
-- Inventário audível dos opcodes presentes e das limitações: `docs/CPU_COVERAGE.md`.
+- Inventário auditável dos opcodes presentes e das limitações: `docs/CPU_COVERAGE.md`.
+
+- A execução #90 também falhou no teste de CR0: `SUBFO.` inclui o bit SO sticky no campo de resultado de comparação. A expectativa foi corrigida no commit `2591824ce5`; a execução #91 estava em andamento na última consulta. Foi acrescentado mais um caso para `ADDO.` confirmar CR0 com SO sticky no commit `308272e631`; CI desse último commit ainda não foi consultado como concluído.
