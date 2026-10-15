@@ -341,6 +341,23 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
             if (ins & 1u) set_cr0(c, c->gpr[rt]);
             break;
         }
+        case 202: { /* ADDZE: RA + XER.CA */
+            uint64_t sum = (uint64_t)c->gpr[ra] + ((c->xer >> 29) & 1u);
+            c->gpr[rt] = (uint32_t)sum;
+            if (sum >> 32) c->xer |= 0x20000000u;
+            else c->xer &= ~0x20000000u;
+            if (ins & 1u) set_cr0(c, c->gpr[rt]);
+            break;
+        }
+        case 232: { /* SUBFME: ~RA + 0xffffffff + XER.CA */
+            uint64_t sum = (uint64_t)(~c->gpr[ra]) + 0xffffffffull +
+                           ((c->xer >> 29) & 1u);
+            c->gpr[rt] = (uint32_t)sum;
+            if (sum >> 32) c->xer |= 0x20000000u;
+            else c->xer &= ~0x20000000u;
+            if (ins & 1u) set_cr0(c, c->gpr[rt]);
+            break;
+        }
         case 200: { /* SUBFZE: 0 - RA - (1 - XER.CA) */
             uint64_t sum = (uint64_t)(~c->gpr[ra]) +
                            ((c->xer >> 29) & 1u);
