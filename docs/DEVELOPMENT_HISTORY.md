@@ -168,3 +168,9 @@ Esses percentuais foram estimativas informais anteriores à última falha de CI.
 - O núcleo continua parcial e ainda não oferece emulação completa de GameCube.
 - `default.xex` real e funcional continua não gerado; a toolchain XEX depende de runner Windows próprio e ABI/runtime compatíveis.
 - Não há boot em Xbox 360 RGH nem compatibilidade de jogos comprovados.
+## v1.59b — aritmética encadeada por carry (2026-10-15)
+- Implementadas `ADDE`, `SUBFE`, `ADDME` e `SUBFZE` com consumo/atualização de XER.CA.
+- Adicionados testes de regressão sequenciais para carry e no-borrow.
+- Workflows #83 e #84 foram disparados e estavam em execução na última consulta; não considerar v1.59b validada antes de ambos terminarem.
+- v1.58b: workflows #80–#82 concluídos com sucesso para limites/alinhamento de memória e `ADDC`/`SUBFC`.
+- `default.xex` do emulador completo segue não gerado; o workflow XEX exige runner Windows e script de toolchain provisionados.
