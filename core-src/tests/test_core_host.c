@@ -8,6 +8,14 @@ int main(void) {
     uint8_t byte_value = 0;
     uint16_t half_value = 0;
     assert(cubex_memory_init(&mem) == 0);
+    /* Boundary, alignment and unmapped-bus failures must be rejected safely. */
+    assert(cubex_memory_read8(&mem, CUBEX360_MAIN_RAM_SIZE, &byte_value) != 0);
+    assert(cubex_memory_read16be(&mem, 1u, &half_value) != 0);
+    assert(cubex_memory_read32be(&mem, 2u, &value) != 0);
+    assert(cubex_memory_write8(&mem, CUBEX360_MAIN_RAM_SIZE, 0x5au) != 0);
+    assert(cubex_memory_write16be(&mem, 1u, 0x1234u) != 0);
+    assert(cubex_memory_write32be(&mem, 2u, 0x12345678u) != 0);
+    assert(cubex_bus_read32be(&mem, 0x70000000u, &value) != 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE, 0x3860002au) == 0);
     assert(cubex_bus_read32be(&mem, CUBEX360_RAM_UNCACHED_BASE, &value) == 0);
     assert(value == 0x3860002au);
@@ -368,6 +376,10 @@ int main(void) {
     assert(cpu.gpr[3] == 42u && cpu.gpr[4] == 43u);
     assert(cpu.pc == CUBEX360_RAM_CACHED_BASE + 0x308u);
     assert(cpu.retired_instructions == 2u);
+    /* Fetch from an unmapped address faults without retiring an instruction. */
+    cubex_cpu_reset(&cpu, 0x70000000u);
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_MEMORY_FAULT);
+    assert(cpu.pc == 0x70000000u && cpu.retired_instructions == 0u);
     cubex_memory_destroy(&mem);
     puts("CubEX360 core host smoke: PASS");
     return 0;
