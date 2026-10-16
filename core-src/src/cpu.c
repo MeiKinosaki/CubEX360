@@ -282,6 +282,29 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
             if (ins & 1u) set_cr0(c, result);
             break;
         }
+        case 792: { /* SRAW: arithmetic right shift word by register */
+            uint32_t source = c->gpr[rt];
+            uint32_t shift = c->gpr[rb] & 0x3fu;
+            uint32_t result;
+            int negative = (source & 0x80000000u) != 0u;
+            int discarded_one = 0;
+            if (shift == 0u) {
+                result = source;
+            } else if (shift >= 32u) {
+                result = negative ? 0xffffffffu : 0u;
+                discarded_one = negative && source != 0u;
+            } else {
+                uint32_t discarded_mask = (1u << shift) - 1u;
+                discarded_one = negative && ((source & discarded_mask) != 0u);
+                result = source >> shift;
+                if (negative) result |= (~0u << (32u - shift));
+            }
+            c->gpr[ra] = result;
+            if (discarded_one) c->xer |= 0x20000000u;
+            else c->xer &= ~0x20000000u;
+            if (ins & 1u) set_cr0(c, result);
+            break;
+        }
         case 339: {
             uint32_t spr = ((ins >> 16) & 31u) | ((ins >> 6) & 0x3e0u);
             if (spr == 8u) c->gpr[rt] = c->lr;
