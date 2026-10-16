@@ -124,3 +124,8 @@ Próximo marco real: escolher e fixar uma toolchain XEX compatível, criar um al
 - `SRAW` v1.63b passou host/sanitizers, mas os jobs de build ainda estavam em execução na última consulta.
 - `MULHWU` v1.64b e os testes correspondentes foram enviados; CI #97–#98 ainda não terminou.
 - Nenhum `default.xex` funcional ou boot em Xbox 360 RGH foi comprovado.
+
+
+### Correção de CI — 2026-10-16
+- A falha do run #96 foi localizada em codificação errada dos registradores no teste de `SRAW` (fonte/destino invertidos no teste). Correção enviada; run #99 pendente.
+- O run #97 falhou na suíte compartilhada que continha o teste SRAW incorreto; run #98 ainda não tinha conclusão na última consulta. Os testes host/sanitizers da `MULHWU` não devem ser considerados aprovados até nova execução.
