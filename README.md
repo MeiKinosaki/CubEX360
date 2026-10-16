@@ -188,3 +188,9 @@ O inventário de opcodes presentes e limitações arquiteturais está em [docs/C
 - O run #92 confirmou a validação do teste de `ADDO.`/`CR0` na v1.61b: [resultado](https://github.com/MeiKinosaki/CubEX360/actions/runs/38723342332).
 - A v1.62b adiciona `MULLW` e testes de resultado truncado; a execução #93 ainda está em andamento: [CI](https://github.com/MeiKinosaki/CubEX360/actions/runs/38947391104).
 - Ainda não há `default.xex` funcional nem compatibilidade de jogos comprovada.
+
+
+## Desenvolvimento atual — v1.63b
+- `MULLW` foi adicionada na v1.62b; run #93 passou e a validação do teste está em andamento: [run #94](https://github.com/MeiKinosaki/CubEX360/actions/runs/38947407729).
+- A v1.63b adiciona `SRAW` com teste de `XER.CA` e `CR0`: [implementação #95](https://github.com/MeiKinosaki/CubEX360/actions/runs/38947472203), [testes #96](https://github.com/MeiKinosaki/CubEX360/actions/runs/38947492785).
+- Não há `default.xex` funcional nem compatibilidade com jogos comprovada.
