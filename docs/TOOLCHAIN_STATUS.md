@@ -105,3 +105,9 @@ Próximo marco real: escolher e fixar uma toolchain XEX compatível, criar um al
 - Runs #88 e #89 ainda estavam em andamento/fila na última consulta; aguardar ambos antes de declarar a versão aprovada.
 - O run #87 da correção de teste v1.60b concluiu com sucesso. O run #86 foi uma tentativa anterior que falhou antes da correção.
 - Nenhum `default.xex` funcional foi produzido; XEX depende de runner/toolchain/runtime e integração de ABI ainda não disponíveis/validados.
+
+
+## Atualização — 2026-10-16
+- A validação da correção v1.61b foi concluída: run #92 passou, incluindo o caso `ADDO.` e `CR0/SO`.
+- A v1.62b adiciona `MULLW` e seus testes; run #93 ainda está em andamento na última consulta.
+- O build ELF32 permanece experimental; `default.xex` funcional e boot em Xbox 360 RGH não foram comprovados.
