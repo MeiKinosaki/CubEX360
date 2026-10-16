@@ -234,3 +234,5 @@ Esses percentuais foram estimativas informais anteriores à última falha de CI.
 - Testes cobrem `-2 × 3` (palavra superior `0xffffffff`) e `0x7fffffff × 2` (palavra superior zero), incluindo atualização de CR0 na forma `Rc`.
 - Commits: CPU `3c6ad2cc67668eab7cdceb79143446f1ea17842a`; testes `88a436e602298d71389a6d9491267e545ee701a4`.
 - CI #100–#101 ainda está em execução/fila. Correção do teste SRAW no commit `63f634aa80` está sendo validada pelo run #99.
+
+- **Atualização:** o run #99 terminou com sucesso em todos os jobs (host, sanitizers, probe e smoke build). A correção de codificação dos testes SRAW passou, e o estado da árvore testada inclui também `MULHWU`; isso valida a suíte correspondente à revisão #99. A implementação/testes de `MULHW` entraram depois e aguardam #100–#101.
