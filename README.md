@@ -208,3 +208,5 @@ O inventário de opcodes presentes e limitações arquiteturais está em [docs/C
 ## Desenvolvimento atual — v1.65b
 - Correção do teste SRAW (campos fonte/destino): [commit](https://github.com/MeiKinosaki/CubEX360/commit/63f634aa805505185ef4faf72db953ed21abd384), [CI #99](https://github.com/MeiKinosaki/CubEX360/actions/runs/38947638330).
 - A v1.64b adiciona `MULHWU`; a v1.65b adiciona `MULHW` para palavra superior signed do produto. CI #100–#101 pendente: [implementação](https://github.com/MeiKinosaki/CubEX360/actions/runs/38947712923), [testes](https://github.com/MeiKinosaki/CubEX360/actions/runs/38947726589).
+
+**Atualização CI:** a execução #99 passou em todos os jobs após corrigir a codificação dos registradores de `SRAW`; ela valida a revisão com `SRAW` e `MULHWU`. `MULHW` v1.65b é posterior e segue pendente nas execuções #100–#101.
