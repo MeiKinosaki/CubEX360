@@ -53,3 +53,5 @@ Este inventário é uma leitura qualitativa do interpretador em `core-src/src/cp
 - **Multiplicação:** `mulhw` (XO 75, v1.65b) foi adicionada para obter a palavra superior do produto signed de 32 bits; testes de produto negativo e produto com palavra superior zero foram adicionados. CI #100–#101 pendente.
 
 - **Validação atualizada:** o run #99 passou em host, sanitizers, probe e smoke build após a correção do teste `SRAW`; a revisão testada contém `MULHWU`. `MULHW` v1.65b permanece pendente nos runs #100–#101.
+
+- **Validação atualizada:** `MULHW` v1.65b passou host, sanitizers, probe e smoke build nos runs #100–#101; `SRAW`/`MULHWU` passou após a correção no run #99. A cobertura continua parcial e não implica compatibilidade com jogos.
