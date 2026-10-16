@@ -490,6 +490,20 @@ int main(void) {
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
     assert(cpu.gpr[3] == 0u);
     assert((cpu.cr & 0xf0000000u) == 0x20000000u);
+    /* MULHW returns the upper word of the signed product. */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x3a8u,
+        (31u<<26)|(29u<<21)|(30u<<16)|(31u<<11)|(75u<<1)|1u) == 0); /* mulhw. r29,r30,r31 */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x3acu,
+        (31u<<26)|(3u<<21)|(4u<<16)|(5u<<11)|(75u<<1)|1u) == 0); /* mulhw. r3,r4,r5 */
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x3a8u);
+    cpu.gpr[30] = 0xfffffffeu; cpu.gpr[31] = 3u;
+    cpu.gpr[4] = 0x7fffffffu; cpu.gpr[5] = 2u;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[29] == 0xffffffffu);
+    assert((cpu.cr & 0xf0000000u) == 0x80000000u);
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[3] == 0u);
+    assert((cpu.cr & 0xf0000000u) == 0x20000000u);
     /* Bounded execution loop runs exactly the requested instruction budget. */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x300u, 0x3860002au) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x304u, 0x38830001u) == 0);
