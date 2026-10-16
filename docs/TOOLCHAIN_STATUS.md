@@ -137,3 +137,9 @@ Próximo marco real: escolher e fixar uma toolchain XEX compatível, criar um al
 - A v1.65b adiciona `MULHW` signed e testes; CI #100–#101 pendente.
 
 - **Atualização:** run #99 passou em todos os jobs após corrigir os campos de registrador de SRAW; essa revisão também contém `MULHWU` e sua regressão, então a suíte de v1.63b/v1.64b foi validada. A nova `MULHW` v1.65b ainda aguarda #100–#101.
+
+
+### Estado verificado — v1.65b
+- Runs #100 e #101 concluíram com sucesso em todos os jobs: host, sanitizers, probe e smoke build.
+- Runs #97/#98 foram falhas anteriores causadas pela regressão de codificação do teste SRAW; o run #99 passou após a correção, e #100/#101 passaram com `MULHW`.
+- Isto valida os testes de núcleo/build experimental, não um `default.xex` funcional nem boot RGH.
