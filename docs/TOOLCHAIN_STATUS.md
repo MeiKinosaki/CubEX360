@@ -117,3 +117,10 @@ Próximo marco real: escolher e fixar uma toolchain XEX compatível, criar um al
 - Run #93 da implementação `MULLW` passou; no run #94, testes host, sanitizers e probe passaram, mas o smoke build ainda estava em andamento na última consulta.
 - A v1.63b adiciona `SRAW`; host e sanitizers passaram no run #95, com builds de destino ainda em andamento. Run #96 testa a regressão específica.
 - `default.xex` funcional e boot em Xbox 360 RGH permanecem não comprovados.
+
+
+## Atualização — v1.64b
+- `MULLW` v1.62b passou na execução #94, incluindo host, sanitizers, probe e smoke build.
+- `SRAW` v1.63b passou host/sanitizers, mas os jobs de build ainda estavam em execução na última consulta.
+- `MULHWU` v1.64b e os testes correspondentes foram enviados; CI #97–#98 ainda não terminou.
+- Nenhum `default.xex` funcional ou boot em Xbox 360 RGH foi comprovado.
