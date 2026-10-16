@@ -210,3 +210,6 @@ O inventário de opcodes presentes e limitações arquiteturais está em [docs/C
 - A v1.64b adiciona `MULHWU`; a v1.65b adiciona `MULHW` para palavra superior signed do produto. CI #100–#101 pendente: [implementação](https://github.com/MeiKinosaki/CubEX360/actions/runs/38947712923), [testes](https://github.com/MeiKinosaki/CubEX360/actions/runs/38947726589).
 
 **Atualização CI:** a execução #99 passou em todos os jobs após corrigir a codificação dos registradores de `SRAW`; ela valida a revisão com `SRAW` e `MULHWU`. `MULHW` v1.65b é posterior e segue pendente nas execuções #100–#101.
+
+
+**Validação concluída:** as execuções [#100](https://github.com/MeiKinosaki/CubEX360/actions/runs/38947712923) e [#101](https://github.com/MeiKinosaki/CubEX360/actions/runs/38947726589) passaram em todos os jobs para `MULHW` v1.65b. A correção do teste SRAW também passou na [execução #99](https://github.com/MeiKinosaki/CubEX360/actions/runs/38947638330). O executável final `default.xex` ainda não está comprovado.
