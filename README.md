@@ -194,3 +194,9 @@ O inventário de opcodes presentes e limitações arquiteturais está em [docs/C
 - `MULLW` foi adicionada na v1.62b; run #93 passou e a validação do teste está em andamento: [run #94](https://github.com/MeiKinosaki/CubEX360/actions/runs/38947407729).
 - A v1.63b adiciona `SRAW` com teste de `XER.CA` e `CR0`: [implementação #95](https://github.com/MeiKinosaki/CubEX360/actions/runs/38947472203), [testes #96](https://github.com/MeiKinosaki/CubEX360/actions/runs/38947492785).
 - Não há `default.xex` funcional nem compatibilidade com jogos comprovada.
+
+
+## Desenvolvimento atual — v1.64b
+- `MULLW` foi validada na execução #94: [CI](https://github.com/MeiKinosaki/CubEX360/actions/runs/38947407729).
+- `SRAW` está em validação nas execuções [#95](https://github.com/MeiKinosaki/CubEX360/actions/runs/38947472203) e [#96](https://github.com/MeiKinosaki/CubEX360/actions/runs/38947492785).
+- A v1.64b adiciona `MULHWU`, multiplicação unsigned com resultado na palavra superior; CI pendente: [implementação #97](https://github.com/MeiKinosaki/CubEX360/actions/runs/38947550859), [testes #98](https://github.com/MeiKinosaki/CubEX360/actions/runs/38947566701).
