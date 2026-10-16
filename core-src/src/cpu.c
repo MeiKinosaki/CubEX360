@@ -1,5 +1,6 @@
 #include "cubex360/cpu.h"
 #include <string.h>
+#include <limits.h>
 
 #define PPC_CR0_LT 0x80000000u
 #define PPC_CR0_GT 0x40000000u
@@ -319,6 +320,18 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
             else if (spr == 9u) c->ctr = c->gpr[rt];
             else if (spr == 1u) c->xer = c->gpr[rt];
             else return CUBEX_CPU_UNSUPPORTED;
+            break;
+        }
+        case 747: { /* MULLWO: low word, with signed overflow enabled */
+            int64_t product = (int64_t)(int32_t)c->gpr[ra] *
+                              (int64_t)(int32_t)c->gpr[rb];
+            uint32_t result = (uint32_t)(uint64_t)product;
+            int overflow = product > INT32_MAX || product < INT32_MIN;
+            c->gpr[rt] = result;
+            c->xer = (c->xer & ~0x40000000u) |
+                     ((uint32_t)overflow << 30);
+            if (overflow) c->xer |= 0x80000000u;
+            if (ins & 1u) set_cr0(c, result);
             break;
         }
         case 75: { /* MULHW: high word of signed 32x32 product */
