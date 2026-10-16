@@ -227,3 +227,10 @@ Esses percentuais foram estimativas informais anteriores à última falha de CI.
 ### Correção dos testes SRAW e estado de MULHWU
 - O run #96 falhou porque os testes codificavam incorretamente os campos de registrador fonte/destino de `SRAW`; o código da instrução não foi apontado como causa. A correção foi enviada no commit `63f634aa805505185ef4faf72db953ed21abd384`; run #99 está pendente.
 - O run #97 de `MULHWU` também falhou porque a suíte completa incluía a regressão SRAW incorreta. O run #98 ainda estava em andamento na última consulta. Aguardar os novos workflows antes de concluir a validação v1.63b/v1.64b.
+
+
+## v1.65b — MULHW (2026-10-16; CI pendente)
+- Implementada `MULHW` (XO 75): produto de operandos signed de 32 bits, com armazenamento da palavra superior do produto de 64 bits.
+- Testes cobrem `-2 × 3` (palavra superior `0xffffffff`) e `0x7fffffff × 2` (palavra superior zero), incluindo atualização de CR0 na forma `Rc`.
+- Commits: CPU `3c6ad2cc67668eab7cdceb79143446f1ea17842a`; testes `88a436e602298d71389a6d9491267e545ee701a4`.
+- CI #100–#101 ainda está em execução/fila. Correção do teste SRAW no commit `63f634aa80` está sendo validada pelo run #99.
