@@ -199,3 +199,10 @@ Esses percentuais foram estimativas informais anteriores à última falha de CI.
 - Inventário auditável dos opcodes presentes e das limitações: `docs/CPU_COVERAGE.md`.
 
 - A execução #90 também falhou no teste de CR0: `SUBFO.` inclui o bit SO sticky no campo de resultado de comparação. A expectativa foi corrigida no commit `2591824ce5`; a execução #91 estava em andamento na última consulta. Foi acrescentado mais um caso para `ADDO.` confirmar CR0 com SO sticky no commit `308272e631`; CI desse último commit ainda não foi consultado como concluído.
+
+
+## v1.62b — MULLW (2026-10-16; CI pendente)
+- Implementada `MULLW` (XO 235), com resultado limitado aos 32 bits inferiores do produto de palavras com sinal.
+- Adicionados testes de produto negativo e wrap/truncamento para zero, incluindo a forma com `Rc`.
+- Commits: CPU `06b9ec33c7ff084e394a7c274f2ca4b3ac6b1018`; testes `c419f08693a351c7663d48179aa935d7c57363a1`.
+- A validação v1.61b foi confirmada pelo run #92: sucesso. A execução #93 da implementação v1.62b está em andamento.
