@@ -213,3 +213,8 @@ O inventário de opcodes presentes e limitações arquiteturais está em [docs/C
 
 
 **Validação concluída:** as execuções [#100](https://github.com/MeiKinosaki/CubEX360/actions/runs/38947712923) e [#101](https://github.com/MeiKinosaki/CubEX360/actions/runs/38947726589) passaram em todos os jobs para `MULHW` v1.65b. A correção do teste SRAW também passou na [execução #99](https://github.com/MeiKinosaki/CubEX360/actions/runs/38947638330). O executável final `default.xex` ainda não está comprovado.
+
+
+## Desenvolvimento atual — v1.66b
+- A v1.65b `MULHW` passou em todos os jobs: [implementação #100](https://github.com/MeiKinosaki/CubEX360/actions/runs/38947712923), [testes #101](https://github.com/MeiKinosaki/CubEX360/actions/runs/38947726589).
+- A v1.66b adiciona `MULLWO` com detecção de overflow signed e testes de `XER.OV`/`XER.SO`; CI pendente: [#102](https://github.com/MeiKinosaki/CubEX360/actions/runs/38947885203), [#103](https://github.com/MeiKinosaki/CubEX360/actions/runs/38947902411).
