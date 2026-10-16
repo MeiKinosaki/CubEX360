@@ -200,3 +200,6 @@ O inventário de opcodes presentes e limitações arquiteturais está em [docs/C
 - `MULLW` foi validada na execução #94: [CI](https://github.com/MeiKinosaki/CubEX360/actions/runs/38947407729).
 - `SRAW` está em validação nas execuções [#95](https://github.com/MeiKinosaki/CubEX360/actions/runs/38947472203) e [#96](https://github.com/MeiKinosaki/CubEX360/actions/runs/38947492785).
 - A v1.64b adiciona `MULHWU`, multiplicação unsigned com resultado na palavra superior; CI pendente: [implementação #97](https://github.com/MeiKinosaki/CubEX360/actions/runs/38947550859), [testes #98](https://github.com/MeiKinosaki/CubEX360/actions/runs/38947566701).
+
+
+**Aviso de validação:** a execução #96 detectou campos de registrador invertidos no teste de `SRAW`; correção enviada em [commit](https://github.com/MeiKinosaki/CubEX360/commit/63f634aa805505185ef4faf72db953ed21abd384), CI #99 pendente. A execução #97 da `MULHWU` falhou pela suíte que continha esse teste; aguardar #98/#99 antes de declarar as versões aprovadas.
