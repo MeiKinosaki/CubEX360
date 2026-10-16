@@ -49,3 +49,5 @@ Este inventário é uma leitura qualitativa do interpretador em `core-src/src/cp
 - **Multiplicação:** `mullw` (v1.62b) passou em host, sanitizers e smoke build no run #94. `mulhwu` (XO 11, v1.64b) foi adicionada para retornar os 32 bits superiores do produto unsigned; os workflows #97–#98 ainda estão em execução.
 
 - **Nota de regressão:** os testes de `SRAW` na execução #96 falharam por codificação invertida dos registradores fonte/destino no teste; correção enviada no commit `63f634aa805505185ef4faf72db953ed21abd384`, aguardando CI #99. A falha da execução #97 de `MULHWU` ocorreu na suíte compartilhada com essa regressão; não marcar v1.64b como validada até #98/#99 concluírem.
+
+- **Multiplicação:** `mulhw` (XO 75, v1.65b) foi adicionada para obter a palavra superior do produto signed de 32 bits; testes de produto negativo e produto com palavra superior zero foram adicionados. CI #100–#101 pendente.
