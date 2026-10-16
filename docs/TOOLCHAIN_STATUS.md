@@ -135,3 +135,5 @@ Próximo marco real: escolher e fixar uma toolchain XEX compatível, criar um al
 - A v1.63b teve falha no teste específico de `SRAW` por campos de registrador invertidos no teste; correção enviada e CI #99 em andamento.
 - A v1.64b não pode ser considerada aprovada enquanto a regressão SRAW incluída na suíte não passar; runs #97–#98 falharam na suíte compartilhada.
 - A v1.65b adiciona `MULHW` signed e testes; CI #100–#101 pendente.
+
+- **Atualização:** run #99 passou em todos os jobs após corrigir os campos de registrador de SRAW; essa revisão também contém `MULHWU` e sua regressão, então a suíte de v1.63b/v1.64b foi validada. A nova `MULHW` v1.65b ainda aguarda #100–#101.
