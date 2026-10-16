@@ -222,3 +222,8 @@ Esses percentuais foram estimativas informais anteriores à última falha de CI.
 - Commits: CPU `dcddf703cc719216015084016f5a91e43cecfdd7`; testes `5724c514d5c6f667f3897027f57ec19c41832630`.
 - CI #97 da implementação está em andamento; #98 dos testes está na fila.
 - v1.62b (`MULLW`) foi validada pelo run #94. A validação integral de v1.63b ainda depende de concluir os jobs #95–#96.
+
+
+### Correção dos testes SRAW e estado de MULHWU
+- O run #96 falhou porque os testes codificavam incorretamente os campos de registrador fonte/destino de `SRAW`; o código da instrução não foi apontado como causa. A correção foi enviada no commit `63f634aa805505185ef4faf72db953ed21abd384`; run #99 está pendente.
+- O run #97 de `MULHWU` também falhou porque a suíte completa incluía a regressão SRAW incorreta. O run #98 ainda estava em andamento na última consulta. Aguardar os novos workflows antes de concluir a validação v1.63b/v1.64b.
