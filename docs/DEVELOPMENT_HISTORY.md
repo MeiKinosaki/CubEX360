@@ -206,3 +206,11 @@ Esses percentuais foram estimativas informais anteriores à última falha de CI.
 - Adicionados testes de produto negativo e wrap/truncamento para zero, incluindo a forma com `Rc`.
 - Commits: CPU `06b9ec33c7ff084e394a7c274f2ca4b3ac6b1018`; testes `c419f08693a351c7663d48179aa935d7c57363a1`.
 - A validação v1.61b foi confirmada pelo run #92: sucesso. A execução #93 da implementação v1.62b está em andamento.
+
+
+## v1.63b — SRAW (2026-10-16; CI em andamento)
+- Implementada a instrução `SRAW` (XO 792): deslocamento aritmético à direita com quantidade em registrador, propagação do sinal, atualização de `XER.CA` pelos bits descartados e atualização de `CR0` na forma `Rc`.
+- Testes cobrem fonte negativa com bits descartados, fonte positiva e atualização de CA/CR0.
+- Commits: CPU `5dcd05ced2b594d136830c5938aac4d426ed1c95`; testes `c40ee0ec09f255498b2ea717ecc43ccad3f5c801`.
+- Run #95: host/sanitizers passaram; build de destino ainda estava em andamento. Run #96 ainda estava em execução na última consulta.
+- v1.62b: run #93 passou; run #94 tinha host/sanitizers e probe passados, mas o smoke build seguia em andamento.
