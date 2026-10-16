@@ -236,3 +236,9 @@ Esses percentuais foram estimativas informais anteriores à última falha de CI.
 - CI #100–#101 ainda está em execução/fila. Correção do teste SRAW no commit `63f634aa80` está sendo validada pelo run #99.
 
 - **Atualização:** o run #99 terminou com sucesso em todos os jobs (host, sanitizers, probe e smoke build). A correção de codificação dos testes SRAW passou, e o estado da árvore testada inclui também `MULHWU`; isso valida a suíte correspondente à revisão #99. A implementação/testes de `MULHW` entraram depois e aguardam #100–#101.
+
+
+### Validação concluída — v1.65b
+- Runs #100 (implementação) e #101 (testes) terminaram com sucesso em host, sanitizers, probe e smoke build.
+- `MULHW` está validada na suíte atual; a revisão também inclui `MULHWU` e a correção dos testes de `SRAW`.
+- O run #99 anterior também passou integralmente, confirmando a correção dos campos fonte/destino no teste `SRAW`.
