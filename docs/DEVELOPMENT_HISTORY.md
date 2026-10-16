@@ -242,3 +242,11 @@ Esses percentuais foram estimativas informais anteriores à última falha de CI.
 - Runs #100 (implementação) e #101 (testes) terminaram com sucesso em host, sanitizers, probe e smoke build.
 - `MULHW` está validada na suíte atual; a revisão também inclui `MULHWU` e a correção dos testes de `SRAW`.
 - O run #99 anterior também passou integralmente, confirmando a correção dos campos fonte/destino no teste `SRAW`.
+
+
+## v1.66b — MULLWO (2026-10-16; CI pendente)
+- Implementada `MULLWO` (XO 747): produto signed de 32 bits, armazenamento da palavra inferior e atualização de `XER.OV`; `XER.SO` é sticky em overflow. Forma `Rc` atualiza CR0.
+- Testes cobrem `INT_MIN × -1` (overflow), depois `2 × 3` (OV limpo e SO preservado).
+- Commits: CPU `cc9d03fbf75b8ea0dd9352fc5b3523e2dccb1491`; testes `c6043ea5687ef742a9fbfbfe13d5074b53d0de5b`.
+- CI #102 da implementação está em andamento; #103 dos testes está na fila.
+- v1.65b (`MULHW`) passou nos runs #100–#101.
