@@ -129,3 +129,9 @@ Próximo marco real: escolher e fixar uma toolchain XEX compatível, criar um al
 ### Correção de CI — 2026-10-16
 - A falha do run #96 foi localizada em codificação errada dos registradores no teste de `SRAW` (fonte/destino invertidos no teste). Correção enviada; run #99 pendente.
 - O run #97 falhou na suíte compartilhada que continha o teste SRAW incorreto; run #98 ainda não tinha conclusão na última consulta. Os testes host/sanitizers da `MULHWU` não devem ser considerados aprovados até nova execução.
+
+
+## Atualização — v1.65b
+- A v1.63b teve falha no teste específico de `SRAW` por campos de registrador invertidos no teste; correção enviada e CI #99 em andamento.
+- A v1.64b não pode ser considerada aprovada enquanto a regressão SRAW incluída na suíte não passar; runs #97–#98 falharam na suíte compartilhada.
+- A v1.65b adiciona `MULHW` signed e testes; CI #100–#101 pendente.
