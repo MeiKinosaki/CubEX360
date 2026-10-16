@@ -37,3 +37,9 @@ Este inventário é uma leitura qualitativa do interpretador em `core-src/src/cp
 4. Implementar exceções arquiteturais e alinhamento/mapeamento com resultados definidos.
 5. Integrar um ponto de entrada de aplicação ao build de destino e só então retomar a trilha de XEX.
 6. Tratar FPU, MMU, Flipper/VI, DSP, drive e IPL como subsistemas próprios, com testes e milestones separados.
+
+
+### v1.62b — em validação
+- Adicionada `MULLW` (XO 235): produto de palavras com sinal, armazenando os 32 bits inferiores do produto; forma `Rc` atualiza CR0.
+- Testes host cobrem `-2 × 3` e um produto que retorna zero nos 32 bits inferiores.
+- CI para a implementação #93 está em andamento; não marcar `MULLW` como validada até a suíte host e sanitizers passarem.
