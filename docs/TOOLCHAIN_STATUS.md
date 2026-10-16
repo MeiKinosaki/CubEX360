@@ -111,3 +111,9 @@ Próximo marco real: escolher e fixar uma toolchain XEX compatível, criar um al
 - A validação da correção v1.61b foi concluída: run #92 passou, incluindo o caso `ADDO.` e `CR0/SO`.
 - A v1.62b adiciona `MULLW` e seus testes; run #93 ainda está em andamento na última consulta.
 - O build ELF32 permanece experimental; `default.xex` funcional e boot em Xbox 360 RGH não foram comprovados.
+
+
+## Atualização — 2026-10-16 (v1.62b–v1.63b)
+- Run #93 da implementação `MULLW` passou; no run #94, testes host, sanitizers e probe passaram, mas o smoke build ainda estava em andamento na última consulta.
+- A v1.63b adiciona `SRAW`; host e sanitizers passaram no run #95, com builds de destino ainda em andamento. Run #96 testa a regressão específica.
+- `default.xex` funcional e boot em Xbox 360 RGH permanecem não comprovados.
