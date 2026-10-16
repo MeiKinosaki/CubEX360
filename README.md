@@ -182,3 +182,9 @@ Expansão do interpretador PowerPC/Gekko com `XORIS`, `CNTLZW`, `ANDC`, `NOR`, `
 
 ## Auditoria da CPU
 O inventário de opcodes presentes e limitações arquiteturais está em [docs/CPU_COVERAGE.md](docs/CPU_COVERAGE.md). A validação v1.61b ainda está em curso; não interpretar o inventário como cobertura total de Gekko ou compatibilidade com jogos.
+
+
+## Desenvolvimento atual — v1.62b
+- O run #92 confirmou a validação do teste de `ADDO.`/`CR0` na v1.61b: [resultado](https://github.com/MeiKinosaki/CubEX360/actions/runs/38723342332).
+- A v1.62b adiciona `MULLW` e testes de resultado truncado; a execução #93 ainda está em andamento: [CI](https://github.com/MeiKinosaki/CubEX360/actions/runs/38947391104).
+- Ainda não há `default.xex` funcional nem compatibilidade de jogos comprovada.
