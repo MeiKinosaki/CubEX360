@@ -447,6 +447,19 @@ int main(void) {
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
     assert(cpu.gpr[12] == 3u);
     assert((cpu.cr & 0xf0000000u) == 0x50000000u); /* Rc includes sticky SO */
+    /* MULLW returns the low word of the signed product; Rc updates CR0. */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x390u,
+        (31u<<26)|(13u<<21)|(14u<<16)|(15u<<11)|(235u<<1)) == 0); /* mullw r13,r14,r15 */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x394u,
+        (31u<<26)|(16u<<21)|(17u<<16)|(18u<<11)|(235u<<1)|1u) == 0); /* mullw. r16,r17,r18 */
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x390u);
+    cpu.gpr[14] = 0xfffffffeu; cpu.gpr[15] = 3u;
+    cpu.gpr[17] = 0x80000000u; cpu.gpr[18] = 2u;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[13] == 0xfffffffau);
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[16] == 0u);
+    assert((cpu.cr & 0xf0000000u) == 0x20000000u); /* zero result, no SO */
     /* Bounded execution loop runs exactly the requested instruction budget. */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x300u, 0x3860002au) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x304u, 0x38830001u) == 0);
