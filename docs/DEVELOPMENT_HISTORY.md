@@ -214,3 +214,11 @@ Esses percentuais foram estimativas informais anteriores à última falha de CI.
 - Commits: CPU `5dcd05ced2b594d136830c5938aac4d426ed1c95`; testes `c40ee0ec09f255498b2ea717ecc43ccad3f5c801`.
 - Run #95: host/sanitizers passaram; build de destino ainda estava em andamento. Run #96 ainda estava em execução na última consulta.
 - v1.62b: run #93 passou; run #94 tinha host/sanitizers e probe passados, mas o smoke build seguia em andamento.
+
+
+## v1.64b — MULHWU (2026-10-16; CI pendente)
+- Implementada `MULHWU` (XO 11): multiplica dois operandos unsigned de 32 bits e armazena os 32 bits superiores do produto de 64 bits.
+- Testes cobrem `0xffffffff × 2` (palavra superior igual a 1) e um produto cuja palavra superior é zero; ambos usam a forma `Rc` para verificar CR0.
+- Commits: CPU `dcddf703cc719216015084016f5a91e43cecfdd7`; testes `5724c514d5c6f667f3897027f57ec19c41832630`.
+- CI #97 da implementação está em andamento; #98 dos testes está na fila.
+- v1.62b (`MULLW`) foi validada pelo run #94. A validação integral de v1.63b ainda depende de concluir os jobs #95–#96.
