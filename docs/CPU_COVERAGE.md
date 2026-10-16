@@ -55,3 +55,5 @@ Este inventário é uma leitura qualitativa do interpretador em `core-src/src/cp
 - **Validação atualizada:** o run #99 passou em host, sanitizers, probe e smoke build após a correção do teste `SRAW`; a revisão testada contém `MULHWU`. `MULHW` v1.65b permanece pendente nos runs #100–#101.
 
 - **Validação atualizada:** `MULHW` v1.65b passou host, sanitizers, probe e smoke build nos runs #100–#101; `SRAW`/`MULHWU` passou após a correção no run #99. A cobertura continua parcial e não implica compatibilidade com jogos.
+
+- **Multiplicação com overflow:** `mullwo` (XO 747, v1.66b) foi adicionada para armazenar a palavra inferior do produto signed e atualizar `XER.OV`/`XER.SO`; CI #102–#103 pendente.
