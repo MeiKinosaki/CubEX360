@@ -367,6 +367,13 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
             if (ins & 1u) set_cr0(c, c->gpr[rt]);
             break;
         }
+        case 235: { /* MULLW: low 32 bits of signed word product */
+            int64_t product = (int64_t)(int32_t)c->gpr[ra] *
+                              (int64_t)(int32_t)c->gpr[rb];
+            c->gpr[rt] = (uint32_t)(uint64_t)product;
+            if (ins & 1u) set_cr0(c, c->gpr[rt]);
+            break;
+        }
         case 266: /* ADD */ 
             c->gpr[rt] = c->gpr[ra] + c->gpr[rb];
             if (ins & 1u) set_cr0(c, c->gpr[rt]);
