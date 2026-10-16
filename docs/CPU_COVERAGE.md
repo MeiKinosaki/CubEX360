@@ -47,3 +47,5 @@ Este inventário é uma leitura qualitativa do interpretador em `core-src/src/cp
 - **Multiplicação:** `mullw` (XO 235) foi adicionada na v1.62b; CI host e sanitizers passaram, mas o smoke build ainda estava em andamento na última consulta. `sraw` (XO 792) foi adicionada na v1.63b; os testes host/sanitizers passaram na última consulta, enquanto os builds de destino seguem em execução. Não declarar essas revisões totalmente validadas até todos os jobs terminarem.
 
 - **Multiplicação:** `mullw` (v1.62b) passou em host, sanitizers e smoke build no run #94. `mulhwu` (XO 11, v1.64b) foi adicionada para retornar os 32 bits superiores do produto unsigned; os workflows #97–#98 ainda estão em execução.
+
+- **Nota de regressão:** os testes de `SRAW` na execução #96 falharam por codificação invertida dos registradores fonte/destino no teste; correção enviada no commit `63f634aa805505185ef4faf72db953ed21abd384`, aguardando CI #99. A falha da execução #97 de `MULHWU` ocorreu na suíte compartilhada com essa regressão; não marcar v1.64b como validada até #98/#99 concluírem.
