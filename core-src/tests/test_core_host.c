@@ -460,6 +460,22 @@ int main(void) {
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
     assert(cpu.gpr[16] == 0u);
     assert((cpu.cr & 0xf0000000u) == 0x20000000u); /* zero result, no SO */
+    /* SRAW uses the register shift count and updates XER.CA from discarded bits. */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x398u,
+        (31u<<26)|(23u<<21)|(19u<<16)|(20u<<11)|(792u<<1)|1u) == 0); /* sraw. r23,r19,r20 */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x39cu,
+        (31u<<26)|(24u<<21)|(21u<<16)|(22u<<11)|(792u<<1)|1u) == 0); /* sraw. r24,r21,r22 */
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x398u);
+    cpu.gpr[19] = 0xfffffff9u; cpu.gpr[20] = 2u; /* -7 >> 2 = -2; discarded one */
+    cpu.gpr[21] = 7u; cpu.gpr[22] = 1u; /* 7 >> 1 = 3; no discarded one */
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[23] == 0xfffffffeu);
+    assert((cpu.xer & 0x20000000u) != 0u);
+    assert((cpu.cr & 0xf0000000u) == 0x80000000u);
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[24] == 3u);
+    assert((cpu.xer & 0x20000000u) == 0u);
+    assert((cpu.cr & 0xf0000000u) == 0x40000000u);
     /* Bounded execution loop runs exactly the requested instruction budget. */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x300u, 0x3860002au) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x304u, 0x38830001u) == 0);
