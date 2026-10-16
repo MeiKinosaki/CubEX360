@@ -43,3 +43,5 @@ Este inventário é uma leitura qualitativa do interpretador em `core-src/src/cp
 - Adicionada `MULLW` (XO 235): produto de palavras com sinal, armazenando os 32 bits inferiores do produto; forma `Rc` atualiza CR0.
 - Testes host cobrem `-2 × 3` e um produto que retorna zero nos 32 bits inferiores.
 - CI para a implementação #93 está em andamento; não marcar `MULLW` como validada até a suíte host e sanitizers passarem.
+
+- **Multiplicação:** `mullw` (XO 235) foi adicionada na v1.62b; CI host e sanitizers passaram, mas o smoke build ainda estava em andamento na última consulta. `sraw` (XO 792) foi adicionada na v1.63b; os testes host/sanitizers passaram na última consulta, enquanto os builds de destino seguem em execução. Não declarar essas revisões totalmente validadas até todos os jobs terminarem.
