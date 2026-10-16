@@ -143,3 +143,9 @@ Próximo marco real: escolher e fixar uma toolchain XEX compatível, criar um al
 - Runs #100 e #101 concluíram com sucesso em todos os jobs: host, sanitizers, probe e smoke build.
 - Runs #97/#98 foram falhas anteriores causadas pela regressão de codificação do teste SRAW; o run #99 passou após a correção, e #100/#101 passaram com `MULHW`.
 - Isto valida os testes de núcleo/build experimental, não um `default.xex` funcional nem boot RGH.
+
+
+## Atualização — v1.66b
+- v1.65b `MULHW` validada pelos runs #100–#101, todos os jobs concluídos com sucesso.
+- v1.66b adiciona `MULLWO` com flags de overflow e SO sticky; CI #102–#103 pendente.
+- `default.xex` funcional, boot RGH e compatibilidade com jogos continuam não comprovados.
