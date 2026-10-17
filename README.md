@@ -230,3 +230,9 @@ O inventário de opcodes presentes e limitações arquiteturais está em [docs/C
 - A v1.67b foi corrigida: o run #107 passou em todos os jobs: https://github.com/MeiKinosaki/CubEX360/actions/runs/39010301838
 - A v1.68b adiciona NEG e NEGO com testes para overflow e CR0. A validação CI desta nova revisão está pendente.
 - O projeto continua sendo um núcleo experimental parcial; default.xex funcional, boot no RGH e compatibilidade de jogos não foram comprovados.
+
+
+## Atualização v1.69b — DIVW / DIVWO
+- A v1.68b passou em todos os jobs no run #111: https://github.com/MeiKinosaki/CubEX360/actions/runs/39010540651
+- A v1.69b adiciona divisão signed DIVW/DIVWO e testes de borda; CI ainda pendente.
+- O núcleo segue experimental: `default.xex` funcional, boot RGH e compatibilidade de jogos não comprovados.
