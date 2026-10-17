@@ -236,3 +236,8 @@ O inventário de opcodes presentes e limitações arquiteturais está em [docs/C
 - A v1.68b passou em todos os jobs no run #111: https://github.com/MeiKinosaki/CubEX360/actions/runs/39010540651
 - A v1.69b adiciona divisão signed DIVW/DIVWO e testes de borda; CI ainda pendente.
 - O núcleo segue experimental: `default.xex` funcional, boot RGH e compatibilidade de jogos não comprovados.
+
+
+### v1.70b development note
+
+The experimental Gekko integer core now includes an `ADDZEO` implementation and host regression coverage for carry, signed overflow, sticky summary overflow, and CR0 updates. Check the latest GitHub Actions run before considering this revision validated. This is not a claim of a working GameCube emulator, `default.xex`, RGH boot, or game compatibility.
