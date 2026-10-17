@@ -65,3 +65,8 @@ Este inventário é uma leitura qualitativa do interpretador em `core-src/src/cp
 - NEG XO 104: negação em complemento de dois.
 - NEGO XO 616: negação com overflow signed; atualiza XER.OV e mantém XER.SO sticky; Rc atualiza CR0.
 - Testes cobrem operandos positivos, INT_MIN e preservação de SO após OV limpar.
+
+
+### v1.69b — DIVW / DIVWO (validação pendente)
+- DIVW XO 491 e DIVWO XO 1003 implementadas com divisão signed, atualização opcional de CR0 e detecção de casos de overflow na forma OE.
+- Testes host incluem quociente negativo e INT_MIN / -1.
