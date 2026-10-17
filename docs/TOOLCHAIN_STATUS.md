@@ -149,3 +149,9 @@ Próximo marco real: escolher e fixar uma toolchain XEX compatível, criar um al
 - v1.65b `MULHW` validada pelos runs #100–#101, todos os jobs concluídos com sucesso.
 - v1.66b adiciona `MULLWO` com flags de overflow e SO sticky; CI #102–#103 pendente.
 - `default.xex` funcional, boot RGH e compatibilidade com jogos continuam não comprovados.
+
+
+## Estado verificado — 2026-10-17
+- v1.66b `MULLWO`: workflows #102 e #103 concluídos com sucesso.
+- v1.67b adiciona `DIVWU`/`DIVWUO`; workflows #104–#105 ainda em execução/fila. Divisão por zero usa resultado provisório determinístico zero, com OV/SO na variante `O`.
+- O pipeline de smoke build não equivale a um `default.xex` funcional nem prova boot em Xbox 360 RGH.
