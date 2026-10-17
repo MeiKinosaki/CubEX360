@@ -515,7 +515,7 @@ int main(void) {
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
     assert(cpu.gpr[29] == 0x80000000u);
     assert((cpu.xer & 0xc0000000u) == 0xc0000000u);
-    assert((cpu.cr & 0xf0000000u) == 0x30000000u);
+    assert((cpu.cr & 0xf0000000u) == 0x90000000u);
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
     assert(cpu.gpr[3] == 6u);
     assert((cpu.xer & 0xc0000000u) == 0x80000000u); /* OV clears; SO sticky */
@@ -534,7 +534,7 @@ int main(void) {
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
     assert(cpu.gpr[3] == 0u);
     assert((cpu.xer & 0xc0000000u) == 0xc0000000u);
-    assert((cpu.cr & 0xf0000000u) == 0x90000000u);
+    assert((cpu.cr & 0xf0000000u) == 0x30000000u);
     /* Bounded execution loop runs exactly the requested instruction budget. */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x300u, 0x3860002au) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x304u, 0x38830001u) == 0);
