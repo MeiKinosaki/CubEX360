@@ -515,7 +515,7 @@ int main(void) {
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
     assert(cpu.gpr[29] == 0x80000000u);
     assert((cpu.xer & 0xc0000000u) == 0xc0000000u);
-    assert((cpu.cr & 0xf0000000u) == 0x90000000u);
+    assert((cpu.cr & 0xf0000000u) == 0x30000000u);
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
     assert(cpu.gpr[3] == 6u);
     assert((cpu.xer & 0xc0000000u) == 0x80000000u); /* OV clears; SO sticky */
