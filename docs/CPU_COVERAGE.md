@@ -77,3 +77,11 @@ Este inventário é uma leitura qualitativa do interpretador em `core-src/src/cp
 - Added `ADDZEO` (extended opcode XO 714): adds XER.CA to the RA source, writes RT, updates carry-out, signed OV and sticky SO, and honors Rc/CR0.
 - Host coverage exercises positive-to-negative signed overflow, CA clearing, OV clearing on a subsequent non-overflowing operation, sticky SO, and CR0.
 - This extends the integer interpreter only; it does not imply FPU, MMU, Flipper, DSP, disc/BIOS, functional XEX, or game compatibility.
+
+
+## v1.71b — SUBFIC
+
+- Added `SUBFIC` (primary opcode 8): computes the sign-extended immediate minus the RA source and writes RT.
+- XER.CA is set when the unsigned subtraction has no borrow and cleared when a borrow occurs; unrelated XER bits, including sticky SO, are preserved.
+- Host regression coverage checks both borrow outcomes and result values.
+- This is an incremental integer-core improvement, not evidence of a complete emulator, functional XEX, RGH boot, or game compatibility.
