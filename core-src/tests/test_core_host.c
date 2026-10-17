@@ -554,6 +554,21 @@ int main(void) {
     assert(cpu.gpr[6] == 0xffffffffu);
     assert((cpu.xer & 0xc0000000u) == 0x80000000u); /* OV clears, SO stays sticky */
     assert((cpu.cr & 0xf0000000u) == 0x90000000u); /* negative result plus SO */
+    /* DIVW and DIVWO: signed quotient, divide-by-zero and INT_MIN / -1. */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x3d0u,
+        (31u<<26)|(29u<<21)|(30u<<16)|(31u<<11)|(491u<<1)|1u) == 0); /* divw. */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x3d4u,
+        (31u<<26)|(3u<<21)|(4u<<16)|(5u<<11)|(1003u<<1)|1u) == 0); /* divwo. */
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x3d0u);
+    cpu.gpr[30] = (uint32_t)-21; cpu.gpr[31] = 4u;
+    cpu.gpr[4] = 0x80000000u; cpu.gpr[5] = 0xffffffffu;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[29] == (uint32_t)-5);
+    assert((cpu.cr & 0xf0000000u) == 0x80000000u);
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[3] == 0u);
+    assert((cpu.xer & 0xc0000000u) == 0xc0000000u);
+    assert((cpu.cr & 0xf0000000u) == 0x30000000u);
     /* Bounded execution loop runs exactly the requested instruction budget. */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x300u, 0x3860002au) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x304u, 0x38830001u) == 0);
