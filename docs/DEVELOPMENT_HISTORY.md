@@ -250,3 +250,12 @@ Esses percentuais foram estimativas informais anteriores à última falha de CI.
 - Commits: CPU `cc9d03fbf75b8ea0dd9352fc5b3523e2dccb1491`; testes `c6043ea5687ef742a9fbfbfe13d5074b53d0de5b`.
 - CI #102 da implementação está em andamento; #103 dos testes está na fila.
 - v1.65b (`MULHW`) passou nos runs #100–#101.
+
+
+## v1.67b — DIVWU / DIVWUO (2026-10-17; CI pendente)
+- Implementadas `DIVWU` e `DIVWUO`, divisão unsigned de 32 bits; `DIVWUO` atualiza `XER.OV` e o sticky `XER.SO` quando o divisor é zero.
+- Para evitar comportamento indefinido no núcleo, divisão por zero produz resultado determinístico zero neste emulador experimental; esse comportamento é uma política provisória, não garantia de compatibilidade com hardware GameCube.
+- Testes cobrem 100/4 e divisão por zero com verificação de `CR0`, `XER.OV` e `XER.SO`.
+- Commits: CPU `05bdf495007a7dac8fe80143e1d7a104a6294637`; testes `0abd59767a2d500fcf1d5dd52fdb388f6cf33e3e`.
+- CI #104 (implementação) em andamento; #105 (testes) na fila.
+- v1.66b `MULLWO` foi validada: runs #102 e #103 passaram.
