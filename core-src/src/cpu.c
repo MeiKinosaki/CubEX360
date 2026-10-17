@@ -322,6 +322,21 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
             else return CUBEX_CPU_UNSUPPORTED;
             break;
         }
+        case 459: { /* DIVWU: unsigned word division; zero divisor has deterministic placeholder */
+            uint32_t dividend = c->gpr[ra], divisor = c->gpr[rb];
+            c->gpr[rt] = divisor ? dividend / divisor : 0u;
+            if (ins & 1u) set_cr0(c, c->gpr[rt]);
+            break;
+        }
+        case 971: { /* DIVWUO: unsigned word division with overflow enabled */
+            uint32_t dividend = c->gpr[ra], divisor = c->gpr[rb];
+            int overflow = divisor == 0u;
+            c->gpr[rt] = overflow ? 0u : dividend / divisor;
+            c->xer = (c->xer & ~0x40000000u) | ((uint32_t)overflow << 30);
+            if (overflow) c->xer |= 0x80000000u;
+            if (ins & 1u) set_cr0(c, c->gpr[rt]);
+            break;
+        }
         case 747: { /* MULLWO: low word, with signed overflow enabled */
             int64_t product = (int64_t)(int32_t)c->gpr[ra] *
                               (int64_t)(int32_t)c->gpr[rb];
