@@ -259,3 +259,11 @@ Esses percentuais foram estimativas informais anteriores à última falha de CI.
 - Commits: CPU `05bdf495007a7dac8fe80143e1d7a104a6294637`; testes `0abd59767a2d500fcf1d5dd52fdb388f6cf33e3e`.
 - CI #104 (implementação) em andamento; #105 (testes) na fila.
 - v1.66b `MULLWO` foi validada: runs #102 e #103 passaram.
+
+
+## v1.68b — NEG / NEGO
+- Adicionadas as instruções PowerPC NEG (XO 104) e NEGO (XO 616), incluindo atualização de CR0 na forma Rc.
+- NEGO detecta overflow no caso 0x80000000 e preserva XER.SO como flag sticky; XER.OV é atualizado em cada execução.
+- Testes host adicionados para negação de 5, overflow de INT_MIN e limpeza de OV com SO preservado.
+- Implementação: 99ba7490cf7a49592558ce525bb61e4cb90986e7; testes: de94e973648eac2d59db951048b4ea3755ba36bc.
+- CI desta revisão ainda precisa concluir antes de marcar v1.68b como validada.
