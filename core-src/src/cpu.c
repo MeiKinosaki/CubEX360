@@ -369,6 +369,19 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
             if (ins & 1u) set_cr0(c, c->gpr[rt]);
             break;
         }
+        case 714: { /* ADDZEO: RA + XER.CA, signed overflow enabled */
+            uint32_t a = c->gpr[ra];
+            uint64_t sum = (uint64_t)a + ((c->xer >> 29) & 1u);
+            uint32_t result = (uint32_t)sum;
+            uint32_t overflow = ((~(a ^ 0u) & (a ^ result)) >> 31) & 1u;
+            c->gpr[rt] = result;
+            if (sum >> 32) c->xer |= 0x20000000u;
+            else c->xer &= ~0x20000000u;
+            c->xer = (c->xer & ~0x40000000u) | (overflow << 30);
+            if (overflow) c->xer |= 0x80000000u; /* SO is sticky */
+            if (ins & 1u) set_cr0(c, result);
+            break;
+        }
         case 747: { /* MULLWO: low word, with signed overflow enabled */
             int64_t product = (int64_t)(int32_t)c->gpr[ra] *
                               (int64_t)(int32_t)c->gpr[rb];
