@@ -578,6 +578,24 @@ int main(void) {
     assert(cpu.gpr[8] == 0u);
     assert((cpu.xer & 0xc0000000u) == 0xc0000000u);
     assert((cpu.cr & 0xf0000000u) == 0x30000000u);
+    /* ADDZEO updates carry, OV and sticky SO, including Rc/CR0. */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x3e0u,
+        (31u<<26)|(8u<<21)|(9u<<16)|(10u<<11)|(714u<<1)|1u) == 0); /* addzeo. r8,r9 */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x3e4u,
+        (31u<<26)|(11u<<21)|(12u<<16)|(13u<<11)|(714u<<1)|1u) == 0); /* addzeo. r11,r12 */
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x3e0u);
+    cpu.gpr[9] = 0x7fffffffu;
+    cpu.xer = 0x20000000u; /* CA=1 */
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[8] == 0x80000000u);
+    assert((cpu.xer & 0xe0000000u) == 0xc0000000u); /* OV and SO set; CA cleared */
+    assert((cpu.cr & 0xf0000000u) == 0x90000000u);
+    cpu.gpr[12] = 40u;
+    cpu.xer &= ~0x20000000u; /* CA=0 */
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[11] == 40u);
+    assert((cpu.xer & 0xe0000000u) == 0x80000000u); /* OV clears, SO remains */
+    assert((cpu.cr & 0xf0000000u) == 0x50000000u);
     /* Bounded execution loop runs exactly the requested instruction budget. */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x300u, 0x3860002au) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x304u, 0x38830001u) == 0);
