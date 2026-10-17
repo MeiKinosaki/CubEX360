@@ -274,3 +274,8 @@ Esses percentuais foram estimativas informais anteriores à última falha de CI.
 - Proteção contra divisor zero e INT32_MIN / -1 evita comportamento indefinido do C; nesses casos o núcleo experimental produz zero e DIVWO sinaliza OV/SO.
 - Testes cobrem -21 / 4 e overflow por INT_MIN / -1. CI pendente.
 - Implementação: 254735071ac1cb8686a9e8f56d1a395071670de8; testes: 944a1ac47a11dd7177f7516cb14d7cd4e99ee7e4.
+
+
+### v1.70b — ADDZEO and overflow/carry regression
+
+Implemented the PowerPC `ADDZEO` instruction in the Gekko integer interpreter. The operation adds the incoming XER carry bit to the RA register, writes RT, updates carry-out and signed overflow, preserves sticky summary overflow, and updates CR0 when Rc is set. Added host regression cases for `0x7fffffff + CA(1)`, the resulting signed overflow, carry clearing, and a subsequent non-overflowing result while SO remains sticky. CI validation is required before treating the change as verified.
