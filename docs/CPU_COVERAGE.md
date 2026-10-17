@@ -70,3 +70,10 @@ Este inventário é uma leitura qualitativa do interpretador em `core-src/src/cp
 ### v1.69b — DIVW / DIVWO (validação pendente)
 - DIVW XO 491 e DIVWO XO 1003 implementadas com divisão signed, atualização opcional de CR0 e detecção de casos de overflow na forma OE.
 - Testes host incluem quociente negativo e INT_MIN / -1.
+
+
+## v1.70b — ADDZEO
+
+- Added `ADDZEO` (extended opcode XO 714): adds XER.CA to the RA source, writes RT, updates carry-out, signed OV and sticky SO, and honors Rc/CR0.
+- Host coverage exercises positive-to-negative signed overflow, CA clearing, OV clearing on a subsequent non-overflowing operation, sticky SO, and CR0.
+- This extends the integer interpreter only; it does not imply FPU, MMU, Flipper, DSP, disc/BIOS, functional XEX, or game compatibility.
