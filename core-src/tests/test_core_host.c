@@ -596,6 +596,22 @@ int main(void) {
     assert(cpu.gpr[11] == 40u);
     assert((cpu.xer & 0xe0000000u) == 0x80000000u); /* OV clears, SO remains */
     assert((cpu.cr & 0xf0000000u) == 0x50000000u);
+    /* SUBFIC sets CA only when the subtraction has no unsigned borrow. */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x3e8u,
+        (8u<<26)|(14u<<21)|(15u<<16)|10u) == 0); /* subfic r14,r15,10 */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x3ecu,
+        (8u<<26)|(16u<<21)|(17u<<16)|20u) == 0); /* subfic r16,r17,20 */
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x3e8u);
+    cpu.gpr[15] = 15u;
+    cpu.gpr[17] = 5u;
+    cpu.xer = 0x80000000u; /* preserve sticky SO */
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[14] == 0xfffffffbu); /* 10 - 15 = -5 */
+    assert((cpu.xer & 0xa0000000u) == 0x80000000u); /* borrow clears CA; SO stays */
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[16] == 15u); /* 20 - 5 = 15 */
+    assert((cpu.xer & 0xa0000000u) == 0xa0000000u); /* no borrow sets CA */
+
     /* Bounded execution loop runs exactly the requested instruction budget. */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x300u, 0x3860002au) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x304u, 0x38830001u) == 0);
