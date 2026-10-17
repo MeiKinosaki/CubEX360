@@ -328,6 +328,22 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
             if (ins & 1u) set_cr0(c, c->gpr[rt]);
             break;
         }
+        case 104: { /* NEG: two's-complement negate */
+            uint32_t result = 0u - c->gpr[ra];
+            c->gpr[rt] = result;
+            if (ins & 1u) set_cr0(c, result);
+            break;
+        }
+        case 616: { /* NEGO: negate with signed overflow enabled */
+            uint32_t a = c->gpr[ra];
+            uint32_t result = 0u - a;
+            uint32_t overflow = (a == 0x80000000u);
+            c->gpr[rt] = result;
+            c->xer = (c->xer & ~0x40000000u) | (overflow << 30);
+            if (overflow) c->xer |= 0x80000000u; /* SO is sticky */
+            if (ins & 1u) set_cr0(c, result);
+            break;
+        }
         case 971: { /* DIVWUO: unsigned word division with overflow enabled */
             uint32_t dividend = c->gpr[ra], divisor = c->gpr[rb];
             int overflow = divisor == 0u;
