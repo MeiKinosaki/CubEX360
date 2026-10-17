@@ -267,3 +267,10 @@ Esses percentuais foram estimativas informais anteriores à última falha de CI.
 - Testes host adicionados para negação de 5, overflow de INT_MIN e limpeza de OV com SO preservado.
 - Implementação: 99ba7490cf7a49592558ce525bb61e4cb90986e7; testes: de94e973648eac2d59db951048b4ea3755ba36bc.
 - CI desta revisão ainda precisa concluir antes de marcar v1.68b como validada.
+
+
+## v1.69b — DIVW / DIVWO
+- Adicionadas DIVW (XO 491) e DIVWO (XO 1003) para divisão signed de 32 bits.
+- Proteção contra divisor zero e INT32_MIN / -1 evita comportamento indefinido do C; nesses casos o núcleo experimental produz zero e DIVWO sinaliza OV/SO.
+- Testes cobrem -21 / 4 e overflow por INT_MIN / -1. CI pendente.
+- Implementação: 254735071ac1cb8686a9e8f56d1a395071670de8; testes: 944a1ac47a11dd7177f7516cb14d7cd4e99ee7e4.
