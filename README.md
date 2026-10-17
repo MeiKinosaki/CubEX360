@@ -218,3 +218,9 @@ O inventário de opcodes presentes e limitações arquiteturais está em [docs/C
 ## Desenvolvimento atual — v1.66b
 - A v1.65b `MULHW` passou em todos os jobs: [implementação #100](https://github.com/MeiKinosaki/CubEX360/actions/runs/38947712923), [testes #101](https://github.com/MeiKinosaki/CubEX360/actions/runs/38947726589).
 - A v1.66b adiciona `MULLWO` com detecção de overflow signed e testes de `XER.OV`/`XER.SO`; CI pendente: [#102](https://github.com/MeiKinosaki/CubEX360/actions/runs/38947885203), [#103](https://github.com/MeiKinosaki/CubEX360/actions/runs/38947902411).
+
+
+## Atualização v1.67b
+- `MULLWO` v1.66b validada pelos [runs #102](https://github.com/MeiKinosaki/CubEX360/actions/runs/38947885203) e [#103](https://github.com/MeiKinosaki/CubEX360/actions/runs/38947902411).
+- A v1.67b adiciona `DIVWU` e `DIVWUO`, com testes de quociente e divisor zero. CI pendente: [implementação #104](https://github.com/MeiKinosaki/CubEX360/actions/runs/39009708417), [testes #105](https://github.com/MeiKinosaki/CubEX360/actions/runs/39009715986).
+- Divisão por zero tem resultado provisório zero no núcleo experimental; não é prova de compatibilidade com o hardware original. `default.xex` funcional/boot RGH continuam não comprovados.
