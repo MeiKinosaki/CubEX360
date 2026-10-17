@@ -59,3 +59,9 @@ Este inventário é uma leitura qualitativa do interpretador em `core-src/src/cp
 - **Multiplicação com overflow:** `mullwo` (XO 747, v1.66b) foi adicionada para armazenar a palavra inferior do produto signed e atualizar `XER.OV`/`XER.SO`; CI #102–#103 pendente.
 
 - **Divisão unsigned:** `divwu` (XO 459) e `divwuo` (XO 971) adicionadas na v1.67b. A forma com overflow marca `XER.OV` e `XER.SO` quando o divisor é zero; por segurança do executor, o resultado é definido como zero nesse caso. CI #104–#105 pendente.
+
+
+### v1.68b — NEG / NEGO (validação pendente)
+- NEG XO 104: negação em complemento de dois.
+- NEGO XO 616: negação com overflow signed; atualiza XER.OV e mantém XER.SO sticky; Rc atualiza CR0.
+- Testes cobrem operandos positivos, INT_MIN e preservação de SO após OV limpar.
