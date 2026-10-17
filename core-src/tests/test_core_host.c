@@ -569,6 +569,15 @@ int main(void) {
     assert(cpu.gpr[3] == 0u);
     assert((cpu.xer & 0xc0000000u) == 0xc0000000u);
     assert((cpu.cr & 0xf0000000u) == 0x30000000u);
+    /* DIVWO zero divisor must avoid C undefined behavior and set OV/SO. */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x3d8u,
+        (31u<<26)|(8u<<21)|(9u<<16)|(10u<<11)|(1003u<<1)|1u) == 0); /* divwo. r8,r9,r10 */
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x3d8u);
+    cpu.gpr[9] = 77u; cpu.gpr[10] = 0u;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[8] == 0u);
+    assert((cpu.xer & 0xc0000000u) == 0xc0000000u);
+    assert((cpu.cr & 0xf0000000u) == 0x30000000u);
     /* Bounded execution loop runs exactly the requested instruction budget. */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x300u, 0x3860002au) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x304u, 0x38830001u) == 0);
