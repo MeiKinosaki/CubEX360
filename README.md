@@ -241,3 +241,8 @@ O inventário de opcodes presentes e limitações arquiteturais está em [docs/C
 ### v1.70b development note
 
 The experimental Gekko integer core now includes an `ADDZEO` implementation and host regression coverage for carry, signed overflow, sticky summary overflow, and CR0 updates. Check the latest GitHub Actions run before considering this revision validated. This is not a claim of a working GameCube emulator, `default.xex`, RGH boot, or game compatibility.
+
+
+### v1.71b development note
+
+`SUBFIC` has been added to the experimental Gekko integer interpreter, with regression tests for borrow/no-borrow carry behavior and preservation of XER state. Check the latest GitHub Actions run for validation. No claim is made that a functional `default.xex`, Xbox 360 RGH boot, or playable GameCube title has been proven.
