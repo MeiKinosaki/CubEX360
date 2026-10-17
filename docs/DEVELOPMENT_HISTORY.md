@@ -279,3 +279,8 @@ Esses percentuais foram estimativas informais anteriores à última falha de CI.
 ### v1.70b — ADDZEO and overflow/carry regression
 
 Implemented the PowerPC `ADDZEO` instruction in the Gekko integer interpreter. The operation adds the incoming XER carry bit to the RA register, writes RT, updates carry-out and signed overflow, preserves sticky summary overflow, and updates CR0 when Rc is set. Added host regression cases for `0x7fffffff + CA(1)`, the resulting signed overflow, carry clearing, and a subsequent non-overflowing result while SO remains sticky. CI validation is required before treating the change as verified.
+
+
+### v1.71b — SUBFIC and carry regression
+
+Implemented PowerPC `SUBFIC` immediate subtraction in the Gekko integer interpreter. It computes sign-extended SI minus RA (with RA=0 interpreted as zero), writes RT, and updates XER.CA according to unsigned no-borrow semantics while preserving other XER bits. Added host tests for both borrow and no-borrow cases, including preservation of sticky SO. GitHub Actions validation is required before calling this revision verified.
