@@ -338,6 +338,28 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
             if (ins & 1u) set_cr0(c, result);
             break;
         }
+        case 491: { /* DIVW: signed word division */
+            int32_t dividend = (int32_t)c->gpr[ra];
+            int32_t divisor = (int32_t)c->gpr[rb];
+            int overflow = (divisor == 0) ||
+                           (dividend == INT32_MIN && divisor == -1);
+            int32_t quotient = overflow ? 0 : (int32_t)((int64_t)dividend / (int64_t)divisor);
+            c->gpr[rt] = (uint32_t)quotient;
+            if (ins & 1u) set_cr0(c, c->gpr[rt]);
+            break;
+        }
+        case 1003: { /* DIVWO: signed word division with overflow enabled */
+            int32_t dividend = (int32_t)c->gpr[ra];
+            int32_t divisor = (int32_t)c->gpr[rb];
+            int overflow = (divisor == 0) ||
+                           (dividend == INT32_MIN && divisor == -1);
+            int32_t quotient = overflow ? 0 : (int32_t)((int64_t)dividend / (int64_t)divisor);
+            c->gpr[rt] = (uint32_t)quotient;
+            c->xer = (c->xer & ~0x40000000u) | ((uint32_t)overflow << 30);
+            if (overflow) c->xer |= 0x80000000u;
+            if (ins & 1u) set_cr0(c, c->gpr[rt]);
+            break;
+        }
         case 971: { /* DIVWUO: unsigned word division with overflow enabled */
             uint32_t dividend = c->gpr[ra], divisor = c->gpr[rb];
             int overflow = divisor == 0u;
