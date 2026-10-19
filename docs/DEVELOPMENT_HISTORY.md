@@ -284,3 +284,8 @@ Implemented the PowerPC `ADDZEO` instruction in the Gekko integer interpreter. T
 ### v1.71b — SUBFIC and carry regression
 
 Implemented PowerPC `SUBFIC` immediate subtraction in the Gekko integer interpreter. It computes sign-extended SI minus RA (with RA=0 interpreted as zero), writes RT, and updates XER.CA according to unsigned no-borrow semantics while preserving other XER bits. Added host tests for both borrow and no-borrow cases, including preservation of sticky SO. GitHub Actions validation is required before calling this revision verified.
+
+
+### v1.72b — SUBFZE
+
+Implemented the PowerPC `SUBFZE` instruction in the experimental Gekko interpreter. It consumes XER.CA, calculates `0 - RA - !CA`, updates CA according to the unsigned no-borrow result, and updates CR0 when Rc is set. Host regression tests cover CA set/clear and zero/negative results. Await GitHub Actions before treating the change as validated.
