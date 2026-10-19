@@ -294,3 +294,8 @@ Implemented the PowerPC `SUBFZE` instruction in the experimental Gekko interpret
 ### v1.72b test correction
 
 Corrected the `SUBFZE` regression test's CR0 expectation for a negative result when XER.SO is clear. The arithmetic result and carry assertions remain unchanged; this is a test expectation correction, not a CPU semantic change. Re-run host CI to verify.
+
+
+### v1.72b boundary-test extension
+
+Added a `SUBFZE` boundary regression for `RA = 0xffffffff`, `CA = 0`, verifying a zero result, CA cleared due to borrow, and CR0.EQ. Await the latest GitHub Actions run for confirmation.
