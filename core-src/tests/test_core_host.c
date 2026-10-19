@@ -429,6 +429,7 @@ int main(void) {
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
     assert(cpu.gpr[7] == 0u && (cpu.xer & 0x20000000u) != 0u);
     cpu.xer = 0u;
+    cpu.pc = CUBEX360_RAM_CACHED_BASE + 0x368u;
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
     assert(cpu.gpr[7] == 0xffffffffu && (cpu.xer & 0x20000000u) == 0u);
     /* ADDO/SUBFO set OV on signed overflow and keep SO sticky. */
