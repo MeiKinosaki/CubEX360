@@ -631,6 +631,17 @@ int main(void) {
     assert((cpu.xer & 0x20000000u) == 0u);
     assert((cpu.cr & 0xf0000000u) == 0x80000000u); /* LT, SO is not set in this case */
 
+    /* SUBFZE edge: RA=0xffffffff with CA=0 wraps to zero but still borrows. */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x3f8u,
+        (31u<<26)|(25u<<21)|(26u<<16)|(200u<<1)|1u) == 0); /* subfze. r25,r26 */
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x3f8u);
+    cpu.gpr[26] = 0xffffffffu;
+    cpu.xer &= ~0x20000000u; /* CA=0 */
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[25] == 0u);
+    assert((cpu.xer & 0x20000000u) == 0u); /* borrow clears CA */
+    assert((cpu.cr & 0xf0000000u) == 0x20000000u); /* EQ, SO clear */
+
     /* Bounded execution loop runs exactly the requested instruction budget. */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x300u, 0x3860002au) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x304u, 0x38830001u) == 0);
