@@ -85,3 +85,11 @@ Este inventário é uma leitura qualitativa do interpretador em `core-src/src/cp
 - XER.CA is set when the unsigned subtraction has no borrow and cleared when a borrow occurs; unrelated XER bits, including sticky SO, are preserved.
 - Host regression coverage checks both borrow outcomes and result values.
 - This is an incremental integer-core improvement, not evidence of a complete emulator, functional XEX, RGH boot, or game compatibility.
+
+
+## v1.72b — SUBFZE
+
+- Added `SUBFZE` (extended opcode XO 200), computing `0 - RA - !XER.CA` and writing RT.
+- Updates XER.CA for the no-borrow case and honors Rc/CR0.
+- Host tests cover CA=1 and CA=0, result values, and CR0.
+- The instruction-level tests do not establish complete GameCube emulation or functional Xbox 360 output.
