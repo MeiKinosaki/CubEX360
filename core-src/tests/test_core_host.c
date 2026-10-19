@@ -673,6 +673,18 @@ int main(void) {
     assert((cpu.xer & 0x20000000u) != 0u); /* carry out remains set */
     assert((cpu.cr & 0xf0000000u) == 0x80000000u); /* LT */
 
+    /* ADDE Rc: consume CA, clear carry-out, preserve SO, and update CR0. */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x408u,
+        (31u<<26)|(13u<<21)|(14u<<16)|(15u<<11)|(138u<<1)|1u) == 0); /* adde. r13,r14,r15 */
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x408u);
+    cpu.gpr[14] = 0x7fffffffu;
+    cpu.gpr[15] = 0u;
+    cpu.xer = 0xa0000000u; /* SO=1, CA=1 */
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[13] == 0x80000000u);
+    assert((cpu.xer & 0xa0000000u) == 0x80000000u); /* SO preserved, CA cleared */
+    assert((cpu.cr & 0xf0000000u) == 0x90000000u); /* LT | SO */
+
     /* Bounded execution loop runs exactly the requested instruction budget. */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x300u, 0x3860002au) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x304u, 0x38830001u) == 0);
