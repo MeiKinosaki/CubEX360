@@ -98,3 +98,11 @@ Este inventário é uma leitura qualitativa do interpretador em `core-src/src/cp
 ### Additional SUBFZE boundary case
 
 Added a regression case for `RA = 0xffffffff` with `CA = 0`: the low-word result wraps to zero while the operation still represents a borrow, so CA remains clear and CR0 reports EQ when SO is clear. This supplements the ordinary CA-set and CA-clear cases.
+
+
+## v1.73b — SUBFME
+
+- Added `SUBFME` (extended opcode XO 232): computes `~RA + XER.CA`, writes RT, and updates XER.CA from the 33-bit sum.
+- Honors Rc/CR0 and preserves unrelated XER flags.
+- Host tests cover CA=1 wrap/carry and a CA=0 negative result.
+- The instruction remains part of a partial experimental interpreter; XEX/boot/game compatibility are not established.
