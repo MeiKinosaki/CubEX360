@@ -612,6 +612,25 @@ int main(void) {
     assert(cpu.gpr[16] == 15u); /* 20 - 5 = 15 */
     assert((cpu.xer & 0xa0000000u) == 0xa0000000u); /* no borrow sets CA */
 
+    /* SUBFZE consumes XER.CA, updates CA, and optionally records CR0. */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x3f0u,
+        (31u<<26)|(21u<<21)|(22u<<16)|(200u<<1)|1u) == 0); /* subfze. r21,r22 */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x3f4u,
+        (31u<<26)|(23u<<21)|(24u<<16)|(200u<<1)|1u) == 0); /* subfze. r23,r24 */
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x3f0u);
+    cpu.gpr[22] = 0u;
+    cpu.xer = 0x20000000u; /* CA=1: 0 - 0 - 0 */
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[21] == 0u);
+    assert((cpu.xer & 0x20000000u) != 0u);
+    assert((cpu.cr & 0xf0000000u) == 0x20000000u); /* EQ */
+    cpu.gpr[24] = 0u;
+    cpu.xer &= ~0x20000000u; /* CA=0: 0 - 0 - 1 */
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[23] == 0xffffffffu);
+    assert((cpu.xer & 0x20000000u) == 0u);
+    assert((cpu.cr & 0xf0000000u) == 0x90000000u); /* LT */
+
     /* Bounded execution loop runs exactly the requested instruction budget. */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x300u, 0x3860002au) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x304u, 0x38830001u) == 0);
