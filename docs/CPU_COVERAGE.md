@@ -110,4 +110,4 @@ Added a regression case for `RA = 0xffffffff` with `CA = 0`: the low-word result
 
 ### SUBFME test semantic correction
 
-Corrected the SUBFME expected values to match the operation `~RA + 0xffffffff + XER.CA` (equivalent to subtract-from-minus-one with carry-in). For RA=0, CA=1 the low word is `0xfffffffe`; for RA=1, CA=0 it is `0xfffffffd`. Both cases produce carry-out and a negative CR0 result.
+Corrected the SUBFME expected values to match the operation `~RA + 0xffffffff + XER.CA` (equivalent to subtract-from-minus-one with carry-in). For RA=0, CA=1 the low word is `0xffffffff`; for RA=1, CA=0 it is `0xfffffffd`. Both cases produce carry-out and a negative CR0 result. The host test, ASan/UBSan, diagnostic ELF32 build, core smoke build, and XEX preflight jobs all passed in CI run #124.
