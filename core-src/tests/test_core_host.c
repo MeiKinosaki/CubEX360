@@ -651,7 +651,7 @@ int main(void) {
     cpu.gpr[28] = 0u;
     cpu.xer = 0x20000000u; /* CA=1 */
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
-    assert(cpu.gpr[27] == 0xfffffffeu); /* ~0 + 0xffffffff + 1 */
+    assert(cpu.gpr[27] == 0xffffffffu); /* ~0 + 0xffffffff + CA(1), modulo 2^32 */
     assert((cpu.xer & 0x20000000u) != 0u); /* carry out */
     assert((cpu.cr & 0xf0000000u) == 0x80000000u); /* LT */
     cpu.gpr[30] = 1u;
