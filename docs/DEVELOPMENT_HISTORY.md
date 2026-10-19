@@ -304,3 +304,8 @@ Added a `SUBFZE` boundary regression for `RA = 0xffffffff`, `CA = 0`, verifying 
 ### v1.73b — SUBFME
 
 Added PowerPC `SUBFME` to the experimental Gekko interpreter. The implementation calculates `~RA + XER.CA`, writes RT, sets CA from the carry-out, and updates CR0 when Rc is set. Regression cases cover the carry-producing zero-operand case and a negative result with CA cleared. Await CI before marking this revision validated.
+
+
+### v1.73b SUBFME regression correction
+
+The initial SUBFME tests used the wrong arithmetic expectation. Updated them to the operation `~RA + 0xffffffff + CA`, with results `0xfffffffe` for RA=0/CA=1 and `0xfffffffd` for RA=1/CA=0, and adjusted carry/CR0 assertions. CI must rerun before validation.
