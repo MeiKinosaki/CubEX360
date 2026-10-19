@@ -246,3 +246,8 @@ The experimental Gekko integer core now includes an `ADDZEO` implementation and 
 ### v1.71b development note
 
 `SUBFIC` has been added to the experimental Gekko integer interpreter, with regression tests for borrow/no-borrow carry behavior and preservation of XER state. Check the latest GitHub Actions run for validation. No claim is made that a functional `default.xex`, Xbox 360 RGH boot, or playable GameCube title has been proven.
+
+
+### v1.72b development note
+
+The experimental Gekko integer interpreter now includes `SUBFZE` and host tests for XER.CA and CR0 behavior. Validation status is available in GitHub Actions. A working `default.xex`, RGH boot, and game compatibility remain unproven.
