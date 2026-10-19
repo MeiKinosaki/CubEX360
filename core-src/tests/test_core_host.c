@@ -687,9 +687,9 @@ int main(void) {
 
     /* SLW/SRW: register shift counts at 1 and >=32, including Rc. */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x410u,
-        (31u<<26)|(3u<<21)|(4u<<16)|(5u<<11)|(24u<<1)|1u) == 0); /* slw. r3,r4,r5 */
+        (31u<<26)|(4u<<21)|(3u<<16)|(5u<<11)|(24u<<1)|1u) == 0); /* slw. r3,r4,r5 */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x414u,
-        (31u<<26)|(6u<<21)|(7u<<16)|(8u<<11)|(536u<<1)|1u) == 0); /* srw. r6,r7,r8 */
+        (31u<<26)|(7u<<21)|(6u<<16)|(8u<<11)|(536u<<1)|1u) == 0); /* srw. r6,r7,r8 */
     cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x410u);
     cpu.gpr[4] = 0x80000001u;
     cpu.gpr[5] = 1u;
