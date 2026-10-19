@@ -685,6 +685,34 @@ int main(void) {
     assert((cpu.xer & 0xa0000000u) == 0x80000000u); /* SO preserved, CA cleared */
     assert((cpu.cr & 0xf0000000u) == 0x90000000u); /* LT | SO */
 
+    /* SLW/SRW: register shift counts at 1 and >=32, including Rc. */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x410u,
+        (31u<<26)|(3u<<21)|(4u<<16)|(5u<<11)|(24u<<1)|1u) == 0); /* slw. r3,r4,r5 */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x414u,
+        (31u<<26)|(6u<<21)|(7u<<16)|(8u<<11)|(536u<<1)|1u) == 0); /* srw. r6,r7,r8 */
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x410u);
+    cpu.gpr[4] = 0x80000001u;
+    cpu.gpr[5] = 1u;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[3] == 2u);
+    assert((cpu.cr & 0xf0000000u) == 0x40000000u); /* GT */
+    cpu.gpr[5] = 32u; /* PowerPC word shift with bit 5 set yields zero. */
+    cpu.pc = CUBEX360_RAM_CACHED_BASE + 0x410u;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[3] == 0u);
+    assert((cpu.cr & 0xf0000000u) == 0x20000000u); /* EQ */
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x414u);
+    cpu.gpr[7] = 0x80000001u;
+    cpu.gpr[8] = 1u;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[6] == 0x40000000u);
+    assert((cpu.cr & 0xf0000000u) == 0x40000000u); /* GT */
+    cpu.gpr[8] = 32u;
+    cpu.pc = CUBEX360_RAM_CACHED_BASE + 0x414u;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[6] == 0u);
+    assert((cpu.cr & 0xf0000000u) == 0x20000000u); /* EQ */
+
     /* Bounded execution loop runs exactly the requested instruction budget. */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x300u, 0x3860002au) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x304u, 0x38830001u) == 0);
