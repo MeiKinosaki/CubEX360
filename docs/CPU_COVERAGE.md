@@ -93,3 +93,8 @@ Este inventário é uma leitura qualitativa do interpretador em `core-src/src/cp
 - Updates XER.CA for the no-borrow case and honors Rc/CR0.
 - Host tests cover CA=1 and CA=0, result values, and CR0.
 - The instruction-level tests do not establish complete GameCube emulation or functional Xbox 360 output.
+
+
+### Additional SUBFZE boundary case
+
+Added a regression case for `RA = 0xffffffff` with `CA = 0`: the low-word result wraps to zero while the operation still represents a borrow, so CA remains clear and CR0 reports EQ when SO is clear. This supplements the ordinary CA-set and CA-clear cases.
