@@ -289,3 +289,8 @@ Implemented PowerPC `SUBFIC` immediate subtraction in the Gekko integer interpre
 ### v1.72b — SUBFZE
 
 Implemented the PowerPC `SUBFZE` instruction in the experimental Gekko interpreter. It consumes XER.CA, calculates `0 - RA - !CA`, updates CA according to the unsigned no-borrow result, and updates CR0 when Rc is set. Host regression tests cover CA set/clear and zero/negative results. Await GitHub Actions before treating the change as validated.
+
+
+### v1.72b test correction
+
+Corrected the `SUBFZE` regression test's CR0 expectation for a negative result when XER.SO is clear. The arithmetic result and carry assertions remain unchanged; this is a test expectation correction, not a CPU semantic change. Re-run host CI to verify.
