@@ -251,3 +251,8 @@ The experimental Gekko integer core now includes an `ADDZEO` implementation and 
 ### v1.72b development note
 
 The experimental Gekko integer interpreter now includes `SUBFZE` and host tests for XER.CA and CR0 behavior. Validation status is available in GitHub Actions. A working `default.xex`, RGH boot, and game compatibility remain unproven.
+
+
+### v1.73b development note
+
+Added `SUBFME` to the partial Gekko integer interpreter, with host tests for carry and CR0 behavior. Check GitHub Actions for validation status. No working `default.xex`, RGH boot, or game compatibility is claimed.
