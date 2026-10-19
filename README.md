@@ -256,3 +256,6 @@ The experimental Gekko integer interpreter now includes `SUBFZE` and host tests 
 ### v1.73b development note
 
 Added `SUBFME` to the partial Gekko integer interpreter, with host tests for carry and CR0 behavior. Check GitHub Actions for validation status. No working `default.xex`, RGH boot, or game compatibility is claimed.
+
+
+SUBFME regression expectations were corrected to the full subtract-from-minus-one arithmetic and are awaiting CI revalidation.
