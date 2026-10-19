@@ -299,3 +299,8 @@ Corrected the `SUBFZE` regression test's CR0 expectation for a negative result w
 ### v1.72b boundary-test extension
 
 Added a `SUBFZE` boundary regression for `RA = 0xffffffff`, `CA = 0`, verifying a zero result, CA cleared due to borrow, and CR0.EQ. Await the latest GitHub Actions run for confirmation.
+
+
+### v1.73b — SUBFME
+
+Added PowerPC `SUBFME` to the experimental Gekko interpreter. The implementation calculates `~RA + XER.CA`, writes RT, sets CA from the carry-out, and updates CR0 when Rc is set. Regression cases cover the carry-producing zero-operand case and a negative result with CA cleared. Await CI before marking this revision validated.
