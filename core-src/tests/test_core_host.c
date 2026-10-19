@@ -420,6 +420,17 @@ int main(void) {
     cpu.xer = 0u;
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
     assert(cpu.gpr[5] == 0xfffffffeu && (cpu.xer & 0x20000000u) != 0u);
+    /* ADDME: RA + 0xffffffff + CA; check carry-in set and clear. */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x368u,
+        (31u<<26)|(7u<<21)|(8u<<16)|(234u<<1)) == 0); /* addme r7,r8 */
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x368u);
+    cpu.gpr[8] = 0u;
+    cpu.xer = 0x20000000u;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[7] == 0u && (cpu.xer & 0x20000000u) != 0u);
+    cpu.xer = 0u;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[7] == 0xffffffffu && (cpu.xer & 0x20000000u) == 0u);
     /* ADDO/SUBFO set OV on signed overflow and keep SO sticky. */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x380u,
         (31u<<26)|(3u<<21)|(4u<<16)|(5u<<11)|(778u<<1)) == 0); /* addo r3,r4,r5 */
