@@ -642,7 +642,7 @@ int main(void) {
     assert((cpu.xer & 0x20000000u) == 0u); /* borrow clears CA */
     assert((cpu.cr & 0xf0000000u) == 0x20000000u); /* EQ, SO clear */
 
-    /* SUBFME computes ~RA + CA and updates carry/CR0. */
+    /* SUBFME computes ~RA + 0xffffffff + CA and updates carry/CR0. */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x400u,
         (31u<<26)|(27u<<21)|(28u<<16)|(232u<<1)|1u) == 0); /* subfme. r27,r28 */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x404u,
@@ -651,14 +651,14 @@ int main(void) {
     cpu.gpr[28] = 0u;
     cpu.xer = 0x20000000u; /* CA=1 */
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
-    assert(cpu.gpr[27] == 0u);
-    assert((cpu.xer & 0x20000000u) != 0u); /* carry from ffffffff + 1 */
-    assert((cpu.cr & 0xf0000000u) == 0x20000000u); /* EQ */
+    assert(cpu.gpr[27] == 0xfffffffeu); /* ~0 + 0xffffffff + 1 */
+    assert((cpu.xer & 0x20000000u) != 0u); /* carry out */
+    assert((cpu.cr & 0xf0000000u) == 0x80000000u); /* LT */
     cpu.gpr[30] = 1u;
     cpu.xer &= ~0x20000000u; /* CA=0 */
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
-    assert(cpu.gpr[29] == 0xfffffffeu);
-    assert((cpu.xer & 0x20000000u) == 0u);
+    assert(cpu.gpr[29] == 0xfffffffdu); /* ~1 + 0xffffffff */
+    assert((cpu.xer & 0x20000000u) != 0u); /* carry out remains set */
     assert((cpu.cr & 0xf0000000u) == 0x80000000u); /* LT */
 
     /* Bounded execution loop runs exactly the requested instruction budget. */
