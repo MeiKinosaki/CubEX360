@@ -308,4 +308,4 @@ Added PowerPC `SUBFME` to the experimental Gekko interpreter. The implementation
 
 ### v1.73b SUBFME regression correction
 
-The initial SUBFME tests used the wrong arithmetic expectation. Updated them to the operation `~RA + 0xffffffff + CA`, with results `0xfffffffe` for RA=0/CA=1 and `0xfffffffd` for RA=1/CA=0, and adjusted carry/CR0 assertions. CI must rerun before validation.
+The initial SUBFME tests used the wrong arithmetic expectation. Updated them to the operation `~RA + 0xffffffff + CA`, with results `0xffffffff` for RA=0/CA=1 and `0xfffffffd` for RA=1/CA=0, and adjusted carry/CR0 assertions. GitHub Actions run #124 passed all five jobs, including host tests, ASan/UBSan, diagnostic ELF32 build, core smoke build, and XEX preflight. This validates the regression suite and diagnostic build only; it does not establish a functional XEX or game compatibility.
