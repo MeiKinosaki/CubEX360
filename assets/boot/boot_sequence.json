@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "enabled": true,
+  "splash_style": "cubex360_gamecube_inspired",
+  "show_console_logo": false,
+  "duration_ms": 2500,
+  "transition": "fade_to_library",
+  "audio": {
+    "enabled": false,
+    "source": "user_file",
+    "path": "assets/boot/user-theme.ogg",
+    "loop": false,
+    "wait_for_audio_device": true
+  },
+  "note": "Use an original or user-provided audio file with appropriate rights. No official Nintendo GameCube theme is bundled."
+}
