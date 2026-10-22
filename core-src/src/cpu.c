@@ -299,6 +299,46 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
             }
             break;
         }
+        case 55: { /* LWZUX: indexed load word and update RA */
+            uint32_t address, value;
+            if (ra == 0u || ra == rt) return CUBEX_CPU_UNSUPPORTED;
+            address = c->gpr[ra] + c->gpr[rb];
+            if (cubex_bus_read32be(m, address, &value)) return CUBEX_CPU_MEMORY_FAULT;
+            c->gpr[rt] = value;
+            c->gpr[ra] = address;
+            break;
+        }
+        case 119: { /* LBZUX: indexed load byte and update RA */
+            uint32_t address, physical;
+            uint8_t value;
+            if (ra == 0u || ra == rt) return CUBEX_CPU_UNSUPPORTED;
+            address = c->gpr[ra] + c->gpr[rb];
+            if (cubex_bus_translate_main_ram(address, &physical) ||
+                cubex_memory_read8(m, physical, &value))
+                return CUBEX_CPU_MEMORY_FAULT;
+            c->gpr[rt] = value;
+            c->gpr[ra] = address;
+            break;
+        }
+        case 183: { /* STWUX: indexed store word and update RA */
+            uint32_t address;
+            if (ra == 0u) return CUBEX_CPU_UNSUPPORTED;
+            address = c->gpr[ra] + c->gpr[rb];
+            if (cubex_bus_write32be(m, address, c->gpr[rt]))
+                return CUBEX_CPU_MEMORY_FAULT;
+            c->gpr[ra] = address;
+            break;
+        }
+        case 247: { /* STBUX: indexed store byte and update RA */
+            uint32_t address, physical;
+            if (ra == 0u) return CUBEX_CPU_UNSUPPORTED;
+            address = c->gpr[ra] + c->gpr[rb];
+            if (cubex_bus_translate_main_ram(address, &physical) ||
+                cubex_memory_write8(m, physical, (uint8_t)c->gpr[rt]))
+                return CUBEX_CPU_MEMORY_FAULT;
+            c->gpr[ra] = address;
+            break;
+        }
         case 512: { /* MCRXR: move XER SO/OV/CA to CR field and clear them */
             uint32_t bf = (ins >> 23) & 7u;
             uint32_t field = ((c->xer >> 31) & 1u) << 3;
