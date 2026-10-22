@@ -364,3 +364,13 @@ O URL de servidor é um placeholder. Downloads reais, renderização das capas e
 Added experimental Gekko interpreter cases for `LHZUX`, `LHAUX` and `STHUX`, with host regression tests for memory values, signed halfword extension and RA update. The implementation and tests are committed, but CI has no published status for these commits yet. See [CPU coverage notes](docs/CPU_COVERAGE.md).
 
 This does not change the status of the frontend: settings, filters, cover-download callback and boot sequence are still scaffolding until connected to the real Xbox 360 runtime. The final `default.xex` and boot on RGH remain unverified.
+
+
+## v1.84b — desenvolvimento modular e CI unificada
+
+- Documentada a divisão em cinco frentes independentes: núcleo, hardware, Xbox 360, interface/persistência e integração/validação.
+- Adicionado `scripts/run-host-tests.sh` com modos `strict` e `sanitize` para tornar a execução local e a do CI reproduzíveis.
+- O workflow `xenon-build.yml` agora chama o script comum nos jobs de testes host, reduzindo duplicação de comandos.
+- Critérios objetivos definidos: cada mudança deve ser validada pelo SHA exato; teste host, ELF32 e XEX são marcos diferentes; nenhuma etapa é considerada funcional sem evidência apropriada.
+
+O script foi registrado, mas não foi executado neste ambiente. O CI precisa confirmar a execução. A arquitetura modular documenta frentes de trabalho; não significa que todos os subsistemas de hardware ou frontend já existam.
