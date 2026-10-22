@@ -301,7 +301,7 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
                 result = source;
             } else if (shift >= 32u) {
                 result = negative ? 0xffffffffu : 0u;
-                discarded_one = negative && source != 0u;
+                discarded_one = negative && ((source & 0x7fffffffu) != 0u);
             } else {
                 uint32_t discarded_mask = (1u << shift) - 1u;
                 discarded_one = negative && ((source & discarded_mask) != 0u);
