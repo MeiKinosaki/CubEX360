@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "global_profile": "balanced",
+  "startup": {
+    "show_boot_splash": true,
+    "play_user_audio": false,
+    "user_audio_path": "assets/boot/user-theme.ogg",
+    "splash_duration_ms": 2500
+  },
+  "profiles": {
+    "quality": {
+      "internal_resolution": "native",
+      "texture_filter": "linear",
+      "anti_aliasing": "off",
+      "v_sync": true,
+      "frame_skip": 0,
+      "audio_quality": "high"
+    },
+    "balanced": {
+      "internal_resolution": "native",
+      "texture_filter": "linear",
+      "anti_aliasing": "off",
+      "v_sync": true,
+      "frame_skip": 1,
+      "audio_quality": "medium"
+    },
+    "performance": {
+      "internal_resolution": "native",
+      "texture_filter": "nearest",
+      "anti_aliasing": "off",
+      "v_sync": false,
+      "frame_skip": 2,
+      "audio_quality": "low"
+    }
+  },
+  "per_game_overrides": {}
+}
