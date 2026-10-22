@@ -117,3 +117,8 @@ Corrected the SUBFME expected values to match the operation `~RA + 0xffffffff + 
 - Added a host regression test for `MCRXR` moving `XER.SO/OV/CA` into CR field 2 and clearing those XER bits.
 - Commits: `bc1d571` (shift test encoding correction) and `9ae6f29` (MCRXR test).
 - These are test-only changes. They do not expand the emulator's implemented instruction set, and the new tests must not be considered validated until CI completes successfully.
+
+### Additional CPU regression tests (CI pending)
+- Commit `7e19765`: added `SRAW` boundary cases for shift counts 32 and 33, checking sign-fill, `XER.CA`, and `CR0`.
+- Commit `617164a`: added `ADDO` tests for signed overflow setting `OV` and sticky `SO`, then clearing `OV` while preserving `SO`.
+- These changes extend host-test coverage only. They do not add new CPU opcodes and are not considered validated until the corresponding CI checks complete.
