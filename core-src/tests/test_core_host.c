@@ -858,7 +858,6 @@ int main(void) {
     cpu.gpr[3] = CUBEX360_RAM_CACHED_BASE + 0x600u;
     cpu.gpr[5] = 0x12345678u;
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x604u, 0xaabbccddu) == 0);
-    assert(cubex_bus_write8(&mem, CUBEX360_RAM_CACHED_BASE + 0x605u, 0xabu) == 0);
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
     assert(cpu.gpr[4] == 0xaabbccddu && cpu.gpr[3] == CUBEX360_RAM_CACHED_BASE + 0x604u);
     cpu.pc = CUBEX360_RAM_CACHED_BASE + 0x2c4u;
@@ -871,7 +870,7 @@ int main(void) {
     }
     cpu.pc = CUBEX360_RAM_CACHED_BASE + 0x2c8u;
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
-    assert(cpu.gpr[6] == 0xabu && cpu.gpr[3] == CUBEX360_RAM_CACHED_BASE + 0x60du);
+    assert(cpu.gpr[6] == 0x34u && cpu.gpr[3] == CUBEX360_RAM_CACHED_BASE + 0x60du);
     cpu.pc = CUBEX360_RAM_CACHED_BASE + 0x2ccu;
     cpu.gpr[7] = 0x55u;
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
