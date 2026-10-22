@@ -1,3 +1,15 @@
+# CubEX360 — etapa v1.79b: família de acesso indexado
+
+## Alterações
+
+- Adicionadas instruções indexadas sem atualização de base: `LWZX`, `LBZX`, `STWX`, `STBX`, `LHZX`, `LHAX` e `STHX`.
+- Os testes host verificam leitura/escrita por palavra, byte e halfword, extensão de sinal de `LHAX` e que RA não é alterado.
+- **CI pendente:** os commits desta etapa não têm resultados de GitHub Actions confirmados.
+
+## Limitações
+
+Esta implementação é experimental e usa o mapa de RAM suportado atualmente. Não substitui MMU/TLB, cache/coerência, exceções completas ou o mapa de dispositivos. FPU/paired-single, Flipper/GPU, DSP, drive/IPL e integração de jogo continuam incompletos. Não há `default.xex` funcional nem boot em Xbox 360 RGH comprovados.
+
 # CubEX360 — etapa v1.78b: acesso indexado à memória
 
 ## Alterações desta etapa
