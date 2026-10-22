@@ -270,3 +270,14 @@ O interpretador recebeu as variantes com overflow `ADDEO`, `SUBFCO` e `SUBFEO`, 
 - [Inventário de cobertura](docs/CPU_COVERAGE.md)
 
 **Estado real:** avanço de código experimental na versão de desenvolvimento v1.74b. FPU/paired-single, MMU/TLB, exceções completas, DSP, vídeo Flipper, drive/IPL e integração total continuam pendentes. `default.xex` funcional e boot no Xbox 360 RGH não foram comprovados.
+
+
+## v1.75b — DCBZ e testes de memória
+
+O núcleo recebeu suporte experimental a `DCBZ`, que zera o bloco alinhado de 32 bytes na RAM principal mapeada, além de testes para alinhamento, conteúdo zerado e endereço inválido. A validação do GitHub Actions ainda está pendente.
+
+- [Implementação](core-src/src/cpu.c)
+- [Testes host](core-src/tests/test_core_host.c)
+- [Cobertura e limitações](docs/CPU_COVERAGE.md)
+
+Esta versão não representa um emulador completo: cache real/coerência, FPU, MMU/TLB, exceções, GPU, DSP, drive/IPL e integração ainda precisam de trabalho. Não há `default.xex` funcional nem boot no RGH comprovados.
