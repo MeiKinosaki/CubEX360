@@ -314,3 +314,14 @@ Adicionadas as instruções experimentais `LWZUX`, `LBZUX`, `STWUX` e `STBUX`, c
 - [Cobertura](docs/CPU_COVERAGE.md)
 
 O núcleo continua parcial e o boot de um `default.xex` no Xbox 360 RGH não foi comprovado.
+
+
+## v1.79b — instruções indexadas de memória
+
+Foram adicionadas as instruções experimentais `LWZX`, `LBZX`, `STWX`, `STBX`, `LHZX`, `LHAX` e `STHX`, com testes host para acesso por palavra/byte/halfword, extensão de sinal e preservação de RA. O CI ainda precisa validar esta etapa.
+
+- [CPU](core-src/src/cpu.c)
+- [Testes host](core-src/tests/test_core_host.c)
+- [Cobertura](docs/CPU_COVERAGE.md)
+
+O núcleo e os periféricos seguem parciais; `default.xex` funcional e boot no RGH não foram comprovados.
