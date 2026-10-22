@@ -31,3 +31,12 @@ Planeja-se uma tela de abertura original CubEX360 antes do menu. O repositório 
 ## Toolchain e artefatos
 
 O workflow Free60/libXenon existente produz um ELF32 de smoke test, não o emulador completo. `default.xex` continua bloqueado pela necessidade de runtime/ABI e toolchain XEX apropriados. Não renomear ELF para XEX. O boot no Xbox 360 RGH não foi comprovado.
+
+
+## v1.81b — cache de capas e rede
+
+- Criada a API `cubex_cover_ensure`: verifica cache local, valida ID alfanumérico de jogo e compõe URL HTTP(S) e destino da capa PNG.
+- Configuração da biblioteca agora prevê download automático apenas quando a capa não existe, com limite pretendido de 2 MiB e timeout de 15 segundos.
+- Teste host usa um downloader simulado para verificar cache e rejeição de ID inválido; não faz acesso à Internet.
+- O transporte real ainda precisa ser fornecido pelo runtime Xbox 360, usando a pilha de rede para Ethernet ou Wi-Fi. O URL de servidor na configuração é um placeholder e precisa ser configurado para um provedor de capas autorizado.
+- CI ainda precisa confirmar compilação e testes. Interface gráfica, parsing de imagens, downloads reais no console e boot de XEX não estão comprovados.
