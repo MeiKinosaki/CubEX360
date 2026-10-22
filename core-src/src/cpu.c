@@ -423,12 +423,41 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
             if (ins & 1u) set_cr0(c, c->gpr[rt]);
             break;
         }
+        case 520: { /* SUBFCO: RB - RA, carry and signed overflow */
+            uint32_t a = c->gpr[rb], b = c->gpr[ra];
+            uint64_t sum = (uint64_t)a + (uint64_t)(~b) + 1u;
+            uint32_t result = (uint32_t)sum;
+            int64_t signed_diff = (int64_t)(int32_t)a - (int64_t)(int32_t)b;
+            uint32_t overflow = (signed_diff > INT32_MAX || signed_diff < INT32_MIN);
+            c->gpr[rt] = result;
+            if (sum >> 32) c->xer |= 0x20000000u;
+            else c->xer &= ~0x20000000u;
+            c->xer = (c->xer & ~0x40000000u) | (overflow << 30);
+            if (overflow) c->xer |= 0x80000000u;
+            if (ins & 1u) set_cr0(c, result);
+            break;
+        }
         case 8: { /* SUBFC: RB - RA; CA is set when no borrow occurs */
             uint64_t sum = (uint64_t)c->gpr[rb] + (uint64_t)(~c->gpr[ra]) + 1u;
             c->gpr[rt] = (uint32_t)sum;
             if (sum >> 32) c->xer |= 0x20000000u;
             else c->xer &= ~0x20000000u;
             if (ins & 1u) set_cr0(c, c->gpr[rt]);
+            break;
+        }
+        case 650: { /* ADDEO: RA + RB + CA, signed overflow enabled */
+            uint32_t a = c->gpr[ra], b = c->gpr[rb];
+            uint64_t sum = (uint64_t)a + (uint64_t)b + ((c->xer >> 29) & 1u);
+            uint32_t result = (uint32_t)sum;
+            int64_t signed_sum = (int64_t)(int32_t)a + (int64_t)(int32_t)b +
+                                 (int64_t)((c->xer >> 29) & 1u);
+            uint32_t overflow = (signed_sum > INT32_MAX || signed_sum < INT32_MIN);
+            c->gpr[rt] = result;
+            if (sum >> 32) c->xer |= 0x20000000u;
+            else c->xer &= ~0x20000000u;
+            c->xer = (c->xer & ~0x40000000u) | (overflow << 30);
+            if (overflow) c->xer |= 0x80000000u;
+            if (ins & 1u) set_cr0(c, result);
             break;
         }
         case 138: { /* ADDE: RA + RB + XER.CA */
@@ -438,6 +467,22 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
             if (sum >> 32) c->xer |= 0x20000000u;
             else c->xer &= ~0x20000000u;
             if (ins & 1u) set_cr0(c, c->gpr[rt]);
+            break;
+        }
+        case 648: { /* SUBFEO: RB - RA - (1 - CA), overflow enabled */
+            uint32_t a = c->gpr[rb], b = c->gpr[ra];
+            uint32_t ca = (c->xer >> 29) & 1u;
+            uint64_t sum = (uint64_t)a + (uint64_t)(~b) + ca;
+            uint32_t result = (uint32_t)sum;
+            int64_t signed_diff = (int64_t)(int32_t)a - (int64_t)(int32_t)b -
+                                  (int64_t)(1u - ca);
+            uint32_t overflow = (signed_diff > INT32_MAX || signed_diff < INT32_MIN);
+            c->gpr[rt] = result;
+            if (sum >> 32) c->xer |= 0x20000000u;
+            else c->xer &= ~0x20000000u;
+            c->xer = (c->xer & ~0x40000000u) | (overflow << 30);
+            if (overflow) c->xer |= 0x80000000u;
+            if (ins & 1u) set_cr0(c, result);
             break;
         }
         case 136: { /* SUBFE: RB - RA - (1 - XER.CA) */
