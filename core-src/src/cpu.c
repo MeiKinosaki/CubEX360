@@ -314,6 +314,20 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
             if (ins & 1u) set_cr0(c, result);
             break;
         }
+        case 1014: { /* DCBZ: clear the addressed 32-byte cache block */
+            uint32_t effective = (ra ? c->gpr[ra] : 0u) + c->gpr[rb];
+            uint32_t physical;
+            uint32_t i;
+            if (cubex_bus_translate_main_ram(effective & ~31u, &physical) ||
+                physical > mem->main_ram_size ||
+                32u > mem->main_ram_size - physical)
+                return CUBEX_CPU_MEMORY_FAULT;
+            for (i = 0u; i < 32u; ++i) {
+                if (cubex_memory_write8(m, physical + i, 0u))
+                    return CUBEX_CPU_MEMORY_FAULT;
+            }
+            break;
+        }
         case 339: {
             uint32_t spr = ((ins >> 16) & 31u) | ((ins >> 6) & 0x3e0u);
             if (spr == 8u) c->gpr[rt] = c->lr;
