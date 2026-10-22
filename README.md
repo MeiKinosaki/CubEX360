@@ -303,3 +303,14 @@ A CPU experimental agora implementa `LMW` e `STMW` para transferir vários GPRs 
 - [Inventário de cobertura](docs/CPU_COVERAGE.md)
 
 O núcleo e os periféricos permanecem incompletos; não há `default.xex` funcional nem boot no RGH comprovados.
+
+
+## v1.78b — acessos indexados com atualização
+
+Adicionadas as instruções experimentais `LWZUX`, `LBZUX`, `STWUX` e `STBUX`, com cálculo de endereço RA+RB e atualização da base após sucesso. Os testes host cobrem os acessos por palavra/byte e a atualização do registrador-base. CI pendente.
+
+- [CPU](core-src/src/cpu.c)
+- [Testes host](core-src/tests/test_core_host.c)
+- [Cobertura](docs/CPU_COVERAGE.md)
+
+O núcleo continua parcial e o boot de um `default.xex` no Xbox 360 RGH não foi comprovado.
