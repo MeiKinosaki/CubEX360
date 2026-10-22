@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "description": "Template for a single game profile; actual entries are keyed by Game ID in settings.json.",
+  "game_id": "GAMEID",
+  "profile": "balanced",
+  "overrides": {
+    "internal_resolution": null,
+    "texture_filter": null,
+    "anti_aliasing": null,
+    "v_sync": null,
+    "frame_skip": null,
+    "audio_quality": null
+  },
+  "notes": [
+    "Only settings implemented by the active renderer/audio backend should be exposed as functional controls.",
+    "Unsupported options must be shown as unavailable rather than silently pretending to work."
+  ]
+}
