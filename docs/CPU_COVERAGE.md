@@ -1,3 +1,12 @@
+# CubEX360 — inventário de cobertura da CPU Gekko (v1.74b)
+
+## Avanço v1.74b — variantes aritméticas com overflow
+
+- Adicionadas ao interpretador as variantes `ADDEO`, `SUBFCO` e `SUBFEO`, incluindo atualização de CA, OV e SO sticky e suporte ao bit Rc para CR0.
+- Adicionados testes host para casos de overflow assinado, carry-in e preservação de SO.
+- **Validação pendente:** os novos testes ainda precisam executar no GitHub Actions; não são considerados aprovados até haver resultado verde.
+- A implementação continua sendo um interpretador parcial, não um núcleo GameCube completo.
+
 # CubEX360 — inventário de cobertura da CPU Gekko (v1.61b)
 
 Este inventário é uma leitura qualitativa do interpretador em `core-src/src/cpu.c`, não uma porcentagem certificada de compatibilidade. Uma instrução presente no decodificador ainda precisa de testes de casos-limite e não implica que jogos reais funcionem.
