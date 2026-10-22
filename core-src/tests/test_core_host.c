@@ -768,6 +768,25 @@ int main(void) {
     assert((cpu.xer & 0xc0000000u) == 0x80000000u); /* OV clears; SO remains */
     assert((cpu.cr & 0xf0000000u) == 0x50000000u); /* GT | SO */
 
+    /* SUBFO: RB - RA, signed overflow updates OV and sticky SO; Rc updates CR0. */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x2acu,
+        (31u<<26)|(3u<<21)|(4u<<16)|(5u<<11)|(552u<<1)|1u) == 0); /* subfo. r3,r4,r5 */
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x2acu);
+    cpu.gpr[4] = 0xffffffffu; /* -1 */
+    cpu.gpr[5] = 0x7fffffffu;
+    cpu.xer = 0u;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[3] == 0x80000000u);
+    assert((cpu.xer & 0xc0000000u) == 0xc0000000u); /* OV | SO */
+    assert((cpu.cr & 0xf0000000u) == 0x90000000u); /* LT | SO */
+    cpu.pc = CUBEX360_RAM_CACHED_BASE + 0x2acu;
+    cpu.gpr[4] = 3u;
+    cpu.gpr[5] = 5u;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[3] == 2u);
+    assert((cpu.xer & 0xc0000000u) == 0x80000000u); /* OV clears; SO remains sticky */
+    assert((cpu.cr & 0xf0000000u) == 0x50000000u); /* GT | SO */
+
     /* Bounded execution loop runs exactly the requested instruction budget. */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x300u, 0x3860002au) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x304u, 0x38830001u) == 0);
