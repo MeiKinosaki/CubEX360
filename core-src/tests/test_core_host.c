@@ -1,4 +1,5 @@
 #include "cubex360/cpu.h"
+#include "cubex360/state.h"
 #include <assert.h>
 #include <stdio.h>
 int main(void) {
@@ -1030,6 +1031,26 @@ int main(void) {
     cubex_cpu_reset(&cpu, 0x70000000u);
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_MEMORY_FAULT);
     assert(cpu.pc == 0x70000000u && cpu.retired_instructions == 0u);
+    /* Save/load round-trip covers CPU registers and main RAM; file is host-test-only. */
+    {
+        const char *state_path = "/tmp/cubex360-state-test.bin";
+        uint32_t before;
+        cpu.gpr[3] = 0x13579bdfu;
+        cpu.pc = CUBEX360_RAM_CACHED_BASE + 0x400u;
+        cpu.lr = 0x12345678u;
+        cpu.cr = 0xa5a5a5a5u;
+        cpu.xer = 0x000000e0u;
+        assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x1000u, 0xc001d00du) == 0);
+        assert(cubex_state_save(state_path, &cpu, &mem) == 0);
+        cpu.gpr[3] = 0u; cpu.pc = 0u; cpu.lr = 0u; cpu.cr = 0u; cpu.xer = 0u;
+        assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x1000u, 0u) == 0);
+        assert(cubex_state_load(state_path, &cpu, &mem) == 0);
+        assert(cpu.gpr[3] == 0x13579bdfu && cpu.pc == CUBEX360_RAM_CACHED_BASE + 0x400u);
+        assert(cpu.lr == 0x12345678u && cpu.cr == 0xa5a5a5a5u && cpu.xer == 0xe0u);
+        assert(cubex_bus_read32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x1000u, &before) == 0);
+        assert(before == 0xc001d00du);
+        remove(state_path);
+    }
     cubex_memory_destroy(&mem);
     puts("CubEX360 core host smoke: PASS");
     return 0;
