@@ -122,3 +122,8 @@ Corrected the SUBFME expected values to match the operation `~RA + 0xffffffff + 
 - Commit `7e19765`: added `SRAW` boundary cases for shift counts 32 and 33, checking sign-fill, `XER.CA`, and `CR0`.
 - Commit `617164a`: added `ADDO` tests for signed overflow setting `OV` and sticky `SO`, then clearing `OV` while preserving `SO`.
 - These changes extend host-test coverage only. They do not add new CPU opcodes and are not considered validated until the corresponding CI checks complete.
+
+### SRAW carry correction (CI pending)
+- Commit `3f7549d` corrects the shift-count-≥32 carry calculation so the sign bit alone is not treated as a shifted-out data bit.
+- Commit `1128185` adds regression cases distinguishing `0x80000000` (CA clear) from `0x80000001` (CA set) at shift count 32, alongside the shift-count-33 case.
+- The correction and tests are committed but not yet validated by CI; emulator-wide behavior remains unverified.
