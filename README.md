@@ -347,3 +347,13 @@ A biblioteca agora tem configuração de download automático de capas PNG por I
 - [Notas de frontend](docs/FRONTEND_STATE_V1.80B.md)
 
 O URL de servidor é um placeholder. Downloads reais, renderização das capas e suporte de rede no console ainda não estão validados.
+
+
+## v1.82b — perfis gráficos, filtros e sequência de abertura (configuração)
+
+- `frontend/settings.json`: perfis configuráveis Quality/Balanced/Performance, opções de abertura e espaço para substituições por jogo.
+- `frontend/filters.json`: filtros planejados para favoritos, recentes, capas ausentes/presentes, estado de compatibilidade e gêneros, além de pesquisa/ordenação.
+- `frontend/per_game_profile.schema.json`: modelo de ajustes individuais por Game ID.
+- `assets/boot/boot_sequence.json`: sequência de abertura com transição para a biblioteca e áudio opcional fornecido pelo usuário.
+
+**Importante:** são configurações e esquemas; os menus gráficos, persistência de ajustes, filtros reais e controles de renderização ainda precisam ser implementados no frontend/runtime. As opções de qualidade/desempenho só terão efeito quando o renderer suportar cada opção. A tela de abertura e o áudio também não estão implementados no runtime. Nenhuma música oficial da Nintendo é incluída.
