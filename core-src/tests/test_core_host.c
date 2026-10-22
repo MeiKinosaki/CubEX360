@@ -787,6 +787,40 @@ int main(void) {
     assert((cpu.xer & 0xc0000000u) == 0x80000000u); /* OV clears; SO remains sticky */
     assert((cpu.cr & 0xf0000000u) == 0x50000000u); /* GT | SO */
 
+    /* OE variants: ADDEO, SUBFCO and SUBFEO update OV and sticky SO. */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x2b0u,
+        (31u<<26)|(3u<<21)|(4u<<16)|(5u<<11)|(650u<<1)|1u) == 0); /* addeo. */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x2b4u,
+        (31u<<26)|(6u<<21)|(7u<<16)|(8u<<11)|(520u<<1)|1u) == 0); /* subfco. */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x2b8u,
+        (31u<<26)|(9u<<21)|(10u<<16)|(11u<<11)|(648u<<1)|1u) == 0); /* subfeo. */
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x2b0u);
+    cpu.gpr[4] = 0x7fffffffu;
+    cpu.gpr[5] = 0u;
+    cpu.xer = 0x20000000u; /* CA=1 */
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[3] == 0x80000000u);
+    assert((cpu.xer & 0xe0000000u) == 0xc0000000u); /* OV=1, SO=1, CA=0 */
+    assert((cpu.cr & 0xf0000000u) == 0x90000000u); /* LT | SO */
+
+    cpu.pc = CUBEX360_RAM_CACHED_BASE + 0x2b4u;
+    cpu.gpr[7] = 0x80000000u;
+    cpu.gpr[8] = 1u;
+    cpu.xer = 0u;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[6] == 0x7fffffffu);
+    assert((cpu.xer & 0xc0000000u) == 0xc0000000u); /* OV | SO */
+    assert((cpu.cr & 0xf0000000u) == 0x50000000u); /* GT | SO */
+
+    cpu.pc = CUBEX360_RAM_CACHED_BASE + 0x2b8u;
+    cpu.gpr[10] = 0x80000000u;
+    cpu.gpr[11] = 1u;
+    cpu.xer = 0u; /* CA=0, effective operation is RB - RA - 1 */
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[9] == 0x7ffffffeu);
+    assert((cpu.xer & 0xc0000000u) == 0xc0000000u); /* OV | SO */
+    assert((cpu.cr & 0xf0000000u) == 0x50000000u); /* GT | SO */
+
     /* Bounded execution loop runs exactly the requested instruction budget. */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x300u, 0x3860002au) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x304u, 0x38830001u) == 0);
