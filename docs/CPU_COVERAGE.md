@@ -1,3 +1,16 @@
+# CubEX360 — etapa v1.77b: transferências múltiplas de memória
+
+## Implementação desta etapa
+
+- Adicionadas as instruções `LMW` e `STMW` para transferir sequências de registradores GPR entre registradores e RAM principal.
+- O intervalo completo é validado antes da transferência; endereços desalinhados ou fora da RAM suportada retornam falha de memória.
+- Testes host adicionados para transferência de r28–r31, dados big-endian e falha por desalinhamento.
+- **CI pendente:** não há status de GitHub Actions confirmado para os commits desta etapa. Não considerar a suíte aprovada até a execução real.
+
+## Limitações
+
+Ainda é um núcleo parcial. O modelo não inclui mapa completo de dispositivos, MMU/TLB, cache/coerência real, FPU/paired-single, exceções completas, GPU Flipper, DSP, drive/IPL nem integração de jogo. `default.xex` funcional e boot no Xbox 360 RGH não foram comprovados.
+
 # CubEX360 — etapa v1.76b: CPU e barramento de memória
 
 ## Alterações desta etapa
