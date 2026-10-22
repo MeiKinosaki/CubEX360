@@ -804,8 +804,8 @@ int main(void) {
     assert((cpu.cr & 0xf0000000u) == 0x90000000u); /* LT | SO */
 
     cpu.pc = CUBEX360_RAM_CACHED_BASE + 0x2b4u;
-    cpu.gpr[7] = 0x80000000u;
-    cpu.gpr[8] = 1u;
+    cpu.gpr[7] = 1u;
+    cpu.gpr[8] = 0x80000000u;
     cpu.xer = 0u;
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
     assert(cpu.gpr[6] == 0x7fffffffu);
@@ -813,8 +813,8 @@ int main(void) {
     assert((cpu.cr & 0xf0000000u) == 0x50000000u); /* GT | SO */
 
     cpu.pc = CUBEX360_RAM_CACHED_BASE + 0x2b8u;
-    cpu.gpr[10] = 0x80000000u;
-    cpu.gpr[11] = 1u;
+    cpu.gpr[10] = 1u;
+    cpu.gpr[11] = 0x80000000u;
     cpu.xer = 0u; /* CA=0, effective operation is RB - RA - 1 */
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
     assert(cpu.gpr[9] == 0x7ffffffeu);
