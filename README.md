@@ -292,3 +292,14 @@ Foram adicionadas formas experimentais `LWZU`, `LBZU`, `STWU`, `STBU`, `LHZU`, `
 - [Cobertura e limitações](docs/CPU_COVERAGE.md)
 
 A memória permanece um modelo simplificado; não equivale ao mapa de hardware completo do GameCube. Não há `default.xex` funcional nem boot no RGH comprovados.
+
+
+## v1.77b — transferências múltiplas LMW/STMW
+
+A CPU experimental agora implementa `LMW` e `STMW` para transferir vários GPRs entre a RAM mapeada e o banco de registradores. Os testes cobrem r28–r31, ordem big-endian e endereço desalinhado. A validação CI ainda está pendente.
+
+- [Implementação da CPU](core-src/src/cpu.c)
+- [Testes host](core-src/tests/test_core_host.c)
+- [Inventário de cobertura](docs/CPU_COVERAGE.md)
+
+O núcleo e os periféricos permanecem incompletos; não há `default.xex` funcional nem boot no RGH comprovados.
