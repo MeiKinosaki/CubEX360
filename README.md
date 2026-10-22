@@ -335,3 +335,15 @@ O núcleo e os periféricos seguem parciais; `default.xex` funcional e boot no R
 - Especificação da futura interface estilo Aurora e tela de abertura: [documentação](docs/FRONTEND_STATE_V1.80B.md).
 
 **Limites:** os save states não incluem GPU/DSP/disco/controladores; não há UI funcional, carregador de ROM, música/tela de abertura no runtime nem `default.xex` funcional comprovado. O ELF32 atual é apenas um smoke test da toolchain. A música original oficial do GameCube não é distribuída; poderá ser usado um arquivo fornecido legalmente pelo usuário.
+
+
+## v1.81b — download automático de capas (estrutura)
+
+A biblioteca agora tem configuração de download automático de capas PNG por ID do jogo e uma API de cache que evita baixar novamente arquivos existentes. O teste host usa transporte simulado; não confirma acesso à Internet. Para funcionar no Xbox 360, o frontend precisa implementar o callback HTTP usando a rede Ethernet/Wi-Fi disponível e configurar um servidor de capas legítimo.
+
+- [API de capas](core-src/include/cubex360/covers.h)
+- [Cache/download callback](core-src/src/covers.c)
+- [Configuração da biblioteca](frontend/library.json)
+- [Notas de frontend](docs/FRONTEND_STATE_V1.80B.md)
+
+O URL de servidor é um placeholder. Downloads reais, renderização das capas e suporte de rede no console ainda não estão validados.
