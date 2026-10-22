@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "default_sort": "title_ascending",
+  "available_filters": [
+    "all",
+    "favorites",
+    "recent",
+    "has_cover",
+    "missing_cover",
+    "compatible",
+    "not_tested",
+    "genre_action",
+    "genre_adventure",
+    "genre_racing",
+    "genre_rpg",
+    "genre_platform",
+    "genre_sports",
+    "genre_puzzle",
+    "genre_other"
+  ],
+  "search_fields": ["title", "game_id", "filename"],
+  "sort_options": ["title_ascending", "title_descending", "recently_played", "favorites_first"],
+  "persist_last_filter": true
+}
