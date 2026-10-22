@@ -1,3 +1,16 @@
+# CubEX360 — etapa v1.78b: acesso indexado à memória
+
+## Alterações desta etapa
+
+- Adicionadas as formas indexadas com atualização de base `LWZUX`, `LBZUX`, `STWUX` e `STBUX`.
+- Os endereços efetivos são calculados por RA + RB; a base é atualizada somente depois de um acesso bem-sucedido.
+- Acrescentados testes host para cargas/armazenamentos por palavra e byte, atualização de RA e dados big-endian.
+- **CI pendente:** ainda não há resultado de GitHub Actions confirmado para os commits desta etapa.
+
+## Limitações
+
+Implementação experimental sobre a RAM principal mapeada; não substitui a MMU/TLB, cache/coerência, mapa completo de dispositivos ou exceções arquiteturais. FPU/paired-single, Flipper/GPU, DSP, drive/IPL e integração total seguem incompletos. `default.xex` funcional e boot no Xbox 360 RGH não foram comprovados.
+
 # CubEX360 — etapa v1.77b: transferências múltiplas de memória
 
 ## Implementação desta etapa
