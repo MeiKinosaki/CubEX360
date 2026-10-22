@@ -729,11 +729,17 @@ int main(void) {
     cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x2a4u);
     cpu.gpr[4] = 0x80000000u;
     cpu.gpr[5] = 32u;
-    cpu.xer = 0u;
+    cpu.xer = 0x20000000u;
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
     assert(cpu.gpr[3] == 0xffffffffu);
-    assert((cpu.xer & 0x20000000u) != 0u);
+    assert((cpu.xer & 0x20000000u) == 0u); /* sign bit alone does not set CA */
     assert((cpu.cr & 0xf0000000u) == 0x80000000u); /* LT */
+    cpu.pc = CUBEX360_RAM_CACHED_BASE + 0x2a4u;
+    cpu.gpr[4] = 0x80000001u;
+    cpu.gpr[5] = 32u;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[3] == 0xffffffffu);
+    assert((cpu.xer & 0x20000000u) != 0u); /* lower one bits shifted out set CA */
     cpu.pc = CUBEX360_RAM_CACHED_BASE + 0x2a4u;
     cpu.gpr[4] = 0x7fffffffu;
     cpu.gpr[5] = 33u;
