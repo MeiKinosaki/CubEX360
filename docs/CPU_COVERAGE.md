@@ -200,3 +200,13 @@ Corrected the SUBFME expected values to match the operation `~RA + 0xffffffff + 
 - Commit `3f7549d` corrects the shift-count-≥32 carry calculation so the sign bit alone is not treated as a shifted-out data bit.
 - Commit `1128185` adds regression cases distinguishing `0x80000000` (CA clear) from `0x80000001` (CA set) at shift count 32, alongside the shift-count-33 case.
 - The correction and tests are committed but not yet validated by CI; emulator-wide behavior remains unverified.
+
+
+## Indexed halfword update instructions — v1.83b
+
+Added interpreter cases for:
+- `LHZUX` (XO 311): load unsigned halfword from RA+RB, then update RA.
+- `LHAUX` (XO 375): load signed halfword from RA+RB, then update RA.
+- `STHUX` (XO 439): store halfword to RA+RB, then update RA.
+
+Host regression cases cover unsigned load, sign extension, store value, and base-register update. These tests are committed but CI status is not published/verified for the commits, so they must not be described as passing yet. This remains partial CPU coverage; it does not establish GameCube boot or game compatibility.
