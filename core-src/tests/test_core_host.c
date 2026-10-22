@@ -713,6 +713,16 @@ int main(void) {
     assert(cpu.gpr[6] == 0u);
     assert((cpu.cr & 0xf0000000u) == 0x20000000u); /* EQ */
 
+    /* MCRXR: transfer SO/OV/CA into the selected CR field and clear them. */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x40cu,
+        (31u<<26)|(2u<<23)|(512u<<1)) == 0); /* mcrxr cr2 */
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x40cu);
+    cpu.cr = 0x12345678u;
+    cpu.xer = 0xe0000000u; /* SO=1, OV=1, CA=1 */
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.cr == ((0x12345678u & ~0x00f00000u) | 0x00e00000u));
+    assert((cpu.xer & 0xe0000000u) == 0u);
+
     /* Bounded execution loop runs exactly the requested instruction budget. */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x300u, 0x3860002au) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x304u, 0x38830001u) == 0);
