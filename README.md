@@ -357,3 +357,10 @@ O URL de servidor é um placeholder. Downloads reais, renderização das capas e
 - `assets/boot/boot_sequence.json`: sequência de abertura com transição para a biblioteca e áudio opcional fornecido pelo usuário.
 
 **Importante:** são configurações e esquemas; os menus gráficos, persistência de ajustes, filtros reais e controles de renderização ainda precisam ser implementados no frontend/runtime. As opções de qualidade/desempenho só terão efeito quando o renderer suportar cada opção. A tela de abertura e o áudio também não estão implementados no runtime. Nenhuma música oficial da Nintendo é incluída.
+
+
+## v1.83b — CPU: indexed halfword update operations
+
+Added experimental Gekko interpreter cases for `LHZUX`, `LHAUX` and `STHUX`, with host regression tests for memory values, signed halfword extension and RA update. The implementation and tests are committed, but CI has no published status for these commits yet. See [CPU coverage notes](docs/CPU_COVERAGE.md).
+
+This does not change the status of the frontend: settings, filters, cover-download callback and boot sequence are still scaffolding until connected to the real Xbox 360 runtime. The final `default.xex` and boot on RGH remain unverified.
