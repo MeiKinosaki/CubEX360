@@ -387,6 +387,41 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
             c->gpr[ra] = address;
             break;
         }
+        case 311: { /* LHZUX: indexed halfword load and update RA */
+            uint32_t address, physical;
+            uint16_t value;
+            if (ra == 0u || ra == rt) return CUBEX_CPU_UNSUPPORTED;
+            address = c->gpr[ra] + c->gpr[rb];
+            if (cubex_bus_translate_main_ram(address, &physical) ||
+                cubex_memory_read16be(m, physical, &value))
+                return CUBEX_CPU_MEMORY_FAULT;
+            c->gpr[rt] = value;
+            c->gpr[ra] = address;
+            break;
+        }
+        case 375: { /* LHAUX: indexed signed halfword load and update RA */
+            uint32_t address, physical;
+            uint16_t value;
+            if (ra == 0u || ra == rt) return CUBEX_CPU_UNSUPPORTED;
+            address = c->gpr[ra] + c->gpr[rb];
+            if (cubex_bus_translate_main_ram(address, &physical) ||
+                cubex_memory_read16be(m, physical, &value))
+                return CUBEX_CPU_MEMORY_FAULT;
+            c->gpr[rt] = (value & 0x8000u) ?
+                         (uint32_t)(int32_t)(int16_t)value : (uint32_t)value;
+            c->gpr[ra] = address;
+            break;
+        }
+        case 439: { /* STHUX: indexed halfword store and update RA */
+            uint32_t address, physical;
+            if (ra == 0u) return CUBEX_CPU_UNSUPPORTED;
+            address = c->gpr[ra] + c->gpr[rb];
+            if (cubex_bus_translate_main_ram(address, &physical) ||
+                cubex_memory_write16be(m, physical, (uint16_t)c->gpr[rt]))
+                return CUBEX_CPU_MEMORY_FAULT;
+            c->gpr[ra] = address;
+            break;
+        }
         case 512: { /* MCRXR: move XER SO/OV/CA to CR field and clear them */
             uint32_t bf = (ins >> 23) & 7u;
             uint32_t field = ((c->xer >> 31) & 1u) << 3;
