@@ -1,7 +1,20 @@
 #include "cubex360/cpu.h"
 #include "cubex360/state.h"
+#include "cubex360/covers.h"
 #include <assert.h>
 #include <stdio.h>
+static int mock_cover_downloads;
+static int mock_cover_download(const char *url, const char *destination, void *user_data) {
+    FILE *f;
+    (void)user_data;
+    if (strcmp(url, "https://covers.example/gc/GAMECOVR.png") != 0) return -1;
+    f = fopen(destination, "wb");
+    if (!f) return -1;
+    if (fwrite("PNG", 1, 3, f) != 3) { fclose(f); return -1; }
+    if (fclose(f) != 0) return -1;
+    ++mock_cover_downloads;
+    return 0;
+}
 int main(void) {
     cubex_memory_t mem;
     cubex_cpu_state_t cpu;
@@ -9,6 +22,19 @@ int main(void) {
     uint8_t byte_value = 0;
     uint16_t half_value = 0;
     assert(cubex_memory_init(&mem) == 0);
+    /* Cover-cache logic: downloads once, then reuses cached file. */
+    remove("/tmp/GAMECOVR.png");
+    mock_cover_downloads = 0;
+    assert(cubex_cover_ensure("https://covers.example/gc", "/tmp", "GAMECOVR",
+                              mock_cover_download, NULL) == 1);
+    assert(mock_cover_downloads == 1);
+    assert(cubex_cover_ensure("https://covers.example/gc", "/tmp", "GAMECOVR",
+                              mock_cover_download, NULL) == 0);
+    assert(mock_cover_downloads == 1);
+    assert(cubex_cover_ensure("https://covers.example/gc", "/tmp", "../BAD",
+                              mock_cover_download, NULL) < 0);
+    remove("/tmp/GAMECOVR.png");
+
     /* Boundary, alignment and unmapped-bus failures must be rejected safely. */
     assert(cubex_memory_read8(&mem, CUBEX360_MAIN_RAM_SIZE, &byte_value) != 0);
     assert(cubex_memory_read16be(&mem, 1u, &half_value) != 0);
