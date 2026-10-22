@@ -1,3 +1,16 @@
+# CubEX360 — etapa v1.75b: CPU e memória
+
+## Implementação desta etapa
+
+- Adicionado suporte experimental à instrução PowerPC/Gekko `DCBZ`: alinha o endereço efetivo ao bloco de 32 bytes e zera esse bloco na RAM principal mapeada.
+- O acesso passa pela tradução do barramento para RAM e retorna falha de memória se o endereço não mapear para a RAM suportada.
+- Testes host adicionados para alinhamento de bloco, verificação dos 32 bytes zerados e falha para endereço fora da RAM.
+- **CI pendente:** os commits de código e teste não têm status de CI confirmado; não afirmar que a suíte passou.
+
+## Limites
+
+A operação DCBZ está implementada no modelo de RAM atual, que ainda não modela cache real, coerência ou todas as regiões de memória do GameCube. Esta etapa não implica boot de jogos. FPU/paired-single, MMU/TLB, exceções completas, Flipper/GPU, DSP, drive/IPL e integração geral seguem incompletos. `default.xex` funcional e boot em Xbox 360 RGH continuam não comprovados.
+
 # CubEX360 — inventário de cobertura da CPU Gekko (v1.74b)
 
 ## Avanço v1.74b — variantes aritméticas com overflow
