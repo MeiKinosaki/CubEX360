@@ -111,3 +111,9 @@ Added a regression case for `RA = 0xffffffff` with `CA = 0`: the low-word result
 ### SUBFME test semantic correction
 
 Corrected the SUBFME expected values to match the operation `~RA + 0xffffffff + XER.CA` (equivalent to subtract-from-minus-one with carry-in). For RA=0, CA=1 the low word is `0xffffffff`; for RA=1, CA=0 it is `0xfffffffd`. Both cases produce carry-out and a negative CR0 result. The host test, ASan/UBSan, diagnostic ELF32 build, core smoke build, and XEX preflight jobs all passed in CI run #124.
+
+### Test additions after v1.73b (CI pending)
+- Added host regression coverage for `SLW` and `SRW` with register shift counts of 1 and 32, checking result values and `CR0` updates.
+- Added a host regression test for `MCRXR` moving `XER.SO/OV/CA` into CR field 2 and clearing those XER bits.
+- Commits: `bc1d571` (shift test encoding correction) and `9ae6f29` (MCRXR test).
+- These are test-only changes. They do not expand the emulator's implemented instruction set, and the new tests must not be considered validated until CI completes successfully.
