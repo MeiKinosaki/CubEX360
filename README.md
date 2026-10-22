@@ -281,3 +281,14 @@ O núcleo recebeu suporte experimental a `DCBZ`, que zera o bloco alinhado de 32
 - [Cobertura e limitações](docs/CPU_COVERAGE.md)
 
 Esta versão não representa um emulador completo: cache real/coerência, FPU, MMU/TLB, exceções, GPU, DSP, drive/IPL e integração ainda precisam de trabalho. Não há `default.xex` funcional nem boot no RGH comprovados.
+
+
+## v1.76b — instruções de memória com atualização
+
+Foram adicionadas formas experimentais `LWZU`, `LBZU`, `STWU`, `STBU`, `LHZU`, `LHAU` e `STHU`. Os testes host cobrem cargas/armazenamentos selecionados e atualização do registrador-base. O CI ainda precisa validar esta etapa.
+
+- [CPU](core-src/src/cpu.c)
+- [Testes](core-src/tests/test_core_host.c)
+- [Cobertura e limitações](docs/CPU_COVERAGE.md)
+
+A memória permanece um modelo simplificado; não equivale ao mapa de hardware completo do GameCube. Não há `default.xex` funcional nem boot no RGH comprovados.
