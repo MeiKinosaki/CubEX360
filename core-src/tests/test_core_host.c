@@ -821,6 +821,30 @@ int main(void) {
     assert((cpu.xer & 0xc0000000u) == 0xc0000000u); /* OV | SO */
     assert((cpu.cr & 0xf0000000u) == 0x50000000u); /* GT | SO */
 
+    /* DCBZ clears the aligned 32-byte cache block through cached RAM alias. */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x2bcu,
+        (31u<<26)|(4u<<16)|(5u<<11)|(1014u<<1)) == 0); /* dcbz r4,r5 */
+    {
+        uint32_t i;
+        uint8_t byte;
+        for (i = 0u; i < 32u; ++i)
+            assert(cubex_bus_write8(&mem, CUBEX360_RAM_CACHED_BASE + 0x520u + i,
+                                    (uint8_t)(i + 1u)) == 0);
+        cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x2bcu);
+        cpu.gpr[4] = CUBEX360_RAM_CACHED_BASE + 0x500u;
+        cpu.gpr[5] = 0x23u; /* effective 0x523; block aligns down to 0x520 */
+        assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+        for (i = 0u; i < 32u; ++i) {
+            assert(cubex_bus_read8(&mem, CUBEX360_RAM_CACHED_BASE + 0x520u + i, &byte) == 0);
+            assert(byte == 0u);
+        }
+    }
+    /* DCBZ must fault for a non-RAM effective address. */
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x2bcu);
+    cpu.gpr[4] = 0x70000000u;
+    cpu.gpr[5] = 0u;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_MEMORY_FAULT);
+
     /* Bounded execution loop runs exactly the requested instruction budget. */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x300u, 0x3860002au) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x304u, 0x38830001u) == 0);
