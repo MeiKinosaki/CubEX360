@@ -723,6 +723,26 @@ int main(void) {
     assert(cpu.cr == ((0x12345678u & ~0x00f00000u) | 0x00e00000u));
     assert((cpu.xer & 0xe0000000u) == 0u);
 
+    /* SRAW boundary: counts >=32 sign-fill and update XER.CA from discarded ones. */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x2a4u,
+        (31u<<26)|(4u<<21)|(3u<<16)|(5u<<11)|(792u<<1)|1u) == 0); /* sraw. r3,r4,r5 */
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x2a4u);
+    cpu.gpr[4] = 0x80000000u;
+    cpu.gpr[5] = 32u;
+    cpu.xer = 0u;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[3] == 0xffffffffu);
+    assert((cpu.xer & 0x20000000u) != 0u);
+    assert((cpu.cr & 0xf0000000u) == 0x80000000u); /* LT */
+    cpu.pc = CUBEX360_RAM_CACHED_BASE + 0x2a4u;
+    cpu.gpr[4] = 0x7fffffffu;
+    cpu.gpr[5] = 33u;
+    cpu.xer = 0x20000000u;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[3] == 0u);
+    assert((cpu.xer & 0x20000000u) == 0u);
+    assert((cpu.cr & 0xf0000000u) == 0x20000000u); /* EQ */
+
     /* Bounded execution loop runs exactly the requested instruction budget. */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x300u, 0x3860002au) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x304u, 0x38830001u) == 0);
