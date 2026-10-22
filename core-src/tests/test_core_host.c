@@ -916,6 +916,48 @@ int main(void) {
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_MEMORY_FAULT);
     assert(cpu.gpr[28] == 0xdeadbeefu);
 
+    /* Indexed update forms calculate RA+RB and update RA after success. */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x2e0u,
+        (31u<<26)|(4u<<21)|(3u<<16)|(5u<<11)|(55u<<1)) == 0); /* lwzux r4,r3,r5 */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x2e4u,
+        (31u<<26)|(6u<<21)|(3u<<16)|(5u<<11)|(183u<<1)) == 0); /* stwux r6,r3,r5 */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x2e8u,
+        (31u<<26)|(7u<<21)|(3u<<16)|(5u<<11)|(119u<<1)) == 0); /* lbzux r7,r3,r5 */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x2ecu,
+        (31u<<26)|(8u<<21)|(3u<<16)|(5u<<11)|(247u<<1)) == 0); /* stbux r8,r3,r5 */
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x2e0u);
+    cpu.gpr[3] = CUBEX360_RAM_CACHED_BASE + 0x800u;
+    cpu.gpr[5] = 0x10u;
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x810u, 0x1234abcdu) == 0);
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[4] == 0x1234abcdu && cpu.gpr[3] == CUBEX360_RAM_CACHED_BASE + 0x810u);
+    cpu.pc = CUBEX360_RAM_CACHED_BASE + 0x2e4u;
+    cpu.gpr[3] = CUBEX360_RAM_CACHED_BASE + 0x800u;
+    cpu.gpr[6] = 0xa1b2c3d4u;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    {
+        uint32_t value;
+        assert(cpu.gpr[3] == CUBEX360_RAM_CACHED_BASE + 0x810u);
+        assert(cubex_bus_read32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x810u, &value) == 0);
+        assert(value == 0xa1b2c3d4u);
+    }
+    cpu.pc = CUBEX360_RAM_CACHED_BASE + 0x2e8u;
+    cpu.gpr[3] = CUBEX360_RAM_CACHED_BASE + 0x810u;
+    cpu.gpr[5] = 0u;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[7] == 0xa1u && cpu.gpr[3] == CUBEX360_RAM_CACHED_BASE + 0x810u);
+    cpu.pc = CUBEX360_RAM_CACHED_BASE + 0x2ecu;
+    cpu.gpr[3] = CUBEX360_RAM_CACHED_BASE + 0x820u;
+    cpu.gpr[5] = 0u;
+    cpu.gpr[8] = 0x5au;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    {
+        uint8_t value;
+        assert(cpu.gpr[3] == CUBEX360_RAM_CACHED_BASE + 0x820u);
+        assert(cubex_bus_read8(&mem, CUBEX360_RAM_CACHED_BASE + 0x820u, &value) == 0);
+        assert(value == 0x5au);
+    }
+
     /* Bounded execution loop runs exactly the requested instruction budget. */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x300u, 0x3860002au) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x304u, 0x38830001u) == 0);
