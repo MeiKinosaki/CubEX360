@@ -166,6 +166,36 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
         c->gpr[ra] = a;
         break;
     }
+    case 46: { /* LMW: load words from RA+d into RT..r31 */
+        uint32_t address = (ra ? c->gpr[ra] : 0u) + (uint32_t)sx16(imm);
+        uint32_t physical, reg, count = 32u - rt;
+        if ((address & 3u) != 0u ||
+            cubex_bus_translate_main_ram(address, &physical) ||
+            physical > m->main_ram_size ||
+            count * 4u > m->main_ram_size - physical)
+            return CUBEX_CPU_MEMORY_FAULT;
+        for (reg = rt; reg < 32u; ++reg) {
+            if (cubex_memory_read32be(m, physical + ((reg - rt) * 4u),
+                                      &c->gpr[reg]))
+                return CUBEX_CPU_MEMORY_FAULT;
+        }
+        break;
+    }
+    case 47: { /* STMW: store words from RT..r31 to RA+d */
+        uint32_t address = (ra ? c->gpr[ra] : 0u) + (uint32_t)sx16(imm);
+        uint32_t physical, reg, count = 32u - rt;
+        if ((address & 3u) != 0u ||
+            cubex_bus_translate_main_ram(address, &physical) ||
+            physical > m->main_ram_size ||
+            count * 4u > m->main_ram_size - physical)
+            return CUBEX_CPU_MEMORY_FAULT;
+        for (reg = rt; reg < 32u; ++reg) {
+            if (cubex_memory_write32be(m, physical + ((reg - rt) * 4u),
+                                       c->gpr[reg]))
+                return CUBEX_CPU_MEMORY_FAULT;
+        }
+        break;
+    }
     case 32: {
         uint32_t a = (ra ? c->gpr[ra] : 0u) + (uint32_t)sx16(imm);
         if (cubex_bus_read32be(m, a, &c->gpr[rt])) return CUBEX_CPU_MEMORY_FAULT;
