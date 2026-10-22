@@ -1,3 +1,16 @@
+# CubEX360 — etapa v1.76b: CPU e barramento de memória
+
+## Alterações desta etapa
+
+- Implementadas formas com atualização de registrador-base: `LWZU`, `LBZU`, `STWU`, `STBU`, `LHZU`, `LHAU` e `STHU`.
+- As formas de carga/armazenamento atualizam RA após acesso bem-sucedido; formas com combinação de registradores não suportada são rejeitadas em vez de executar silenciosamente.
+- Testes host adicionados para `LWZU`, `LBZU`, `STWU` e `STBU`, incluindo atualização de RA e verificação de dados big-endian.
+- **Validação pendente:** não há resultado de GitHub Actions confirmado para estes commits. Os testes não são declarados aprovados.
+
+## Limites mantidos
+
+A memória continua sendo RAM principal de 24 MiB com aliases cached/uncached simplificados; ainda não há MMU/TLB, cache real/coerência ou mapa completo de dispositivos do GameCube. FPU/paired-single, exceções completas, Flipper/GPU, DSP e drive/IPL seguem incompletos. `default.xex` funcional e boot no Xbox 360 RGH não estão comprovados.
+
 # CubEX360 — etapa v1.75b: CPU e memória
 
 ## Implementação desta etapa
