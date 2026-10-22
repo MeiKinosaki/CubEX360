@@ -325,3 +325,13 @@ Foram adicionadas as instruções experimentais `LWZX`, `LBZX`, `STWX`, `STBX`, 
 - [Cobertura](docs/CPU_COVERAGE.md)
 
 O núcleo e os periféricos seguem parciais; `default.xex` funcional e boot no RGH não foram comprovados.
+
+
+## v1.80b — save/load state e estrutura da biblioteca
+
+- API experimental de save/load para estado da CPU + 24 MiB de RAM, com versão de formato e CRC32.
+- Teste host de round-trip adicionado; workflow host/sanitizer agora inclui `core-src/src/state.c`.
+- Estrutura inicial de biblioteca/favoritos em `frontend/library.json`; diretórios documentados para ROMs, capas e save states.
+- Especificação da futura interface estilo Aurora e tela de abertura: [documentação](docs/FRONTEND_STATE_V1.80B.md).
+
+**Limites:** os save states não incluem GPU/DSP/disco/controladores; não há UI funcional, carregador de ROM, música/tela de abertura no runtime nem `default.xex` funcional comprovado. O ELF32 atual é apenas um smoke test da toolchain. A música original oficial do GameCube não é distribuída; poderá ser usado um arquivo fornecido legalmente pelo usuário.
