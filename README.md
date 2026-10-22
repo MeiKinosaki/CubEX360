@@ -259,3 +259,14 @@ Added `SUBFME` to the partial Gekko integer interpreter, with host tests for car
 
 
 SUBFME regression expectations were corrected to the full subtract-from-minus-one arithmetic and are awaiting CI revalidation.
+
+
+## v1.74b — variantes aritméticas do núcleo Gekko
+
+O interpretador recebeu as variantes com overflow `ADDEO`, `SUBFCO` e `SUBFEO`, e testes host para verificar resultado, carry, overflow assinado, SO sticky e CR0. O CI desses commits ainda não foi confirmado; não considerar os testes aprovados até a execução terminar.
+
+- [Implementação da CPU](core-src/src/cpu.c)
+- [Testes host](core-src/tests/test_core_host.c)
+- [Inventário de cobertura](docs/CPU_COVERAGE.md)
+
+**Estado real:** avanço de código experimental na versão de desenvolvimento v1.74b. FPU/paired-single, MMU/TLB, exceções completas, DSP, vídeo Flipper, drive/IPL e integração total continuam pendentes. `default.xex` funcional e boot no Xbox 360 RGH não foram comprovados.
