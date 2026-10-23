@@ -374,3 +374,10 @@ This does not change the status of the frontend: settings, filters, cover-downlo
 - Critérios objetivos definidos: cada mudança deve ser validada pelo SHA exato; teste host, ELF32 e XEX são marcos diferentes; nenhuma etapa é considerada funcional sem evidência apropriada.
 
 O script foi registrado, mas não foi executado neste ambiente. O CI precisa confirmar a execução. A arquitetura modular documenta frentes de trabalho; não significa que todos os subsistemas de hardware ou frontend já existam.
+
+
+## v1.85b — validação de configuração da interface
+
+- Adicionado `scripts/validate-config.sh`, que analisa os JSONs da biblioteca, perfis, filtros e sequência de abertura e verifica os perfis obrigatórios.
+- GitHub Actions ganha um job separado para validar esses arquivos e passa a disparar com alterações em `frontend/**` e `assets/boot/**`.
+- Isso valida a integridade estrutural das configurações, não implementa por si só a interface gráfica nem prova download de capas, áudio ou execução no console.
