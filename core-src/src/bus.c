@@ -6,3 +6,5 @@ int cubex_bus_read16be(const cubex_memory_t*m,uint32_t a,uint16_t*o){uint32_t p;
 int cubex_bus_write32be(cubex_memory_t*m,uint32_t a,uint32_t v){uint32_t p;return cubex_bus_translate_main_ram(a,&p)?-1:cubex_memory_write32be(m,p,v);}
 int cubex_bus_write8(cubex_memory_t*m,uint32_t a,uint8_t v){uint32_t p;return cubex_bus_translate_main_ram(a,&p)?-1:cubex_memory_write8(m,p,v);}
 int cubex_bus_write16be(cubex_memory_t*m,uint32_t a,uint16_t v){uint32_t p;return cubex_bus_translate_main_ram(a,&p)?-1:cubex_memory_write16be(m,p,v);}
+int cubex_bus_copy_from(const cubex_memory_t *m,uint32_t a,void *dst,size_t n){uint32_t p;if(n==0u)return m&&m->main_ram?0:-1;return cubex_bus_translate_main_ram(a,&p)?-1:cubex_memory_copy_from(m,p,dst,n);}
+int cubex_bus_copy_to(cubex_memory_t *m,uint32_t a,const void *src,size_t n){uint32_t p;if(n==0u)return m&&m->main_ram?0:-1;return cubex_bus_translate_main_ram(a,&p)?-1:cubex_memory_copy_to(m,p,src,n);}
