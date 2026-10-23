@@ -12,4 +12,7 @@ int cubex_memory_read32be(const cubex_memory_t *mem,uint32_t address,uint32_t *o
 int cubex_memory_write8(cubex_memory_t *mem,uint32_t address,uint8_t value);
 int cubex_memory_write16be(cubex_memory_t *mem,uint32_t address,uint16_t value);
 int cubex_memory_write32be(cubex_memory_t *mem,uint32_t address,uint32_t value);
+/* Bounded byte transfers for DMA, state files and bulk initialization. */
+int cubex_memory_copy_from(const cubex_memory_t *mem, uint32_t address, void *destination, size_t size);
+int cubex_memory_copy_to(cubex_memory_t *mem, uint32_t address, const void *source, size_t size);
 #endif
