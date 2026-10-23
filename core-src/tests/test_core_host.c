@@ -46,6 +46,21 @@ int main(void) {
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE, 0x3860002au) == 0);
     assert(cubex_bus_read32be(&mem, CUBEX360_RAM_UNCACHED_BASE, &value) == 0);
     assert(value == 0x3860002au);
+    /* Bounded bulk transfers support future DMA and save-state paths. */
+    {
+        const uint8_t source[5] = {0x10u, 0x20u, 0x30u, 0x40u, 0x50u};
+        uint8_t destination[5] = {0u, 0u, 0u, 0u, 0u};
+        assert(cubex_memory_copy_to(&mem, 0x2200u, source, sizeof(source)) == 0);
+        assert(cubex_memory_copy_from(&mem, 0x2200u, destination, sizeof(destination)) == 0);
+        assert(memcmp(source, destination, sizeof(source)) == 0);
+        assert(cubex_memory_copy_to(&mem, CUBEX360_MAIN_RAM_SIZE - 2u, source, sizeof(source)) != 0);
+        assert(cubex_memory_copy_from(&mem, CUBEX360_MAIN_RAM_SIZE - 2u, destination, sizeof(destination)) != 0);
+        assert(cubex_memory_copy_to(&mem, 0u, NULL, 1u) != 0);
+        assert(cubex_memory_copy_from(&mem, 0u, NULL, 1u) != 0);
+        assert(cubex_memory_copy_to(&mem, CUBEX360_MAIN_RAM_SIZE, NULL, 0u) == 0);
+        assert(cubex_memory_copy_from(&mem, CUBEX360_MAIN_RAM_SIZE, NULL, 0u) == 0);
+    }
+
     /* Byte/halfword bus access must share the same RAM through aliases. */
     assert(cubex_bus_write8(&mem, CUBEX360_RAM_CACHED_BASE + 0x2000u, 0xa5u) == 0);
     assert(cubex_bus_read8(&mem, CUBEX360_RAM_UNCACHED_BASE + 0x2000u, &byte_value) == 0);
