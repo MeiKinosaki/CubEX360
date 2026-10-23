@@ -539,8 +539,8 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
             uint32_t physical;
             uint32_t i;
             if (cubex_bus_translate_main_ram(effective & ~31u, &physical) ||
-                physical > mem->main_ram_size ||
-                32u > mem->main_ram_size - physical)
+                physical > m->main_ram_size ||
+                32u > m->main_ram_size - physical)
                 return CUBEX_CPU_MEMORY_FAULT;
             for (i = 0u; i < 32u; ++i) {
                 if (cubex_memory_write8(m, physical + i, 0u))
