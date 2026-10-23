@@ -45,3 +45,8 @@ Os testes host cobrem agora sobreposição para ambos os sentidos de cópia usan
 ## v1.88b — API de transferências em bloco pelo barramento
 
 O barramento oferece agora operações de cópia que traduzem endereços físicos, cached e uncached para a RAM principal, aplicando validação de limites à transferência inteira. Foram adicionados testes para transferências entre aliases e endereços inválidos. Esta etapa não é um controlador DMA; a validação CI ainda está pendente para os SHAs dos commits.
+
+
+## v1.89b — teste de falha segura em save/load state
+
+Foi adicionada uma regressão que altera um byte de RAM no arquivo de estado salvo e verifica a rejeição por checksum, sem alterar parcialmente o estado ativo da CPU ou da RAM. É uma proteção de teste para o formato atual, que só salva CPU + RAM principal. O CI para o commit `8e3bbe609debf7414eb9e77f263c972075e80bbc` ainda precisa ser verificado.
