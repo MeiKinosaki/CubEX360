@@ -30,3 +30,8 @@ Foi criado um script comum para executar os testes host em modo estrito ou com A
 ## v1.85b — validação automática de configuração
 
 O workflow agora tem um job separado para verificar os arquivos JSON de biblioteca, perfis, filtros e sequência de abertura. O script também confere a presença dos perfis Quality, Balanced e Performance e exige filtros não vazios. A execução CI deste commit ainda precisa ser confirmada; esta verificação não demonstra que os menus já estão conectados ao runtime.
+
+
+## v1.86b — transferências de memória em bloco
+
+A Frente A expõe agora operações de cópia de bytes com validação de limites para facilitar futuros consumidores como DMA e save/load state. A API usa `memmove` e tem testes host de limites, ponteiros e round-trip. A execução CI ainda precisa ser verificada no commit correspondente. Esta API não equivale a DMA ou estado completo de hardware implementados.
