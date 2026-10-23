@@ -400,3 +400,12 @@ Os commits de código e teste não têm status de CI publicado verificado nesta 
 - Commit dos testes: `b954c77e4b4e0ca9d31e12a40f988dd022fe1ce4`.
 
 **Validação:** o resultado de GitHub Actions para este SHA ainda não foi confirmado. Não declarar os testes aprovados até consultar o CI. `default.xex` funcional, boot em Xbox 360 RGH e compatibilidade com jogos continuam não comprovados.
+
+
+## v1.88b — transferências em bloco pelo barramento
+
+- Adicionadas `cubex_bus_copy_to` e `cubex_bus_copy_from` para transferências limitadas através dos endereços físicos, cached e uncached da RAM principal.
+- Testes acrescentados para leitura cruzada entre aliases, validação de limites e rejeição de regiões não mapeadas.
+- Commits principais: `bbab540eb01cd57ed074b40fddf6bd8b175b9190`, `b6375b6fa6634fc3567149ffdfb23f70300962b6` e `50196f5507e8b10977991c6766a76a3f4fb8910b`.
+
+**Validação:** o estado do GitHub Actions ainda precisa ser confirmado para os commits atuais. Esta API prepara uma interface para futuros consumidores de DMA, mas não implementa um controlador DMA de GameCube. `default.xex` funcional, boot no Xbox 360 RGH e compatibilidade com jogos continuam não comprovados.
