@@ -4,6 +4,7 @@
 #include "cubex360/covers.h"
 #include <assert.h>
 #include <stdio.h>
+#include <string.h>
 static int mock_cover_downloads;
 static int mock_cover_download(const char *url, const char *destination, void *user_data) {
     FILE *f;
