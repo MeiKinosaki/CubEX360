@@ -409,3 +409,12 @@ Os commits de código e teste não têm status de CI publicado verificado nesta 
 - Commits principais: `bbab540eb01cd57ed074b40fddf6bd8b175b9190`, `b6375b6fa6634fc3567149ffdfb23f70300962b6` e `50196f5507e8b10977991c6766a76a3f4fb8910b`.
 
 **Validação:** o estado do GitHub Actions ainda precisa ser confirmado para os commits atuais. Esta API prepara uma interface para futuros consumidores de DMA, mas não implementa um controlador DMA de GameCube. `default.xex` funcional, boot no Xbox 360 RGH e compatibilidade com jogos continuam não comprovados.
+
+
+## v1.89b — integridade e falha segura de save states
+
+- Expandida a regressão host de save/load state: o teste corrompe um byte do bloco de RAM salvo e exige rejeição pelo checksum.
+- O teste também verifica que uma carga inválida não modifica parcialmente os registradores da CPU nem a RAM que já estava ativa.
+- Commit do teste: `8e3bbe609debf7414eb9e77f263c972075e80bbc`.
+
+**Validação:** o CI para o SHA desta alteração ainda precisa ser confirmado. Os estados continuam abrangendo somente CPU e RAM principal, não GPU/DSP/timers/disco. `default.xex` funcional e boot no RGH permanecem não comprovados.
