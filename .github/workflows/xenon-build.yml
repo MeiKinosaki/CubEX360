@@ -8,6 +8,9 @@ on:
       - 'scripts/verify-xenon-elf.sh'
       - 'scripts/xex-preflight.sh'
       - 'scripts/run-host-tests.sh'
+      - 'scripts/validate-config.sh'
+      - 'frontend/**'
+      - 'assets/boot/**'
       - '.github/workflows/xenon-build.yml'
 jobs:
   host-core-test:
@@ -22,6 +25,12 @@ jobs:
       - uses: actions/checkout@v4
       - name: Run core regression suite with ASan and UBSan
         run: sh ./scripts/run-host-tests.sh sanitize
+  frontend-config-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate frontend JSON configuration
+        run: sh ./scripts/validate-config.sh
   xex-preflight-gate:
     runs-on: ubuntu-latest
     steps:
