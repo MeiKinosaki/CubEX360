@@ -25,3 +25,8 @@ O projeto deve manter interfaces pequenas e dependências direcionadas. Um módu
 ## Estado real nesta etapa
 
 Foi criado um script comum para executar os testes host em modo estrito ou com ASan/UBSan. O workflow chama o mesmo script para evitar divergência entre CI e execução reproduzível. As frentes B e D continuam majoritariamente em estrutura/configuração, e o XEX final permanece não comprovado.
+
+
+## v1.85b — validação automática de configuração
+
+O workflow agora tem um job separado para verificar os arquivos JSON de biblioteca, perfis, filtros e sequência de abertura. O script também confere a presença dos perfis Quality, Balanced e Performance e exige filtros não vazios. A execução CI deste commit ainda precisa ser confirmada; esta verificação não demonstra que os menus já estão conectados ao runtime.
