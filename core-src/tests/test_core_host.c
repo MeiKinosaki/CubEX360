@@ -61,6 +61,23 @@ int main(void) {
         assert(cubex_memory_copy_from(&mem, CUBEX360_MAIN_RAM_SIZE, NULL, 0u) == 0);
     }
 
+    /* Overlapping bulk copies must behave like memmove in both directions. */
+    {
+        uint8_t expected[8] = {1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u};
+        uint8_t actual[8] = {0u};
+        assert(cubex_memory_copy_to(&mem, 0x2300u, expected, sizeof(expected)) == 0);
+        assert(cubex_memory_copy_to(&mem, 0x2302u, mem.main_ram + 0x2300u, 6u) == 0);
+        assert(cubex_memory_copy_from(&mem, 0x2300u, actual, sizeof(actual)) == 0);
+        assert(actual[0] == 1u && actual[1] == 2u);
+        assert(actual[2] == 1u && actual[3] == 2u && actual[4] == 3u);
+        assert(actual[5] == 4u && actual[6] == 5u && actual[7] == 6u);
+        assert(cubex_memory_copy_to(&mem, 0x2300u, expected, sizeof(expected)) == 0);
+        assert(cubex_memory_copy_from(&mem, 0x2302u, mem.main_ram + 0x2300u, 6u) == 0);
+        assert(cubex_memory_copy_from(&mem, 0x2300u, actual, sizeof(actual)) == 0);
+        assert(actual[0] == 3u && actual[1] == 4u && actual[2] == 5u);
+        assert(actual[3] == 6u && actual[4] == 7u && actual[5] == 8u);
+    }
+
     /* Byte/halfword bus access must share the same RAM through aliases. */
     assert(cubex_bus_write8(&mem, CUBEX360_RAM_CACHED_BASE + 0x2000u, 0xa5u) == 0);
     assert(cubex_bus_read8(&mem, CUBEX360_RAM_UNCACHED_BASE + 0x2000u, &byte_value) == 0);
