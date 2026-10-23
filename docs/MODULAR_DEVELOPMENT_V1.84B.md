@@ -40,3 +40,8 @@ A Frente A expõe agora operações de cópia de bytes com validação de limite
 ## v1.87b — cópias sobrepostas na memória
 
 Os testes host cobrem agora sobreposição para ambos os sentidos de cópia usando a API de transferência em bloco. O objetivo é proteger a semântica `memmove` que a implementação utiliza. Esta alteração é somente uma regressão de teste; não implementa DMA, estados completos de hardware ou runtime do frontend. A execução CI para o SHA `b954c77e4b4e0ca9d31e12a40f988dd022fe1ce4` ainda precisa ser confirmada.
+
+
+## v1.88b — API de transferências em bloco pelo barramento
+
+O barramento oferece agora operações de cópia que traduzem endereços físicos, cached e uncached para a RAM principal, aplicando validação de limites à transferência inteira. Foram adicionados testes para transferências entre aliases e endereços inválidos. Esta etapa não é um controlador DMA; a validação CI ainda está pendente para os SHAs dos commits.
