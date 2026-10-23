@@ -35,3 +35,8 @@ O workflow agora tem um job separado para verificar os arquivos JSON de bibliote
 ## v1.86b — transferências de memória em bloco
 
 A Frente A expõe agora operações de cópia de bytes com validação de limites para facilitar futuros consumidores como DMA e save/load state. A API usa `memmove` e tem testes host de limites, ponteiros e round-trip. A execução CI ainda precisa ser verificada no commit correspondente. Esta API não equivale a DMA ou estado completo de hardware implementados.
+
+
+## v1.87b — cópias sobrepostas na memória
+
+Os testes host cobrem agora sobreposição para ambos os sentidos de cópia usando a API de transferência em bloco. O objetivo é proteger a semântica `memmove` que a implementação utiliza. Esta alteração é somente uma regressão de teste; não implementa DMA, estados completos de hardware ou runtime do frontend. A execução CI para o SHA `b954c77e4b4e0ca9d31e12a40f988dd022fe1ce4` ainda precisa ser confirmada.
