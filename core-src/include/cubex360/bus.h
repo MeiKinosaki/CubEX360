@@ -10,4 +10,7 @@ int cubex_bus_read32be(const cubex_memory_t *mem,uint32_t address,uint32_t *out)
 int cubex_bus_write8(cubex_memory_t *mem,uint32_t address,uint8_t value);
 int cubex_bus_write16be(cubex_memory_t *mem,uint32_t address,uint16_t value);
 int cubex_bus_write32be(cubex_memory_t *mem,uint32_t address,uint32_t value);
+/* Bounded bulk transfers through physical/cached/uncached main-RAM aliases. */
+int cubex_bus_copy_from(const cubex_memory_t *mem, uint32_t address, void *destination, size_t size);
+int cubex_bus_copy_to(cubex_memory_t *mem, uint32_t address, const void *source, size_t size);
 #endif
