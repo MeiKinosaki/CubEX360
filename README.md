@@ -381,3 +381,13 @@ O script foi registrado, mas não foi executado neste ambiente. O CI precisa con
 - Adicionado `scripts/validate-config.sh`, que analisa os JSONs da biblioteca, perfis, filtros e sequência de abertura e verifica os perfis obrigatórios.
 - GitHub Actions ganha um job separado para validar esses arquivos e passa a disparar com alterações em `frontend/**` e `assets/boot/**`.
 - Isso valida a integridade estrutural das configurações, não implementa por si só a interface gráfica nem prova download de capas, áudio ou execução no console.
+
+
+## v1.86b — API de transferências em bloco para memória
+
+- Adicionadas `cubex_memory_copy_to` e `cubex_memory_copy_from` para transferências de bytes limitadas à RAM principal.
+- A implementação verifica limites antes de copiar e usa `memmove`, permitindo sobreposição segura dos intervalos.
+- Testes host cobrem ida/volta, limite da RAM, ponteiros nulos e transferências vazias.
+- Uso futuro previsto em DMA, leitura/escrita de estados e inicialização de buffers; estes subsistemas ainda precisam integrar a API.
+
+Os commits de código e teste não têm status de CI publicado verificado nesta etapa. Não declarar os testes aprovados até a execução do workflow para o SHA correspondente.
