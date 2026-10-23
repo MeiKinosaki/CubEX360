@@ -1,4 +1,5 @@
 #include "cubex360/cpu.h"
+#include "cubex360/bus.h"
 #include "cubex360/state.h"
 #include "cubex360/covers.h"
 #include <assert.h>
@@ -76,6 +77,24 @@ int main(void) {
         assert(cubex_memory_copy_from(&mem, 0x2300u, actual, sizeof(actual)) == 0);
         assert(actual[0] == 3u && actual[1] == 4u && actual[2] == 5u);
         assert(actual[3] == 6u && actual[4] == 7u && actual[5] == 8u);
+    }
+
+    /* Bulk bus transfers translate physical, cached and uncached RAM aliases. */
+    {
+        const uint8_t payload[4] = {0xdeu, 0xadu, 0xbeu, 0xefu};
+        uint8_t readback[4] = {0u, 0u, 0u, 0u};
+        assert(cubex_bus_copy_to(&mem, CUBEX360_RAM_CACHED_BASE + 0x2400u,
+                                 payload, sizeof(payload)) == 0);
+        assert(cubex_bus_copy_from(&mem, CUBEX360_RAM_UNCACHED_BASE + 0x2400u,
+                                   readback, sizeof(readback)) == 0);
+        assert(memcmp(payload, readback, sizeof(payload)) == 0);
+        assert(cubex_bus_copy_from(&mem, 0x2400u, readback, sizeof(readback)) == 0);
+        assert(memcmp(payload, readback, sizeof(payload)) == 0);
+        assert(cubex_bus_copy_to(&mem, CUBEX360_RAM_CACHED_BASE +
+                                 CUBEX360_MAIN_RAM_SIZE - 2u,
+                                 payload, sizeof(payload)) != 0);
+        assert(cubex_bus_copy_from(&mem, 0x70000000u, readback, sizeof(readback)) != 0);
+        assert(cubex_bus_copy_to(&mem, 0x70000000u, NULL, 0u) == 0);
     }
 
     /* Byte/halfword bus access must share the same RAM through aliases. */
