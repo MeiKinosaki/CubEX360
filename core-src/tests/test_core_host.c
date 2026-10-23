@@ -1154,6 +1154,24 @@ int main(void) {
         assert(cpu.lr == 0x12345678u && cpu.cr == 0xa5a5a5a5u && cpu.xer == 0xe0u);
         assert(cubex_bus_read32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x1000u, &before) == 0);
         assert(before == 0xc001d00du);
+        /* Corrupt a RAM byte: checksum failure must not partially restore state. */
+        {
+            FILE *state_file = fopen(state_path, "r+b");
+            int byte;
+            assert(state_file != NULL);
+            assert(fseek(state_file, 20L + 160L + 0x1000L, SEEK_SET) == 0);
+            byte = fgetc(state_file);
+            assert(byte != EOF);
+            assert(fseek(state_file, -1L, SEEK_CUR) == 0);
+            assert(fputc(byte ^ 0xff, state_file) != EOF);
+            assert(fclose(state_file) == 0);
+        }
+        cpu.gpr[3] = 0x2468ace0u;
+        assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x1000u, 0xdeadbeefu) == 0);
+        assert(cubex_state_load(state_path, &cpu, &mem) != 0);
+        assert(cpu.gpr[3] == 0x2468ace0u);
+        assert(cubex_bus_read32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x1000u, &before) == 0);
+        assert(before == 0xdeadbeefu);
         remove(state_path);
     }
     cubex_memory_destroy(&mem);
