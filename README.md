@@ -391,3 +391,12 @@ O script foi registrado, mas não foi executado neste ambiente. O CI precisa con
 - Uso futuro previsto em DMA, leitura/escrita de estados e inicialização de buffers; estes subsistemas ainda precisam integrar a API.
 
 Os commits de código e teste não têm status de CI publicado verificado nesta etapa. Não declarar os testes aprovados até a execução do workflow para o SHA correspondente.
+
+
+## v1.87b — regressões de cópia sobreposta
+
+- Ampliados os testes da API de memória para verificar cópias com regiões de origem e destino sobrepostas, tanto no sentido de deslocamento para a frente como para trás.
+- Os casos exercitam a semântica esperada de `memmove`; não adicionam DMA nem integração de save/load state.
+- Commit dos testes: `b954c77e4b4e0ca9d31e12a40f988dd022fe1ce4`.
+
+**Validação:** o resultado de GitHub Actions para este SHA ainda não foi confirmado. Não declarar os testes aprovados até consultar o CI. `default.xex` funcional, boot em Xbox 360 RGH e compatibilidade com jogos continuam não comprovados.
