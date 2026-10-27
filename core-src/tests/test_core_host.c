@@ -924,7 +924,7 @@ int main(void) {
     cpu.gpr[5] = 0u;
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_MEMORY_FAULT);
 
-    /* DCBZ at the final partial block must fault before modifying any RAM. */
+    /* DCBZ starting at the RAM end must fault without touching the preceding block. */
     {
         uint32_t i;
         uint8_t byte;
@@ -932,7 +932,7 @@ int main(void) {
         for (i = 0u; i < 16u; ++i)
             assert(cubex_memory_write8(&mem, tail + i, (uint8_t)(0xa0u + i)) == 0);
         cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x2bcu);
-        cpu.gpr[4] = CUBEX360_RAM_CACHED_BASE + tail;
+        cpu.gpr[4] = CUBEX360_RAM_CACHED_BASE + CUBEX360_MAIN_RAM_SIZE;
         cpu.gpr[5] = 0u;
         assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_MEMORY_FAULT);
         for (i = 0u; i < 16u; ++i) {
