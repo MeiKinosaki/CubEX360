@@ -924,6 +924,23 @@ int main(void) {
     cpu.gpr[5] = 0u;
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_MEMORY_FAULT);
 
+    /* DCBZ at the final partial block must fault before modifying any RAM. */
+    {
+        uint32_t i;
+        uint8_t byte;
+        uint32_t tail = CUBEX360_MAIN_RAM_SIZE - 16u;
+        for (i = 0u; i < 16u; ++i)
+            assert(cubex_memory_write8(&mem, tail + i, (uint8_t)(0xa0u + i)) == 0);
+        cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x2bcu);
+        cpu.gpr[4] = CUBEX360_RAM_CACHED_BASE + tail;
+        cpu.gpr[5] = 0u;
+        assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_MEMORY_FAULT);
+        for (i = 0u; i < 16u; ++i) {
+            assert(cubex_memory_read8(&mem, tail + i, &byte) == 0);
+            assert(byte == (uint8_t)(0xa0u + i));
+        }
+    }
+
     /* Update-form loads/stores: effective address and RA update are both checked. */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x2c0u,
         (33u<<26)|(4u<<21)|(3u<<16)|4u) == 0); /* lwzu r4,4(r3) */
