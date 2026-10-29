@@ -19,8 +19,9 @@ int cubex_timer_enable(cubex_timer_t *timer, bool enabled) {
 
 int cubex_timer_advance(cubex_timer_t *timer, uint32_t cycles) {
     uint32_t after_expiry;
-    if (!timer || timer->period == 0u || timer->remaining == 0u) return -1;
+    if (!timer || timer->period == 0u) return -1;
     if (!timer->enabled || cycles == 0u) return 0;
+    if (timer->remaining == 0u) return -1;
     if (cycles < timer->remaining) {
         timer->remaining -= cycles;
         return 0;
