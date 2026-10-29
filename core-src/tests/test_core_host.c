@@ -2,6 +2,7 @@
 #include "cubex360/bus.h"
 #include "cubex360/state.h"
 #include "cubex360/covers.h"
+#include "cubex360/mmio.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
@@ -24,6 +25,25 @@ int main(void) {
     uint8_t byte_value = 0;
     uint16_t half_value = 0;
     assert(cubex_memory_init(&mem) == 0);
+    /* MMIO register bank: deterministic initialization and bounded access. */
+    {
+        cubex_mmio_t mmio;
+        uint32_t regs[3] = {0xaaaaaaaaU, 0xbbbbbbbbU, 0xccccccccU};
+        uint32_t reg_value = 0u;
+        assert(cubex_mmio_init(&mmio, 0x0c000000u, regs, 3u) == 0);
+        assert(regs[0] == 0u && regs[1] == 0u && regs[2] == 0u);
+        assert(cubex_mmio_write32(&mmio, 0x0c000004u, 0x12345678u) == 0);
+        assert(cubex_mmio_read32(&mmio, 0x0c000004u, &reg_value) == 0);
+        assert(reg_value == 0x12345678u);
+        assert(cubex_mmio_read32(&mmio, 0x0c00000cu, &reg_value) != 0);
+        assert(cubex_mmio_write32(&mmio, 0x0c000002u, 1u) != 0);
+        assert(cubex_mmio_read32(&mmio, 0x0bfffffcu, &reg_value) != 0);
+        assert(cubex_mmio_read32(&mmio, 0x0c000000u, NULL) != 0);
+        assert(cubex_mmio_init(NULL, 0x0c000000u, regs, 3u) != 0);
+        assert(cubex_mmio_init(&mmio, 0x0c000001u, regs, 3u) != 0);
+        assert(cubex_mmio_init(&mmio, 0x0c000000u, NULL, 3u) != 0);
+        assert(cubex_mmio_init(&mmio, 0xfffffffcu, regs, 2u) != 0);
+    }
     /* Cover-cache logic: downloads once, then reuses cached file. */
     remove("/tmp/GAMECOVR.png");
     mock_cover_downloads = 0;
