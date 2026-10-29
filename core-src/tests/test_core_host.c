@@ -1227,6 +1227,31 @@ int main(void) {
         assert(value == 0xbeefu);
     }
 
+    /* Differential-style instruction corpus: known encodings and expected GPR/CR results. */
+    {
+        const uint32_t base = CUBEX360_RAM_CACHED_BASE + 0x500u;
+        const uint32_t program[] = {
+            0x38601234u, /* addi r3,r0,0x1234 */
+            0x3c801234u, /* addis r4,r0,0x1234 */
+            0x60a300ffu, /* ori r5,r3,0x00ff */
+            0x68c300ffu, /* xori r6,r3,0x00ff */
+            0x70e300ffu  /* andi. r7,r3,0x00ff */
+        };
+        size_t i;
+        for (i = 0; i < sizeof(program) / sizeof(program[0]); ++i)
+            assert(cubex_bus_write32be(&mem, base + (uint32_t)(i * 4u), program[i]) == 0);
+        cubex_cpu_reset(&cpu, base);
+        for (i = 0; i < sizeof(program) / sizeof(program[0]); ++i)
+            assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+        assert(cpu.gpr[3] == 0x00001234u);
+        assert(cpu.gpr[4] == 0x12340000u);
+        assert(cpu.gpr[5] == 0x000012ffu);
+        assert(cpu.gpr[6] == 0x000012cbu);
+        assert(cpu.gpr[7] == 0x00000034u);
+        assert((cpu.cr & 0xf0000000u) == 0x40000000u); /* CR0=GT */
+        assert(cpu.pc == base + 20u && cpu.retired_instructions == 5u);
+    }
+
     /* Bounded execution loop runs exactly the requested instruction budget. */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x300u, 0x3860002au) == 0);
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x304u, 0x38830001u) == 0);
