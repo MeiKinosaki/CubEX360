@@ -4,6 +4,7 @@
 #include "cubex360/covers.h"
 #include "cubex360/mmio.h"
 #include "cubex360/dma.h"
+#include "cubex360/timer.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
