@@ -6,6 +6,7 @@ int cubex_mmio_init(cubex_mmio_t *mmio, uint32_t base_address,
                     uint32_t *register_storage, size_t register_count) {
     if (!mmio || !register_storage || register_count == 0u ||
         (base_address & 3u) != 0u ||
+        register_count > SIZE_MAX / sizeof(*register_storage) ||
         register_count > (size_t)((UINT32_MAX - base_address) / 4u) + 1u) {
         return -1;
     }
