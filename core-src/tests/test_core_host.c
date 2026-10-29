@@ -49,7 +49,6 @@ int main(void) {
     {
         const uint8_t payload[6] = {0x11u, 0x22u, 0x33u, 0x44u, 0x55u, 0x66u};
         uint8_t readback[6] = {0u};
-        assert(cubex_dma_copy_main_ram(&mem, 0x1000u, 0x1100u, sizeof(payload)) == 0);
         assert(cubex_memory_copy_to(&mem, 0x1000u, payload, sizeof(payload)) == 0);
         assert(cubex_dma_copy_main_ram(&mem, 0x1000u, CUBEX360_RAM_CACHED_BASE + 0x1100u, sizeof(payload)) == 0);
         assert(cubex_memory_copy_from(&mem, 0x1100u, readback, sizeof(readback)) == 0);
@@ -59,6 +58,21 @@ int main(void) {
         assert(cubex_memory_copy_from(&mem, 0x1102u, readback, 4u) == 0);
         assert(readback[0] == 0x11u && readback[1] == 0x22u &&
                readback[2] == 0x33u && readback[3] == 0x44u);
+        /* Same physical RAM through aliases: overlapping forward/backward copies. */
+        assert(cubex_memory_copy_to(&mem, 0x1300u, payload, sizeof(payload)) == 0);
+        assert(cubex_dma_copy_main_ram(&mem, 0x1300u,
+                                       CUBEX360_RAM_UNCACHED_BASE + 0x1302u, 4u) == 0);
+        assert(cubex_memory_copy_from(&mem, 0x1300u, readback, sizeof(readback)) == 0);
+        assert(readback[0] == 0x11u && readback[1] == 0x22u &&
+               readback[2] == 0x11u && readback[3] == 0x22u &&
+               readback[4] == 0x33u && readback[5] == 0x44u);
+        assert(cubex_memory_copy_to(&mem, 0x1300u, payload, sizeof(payload)) == 0);
+        assert(cubex_dma_copy_main_ram(&mem, CUBEX360_RAM_CACHED_BASE + 0x1302u,
+                                       0x1300u, 4u) == 0);
+        assert(cubex_memory_copy_from(&mem, 0x1300u, readback, sizeof(readback)) == 0);
+        assert(readback[0] == 0x33u && readback[1] == 0x44u &&
+               readback[2] == 0x55u && readback[3] == 0x66u &&
+               readback[4] == 0x55u && readback[5] == 0x66u);
         assert(cubex_dma_copy_main_ram(&mem, 0x1000u, 0x1200u, 0u) == 0);
         assert(cubex_dma_copy_main_ram(&mem, 0x1000u, 0x1200u, sizeof(payload)) == 0);
         assert(cubex_dma_copy_main_ram(&mem, 0x70000000u, 0x1200u, 4u) != 0);
