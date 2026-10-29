@@ -82,6 +82,32 @@ int main(void) {
         assert(cubex_dma_copy_main_ram(NULL, 0u, 0u, 1u) != 0);
     }
 
+    /* Deterministic timer primitive: one-shot, periodic and boundary behavior. */
+    {
+        cubex_timer_t timer;
+        assert(cubex_timer_init(&timer, 0u, false) != 0);
+        assert(cubex_timer_init(&timer, 5u, false) == 0);
+        assert(cubex_timer_enable(&timer, true) == 0);
+        assert(cubex_timer_advance(&timer, 4u) == 0);
+        assert(timer.remaining == 1u && !timer.interrupt_pending);
+        assert(cubex_timer_advance(&timer, 1u) == 0);
+        assert(timer.interrupt_pending && !timer.enabled && timer.remaining == 0u);
+        cubex_timer_clear_interrupt(&timer);
+        assert(!timer.interrupt_pending);
+        assert(cubex_timer_init(&timer, 5u, true) == 0);
+        assert(cubex_timer_enable(&timer, true) == 0);
+        assert(cubex_timer_advance(&timer, 12u) == 0);
+        assert(timer.interrupt_pending && timer.enabled && timer.remaining == 3u);
+        cubex_timer_clear_interrupt(&timer);
+        assert(cubex_timer_advance(&timer, 3u) == 0);
+        assert(timer.interrupt_pending && timer.remaining == 5u);
+        assert(cubex_timer_enable(&timer, false) == 0);
+        assert(cubex_timer_advance(&timer, 10u) == 0);
+        assert(timer.remaining == 5u);
+        assert(cubex_timer_enable(NULL, true) != 0);
+        assert(cubex_timer_advance(NULL, 1u) != 0);
+    }
+
     /* Cover-cache logic: downloads once, then reuses cached file. */
     remove("/tmp/GAMECOVR.png");
     mock_cover_downloads = 0;
