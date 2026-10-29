@@ -3,6 +3,7 @@
 #include "cubex360/state.h"
 #include "cubex360/covers.h"
 #include "cubex360/mmio.h"
+#include "cubex360/dma.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
@@ -44,6 +45,29 @@ int main(void) {
         assert(cubex_mmio_init(&mmio, 0x0c000000u, NULL, 3u) != 0);
         assert(cubex_mmio_init(&mmio, 0xfffffffcu, regs, 2u) != 0);
     }
+    /* DMA prototype: bounded RAM copies across physical/cached aliases. */
+    {
+        const uint8_t payload[6] = {0x11u, 0x22u, 0x33u, 0x44u, 0x55u, 0x66u};
+        uint8_t readback[6] = {0u};
+        assert(cubex_dma_copy_main_ram(&mem, 0x1000u, 0x1100u, sizeof(payload)) == 0);
+        assert(cubex_memory_copy_to(&mem, 0x1000u, payload, sizeof(payload)) == 0);
+        assert(cubex_dma_copy_main_ram(&mem, 0x1000u, CUBEX360_RAM_CACHED_BASE + 0x1100u, sizeof(payload)) == 0);
+        assert(cubex_memory_copy_from(&mem, 0x1100u, readback, sizeof(readback)) == 0);
+        assert(memcmp(payload, readback, sizeof(payload)) == 0);
+        assert(cubex_dma_copy_main_ram(&mem, CUBEX360_RAM_UNCACHED_BASE + 0x1100u,
+                                       0x1102u, 4u) == 0);
+        assert(cubex_memory_copy_from(&mem, 0x1102u, readback, 4u) == 0);
+        assert(readback[0] == 0x11u && readback[1] == 0x22u &&
+               readback[2] == 0x33u && readback[3] == 0x44u);
+        assert(cubex_dma_copy_main_ram(&mem, 0x1000u, 0x1200u, 0u) == 0);
+        assert(cubex_dma_copy_main_ram(&mem, 0x1000u, 0x1200u, sizeof(payload)) == 0);
+        assert(cubex_dma_copy_main_ram(&mem, 0x70000000u, 0x1200u, 4u) != 0);
+        assert(cubex_dma_copy_main_ram(&mem, 0x1000u, 0x70000000u, 4u) != 0);
+        assert(cubex_dma_copy_main_ram(&mem, CUBEX360_MAIN_RAM_SIZE - 2u,
+                                       0x1200u, 4u) != 0);
+        assert(cubex_dma_copy_main_ram(NULL, 0u, 0u, 1u) != 0);
+    }
+
     /* Cover-cache logic: downloads once, then reuses cached file. */
     remove("/tmp/GAMECOVR.png");
     mock_cover_downloads = 0;
