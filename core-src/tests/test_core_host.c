@@ -1233,9 +1233,9 @@ int main(void) {
         const uint32_t program[] = {
             0x38601234u, /* addi r3,r0,0x1234 */
             0x3c801234u, /* addis r4,r0,0x1234 */
-            0x60a300ffu, /* ori r5,r3,0x00ff */
-            0x68c300ffu, /* xori r6,r3,0x00ff */
-            0x70e300ffu  /* andi. r7,r3,0x00ff */
+            0x606500ffu, /* ori r5,r3,0x00ff */
+            0x686600ffu, /* xori r6,r3,0x00ff */
+            0x706700ffu  /* andi. r7,r3,0x00ff */
         };
         size_t i;
         for (i = 0; i < sizeof(program) / sizeof(program[0]); ++i)
