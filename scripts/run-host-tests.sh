@@ -8,10 +8,14 @@ case "$mode" in
   strict)
     "$cc" -std=c99 -Wall -Wextra -Werror -O2 -Icore-src/include $sources -o /tmp/cubex360-core-host-test
     /tmp/cubex360-core-host-test
+    "$cc" -std=c99 -Wall -Wextra -Werror -O2 -Icore-src/include core-src/src/timer.c core-src/tests/test_timer_edges.c -o /tmp/cubex360-timer-edge-test
+    /tmp/cubex360-timer-edge-test
     ;;
   sanitize)
     "$cc" -std=c99 -Wall -Wextra -Werror -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer -Icore-src/include $sources -o /tmp/cubex360-core-sanitizers
     /tmp/cubex360-core-sanitizers
+    "$cc" -std=c99 -Wall -Wextra -Werror -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer -Icore-src/include core-src/src/timer.c core-src/tests/test_timer_edges.c -o /tmp/cubex360-timer-edge-sanitizers
+    /tmp/cubex360-timer-edge-sanitizers
     ;;
   *) echo "Usage: $0 [strict|sanitize]" >&2; exit 2 ;;
 esac
