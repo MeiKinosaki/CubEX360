@@ -126,6 +126,10 @@ void cubex_machine_destroy(cubex_machine_t *machine) {
 cubex_cpu_result_t cubex_machine_step(cubex_machine_t *machine) {
     cubex_cpu_result_t result;
     if (!machine || !machine->initialized) return CUBEX_CPU_BAD_ARGUMENT;
+    machine_sync_device_irqs(machine);
+    if (cubex_pi_irq_pending(&machine->pi) &&
+        cubex_cpu_take_external_interrupt(&machine->cpu))
+        return CUBEX_CPU_OK;
     result = cubex_cpu_step(&machine->cpu, &machine->memory);
     if (result != CUBEX_CPU_OK) return result;
     if (cubex_timer_advance(&machine->timer, 1u) != 0)
