@@ -184,3 +184,6 @@ Commit testado: `1c8567457228fda13f6d55aef9023727358edba2`.
 - `build-core-smoke` e `build-probe`: ainda em execução no momento deste registro.
 
 O teste integrado de CP watermark → PI Cause bit 11 passou nos testes host. A integração PE Finish/Token → PI bits 10/9 permanece coberta pela mesma suíte. A versão segue em andamento até conclusão dos dois jobs restantes.
+
+
+**Resultado final do CI #43623917054:** os seis jobs concluíram com sucesso: host strict, ASan/UBSan, build-probe, core smoke, frontend config e XEX preflight gate. Foram publicados os artefatos `cubex360-libxenon-elf32` e `cubex360-core-smoke-elf32`. Ambos são ELF32; o gate XEX aprovou por bloquear a geração sem ferramentas de conversão reais. Nenhum `default.xex` foi produzido nem testado em console.
