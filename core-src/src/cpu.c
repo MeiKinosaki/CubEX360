@@ -314,21 +314,8 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
             uint32_t bb = (ins >> 11) & 31u;
             uint32_t a = (c->cr >> (31u - ba)) & 1u;
             uint32_t b = (c->cr >> (31u - bb)) & 1u;
-            uint32_t result;
+            uint32_t result = 0u;
             switch (xo) {
-        case 339: { /* MFSPR: decrementer SPR 22 */
-            uint32_t spr = (((ins >> 16) & 31u) << 5) | ((ins >> 11) & 31u);
-            if (spr != 22u) return CUBEX_CPU_UNSUPPORTED;
-            c->gpr[rt] = c->dec;
-            break;
-        }
-        case 467: { /* MTSPR: decrementer SPR 22 */
-            uint32_t spr = (((ins >> 16) & 31u) << 5) | ((ins >> 11) & 31u);
-            if (spr != 22u) return CUBEX_CPU_UNSUPPORTED;
-            c->dec = c->gpr[rt];
-            c->dec_pending = 0u;
-            break;
-        }
             case 33:  result = !(a | b); break;       /* CRNOR */
             case 129: result = a & !b; break;         /* CRANDC */
             case 193: result = a ^ b; break;          /* CRXOR */
@@ -344,6 +331,19 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
         break;
     case 31:
         switch (xo) {
+        case 339: { /* MFSPR: decrementer SPR 22 */
+            uint32_t spr = (((ins >> 16) & 31u) << 5) | ((ins >> 11) & 31u);
+            if (spr != 22u) return CUBEX_CPU_UNSUPPORTED;
+            c->gpr[rt] = c->dec;
+            break;
+        }
+        case 467: { /* MTSPR: decrementer SPR 22 */
+            uint32_t spr = (((ins >> 16) & 31u) << 5) | ((ins >> 11) & 31u);
+            if (spr != 22u) return CUBEX_CPU_UNSUPPORTED;
+            c->dec = c->gpr[rt];
+            c->dec_pending = 0u;
+            break;
+        }
         case 0:
         case 32: {
             uint32_t bf = (ins >> 23) & 7u;
