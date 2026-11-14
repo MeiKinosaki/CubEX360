@@ -4,7 +4,8 @@
 #include <string.h>
 
 #define STATE_HEADER_SIZE 20u
-#define STATE_CPU_SIZE 176u
+#define STATE_CPU_SIZE 184u
+#define STATE_CPU_SIZE_V3 176u
 #define STATE_CPU_SIZE_V2 168u
 #define STATE_CPU_SIZE_V1 160u
 static const uint8_t state_magic[8] = {'C','U','B','E','X','S','1',0};
@@ -29,6 +30,7 @@ static void encode_cpu(uint8_t out[STATE_CPU_SIZE], const cubex_cpu_state_t *c) 
     put32(out+o,c->xer); o+=4; put32(out+o,c->msr); o+=4;
     put32(out+o,c->srr0); o+=4; put32(out+o,c->srr1); o+=4;
     put32(out+o,c->dec); o+=4; put32(out+o,c->dec_pending); o+=4;
+    put32(out+o,c->dar); o+=4; put32(out+o,c->dsisr); o+=4;
     put64(out+o,c->retired_instructions);
 }
 static void decode_cpu(cubex_cpu_state_t *c, const uint8_t *in, uint32_t version) {
@@ -41,6 +43,8 @@ static void decode_cpu(cubex_cpu_state_t *c, const uint8_t *in, uint32_t version
     else { c->srr0=0u; c->srr1=0u; }
     if (version >= 3u) { c->dec=get32(in+o); o+=4; c->dec_pending=get32(in+o); o+=4; }
     else { c->dec=0u; c->dec_pending=0u; }
+    if (version >= 4u) { c->dar=get32(in+o); o+=4; c->dsisr=get32(in+o); o+=4; }
+    else { c->dar=0u; c->dsisr=0u; }
     c->retired_instructions=get64(in+o);
 }
 static uint32_t crc32_update(uint32_t crc, const uint8_t *p, size_t n) {
@@ -67,7 +71,7 @@ int cubex_state_save(const char *path, const cubex_cpu_state_t *cpu, const cubex
     encode_cpu(cpu_blob,cpu);
     crc=crc32_update(crc,cpu_blob,sizeof(cpu_blob));
     crc=crc32_update(crc,mem->main_ram,mem->main_ram_size)^0xffffffffu;
-    memcpy(header,state_magic,8); put32(header+8,3u); put32(header+12,(uint32_t)mem->main_ram_size); put32(header+16,crc);
+    memcpy(header,state_magic,8); put32(header+8,4u); put32(header+12,(uint32_t)mem->main_ram_size); put32(header+16,crc);
     f=fopen(tmp,"wb");
     if(f) {
         if(write_all(f,header,sizeof(header))==0 &&
@@ -91,7 +95,8 @@ int cubex_state_load(const char *path, cubex_cpu_state_t *cpu, cubex_memory_t *m
     version=get32(header+8);
     if (version == 1u) cpu_size=STATE_CPU_SIZE_V1;
     else if (version == 2u) cpu_size=STATE_CPU_SIZE_V2;
-    else if (version == 3u) cpu_size=STATE_CPU_SIZE;
+    else if (version == 3u) cpu_size=STATE_CPU_SIZE_V3;
+    else if (version == 4u) cpu_size=STATE_CPU_SIZE;
     else { fclose(f); return -1; }
     if (read_all(f,cpu_blob,cpu_size)) { fclose(f); return -1; }
     ram=(uint8_t*)malloc(mem->main_ram_size); if(!ram) { fclose(f); return -1; }
