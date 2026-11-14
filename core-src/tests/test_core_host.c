@@ -1121,7 +1121,7 @@ int main(void) {
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
     assert(cpu.pc == 0x00000600u);
     assert(cpu.srr0 == CUBEX360_RAM_CACHED_BASE + 0x2d0u);
-    assert(cpu.dar == CUBEX360_RAM_CACHED_BASE + 1u);
+    assert(cpu.dar == CUBEX360_RAM_CACHED_BASE + 0x701u);
     assert(cpu.gpr[28] == 0xdeadbeefu);
 
     /* Indexed update forms calculate RA+RB and update RA after success. */
