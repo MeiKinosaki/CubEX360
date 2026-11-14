@@ -69,3 +69,12 @@ Referências técnicas para revisão:
 
 ### Gate de liberação
 Não publicar nem renomear um ELF como `default.xex`. O job XEX só deve ser habilitado quando um ambiente de build autorizado tiver compiler/linker/packer compatíveis configurados e o build ligar o núcleo real. A validação deve inspecionar a estrutura XEX, guardar SHA-256 e logs e testar a inicialização no Xbox 360 RGH. Até essas condições serem satisfeitas, o artefato XEX permanece **bloqueado**.
+
+
+## v1.99b — pipeline de XEX em runner Linux
+
+Foi criado .github/workflows/default-xex-cloud.yml, que usa o projeto aberto xenosworks/xsdk, MIT, fixado no commit 8a824102d8cbba14b08b245e294e6337be38f447. O xsdk documenta GCC/binutils/newlib para powerpc-xsdk-elf, runtime para títulos homebrew e o empacotador tools/elf2xex.py que produz contêiner XEX2.
+
+O alvo xex-target/ liga os fontes atuais de memória, barramento e CPU e executa somente um smoke test de duas instruções. O workflow gera default.xex, verifica magic XEX2, tamanho mínimo e SHA-256, e publica o arquivo como artefato com retenção de 14 dias.
+
+Estado no momento da criação: workflow e alvo adicionados ao repositório; a execução automática ainda não foi confirmada. Até a conclusão do job, não afirmar que o arquivo foi gerado. Mesmo com o job verde, a validação de contêiner não prova ABI completa, funcionamento de periféricos, boot em Xbox 360 RGH ou compatibilidade com jogos. O artefato deve ser testado no console antes de receber status funcional.
