@@ -6,6 +6,7 @@ extern "C" {
 #endif
 #define CUBEX360_PI_BASE 0xCC003000u
 #define CUBEX360_PI_SIZE 0x100u
+#define CUBEX_PI_IRQ_CP (1u << 11)
 #define CUBEX_PI_IRQ_PE_TOKEN (1u << 9)
 #define CUBEX_PI_IRQ_PE_FINISH (1u << 10)
 typedef struct cubex_pi { uint32_t interrupt_cause; uint32_t interrupt_mask; } cubex_pi_t;
