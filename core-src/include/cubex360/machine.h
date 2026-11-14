@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 #include "cubex360/cpu.h"
+#include "cubex360/cp.h"
+#include "cubex360/flipper_map.h"
 #include "cubex360/dma.h"
 #include "cubex360/mmio.h"
 #include "cubex360/timer.h"
@@ -21,6 +23,7 @@ typedef struct cubex_machine {
     cubex_memory_t memory;
     cubex_cpu_state_t cpu;
     cubex_mmio_t mmio;
+    cubex_cp_t cp;
     uint32_t mmio_storage[CUBEX360_MACHINE_MMIO_REGISTERS];
     cubex_timer_t timer;
     int initialized;
