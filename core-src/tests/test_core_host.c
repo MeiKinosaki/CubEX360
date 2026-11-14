@@ -1456,6 +1456,57 @@ int main(void) {
         assert(before == 0xdeadbeefu);
         remove(state_path);
     }
+    /* Exception vector-prefix regression: MSR[IP] selects the high vectors. */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x358u,
+        (32u<<26)|(21u<<21)|(16u<<16)) == 0); /* lwz r21,0(r16) */
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x358u);
+    cpu.gpr[16] = 0x70000000u;
+    cpu.msr = 0x00000040u; /* MSR[IP] */
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.pc == 0xfff00300u);
+    assert(cpu.srr0 == CUBEX360_RAM_CACHED_BASE + 0x358u);
+    assert(cpu.dar == 0x70000000u && cpu.dsisr == 0u);
+    assert(cpu.retired_instructions == 0u);
+
+    /* Alignment exceptions also honor MSR[IP] and preserve the fault address. */
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 64u);
+    cpu.gpr[16] = 0x101u;
+    cpu.msr = 0x00000040u;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.pc == 0xfff00600u);
+    assert(cpu.srr0 == CUBEX360_RAM_CACHED_BASE + 64u);
+    assert(cpu.dar == 0x101u && cpu.dsisr == 0u);
+
+    /* Illegal-instruction Program Exception uses the high vector prefix. */
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x340u);
+    cpu.msr = 0x00000040u;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.pc == 0xfff00700u);
+    assert(cpu.srr0 == CUBEX360_RAM_CACHED_BASE + 0x340u);
+    assert((cpu.srr1 & 0x00100000u) != 0u);
+
+    /* External interrupt: EE masking, high vector, and saved return context. */
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x300u);
+    cpu.msr = 0x00000040u;
+    assert(cubex_cpu_take_external_interrupt(&cpu) == 0);
+    assert(cpu.pc == CUBEX360_RAM_CACHED_BASE + 0x300u);
+    cpu.msr |= 0x00008000u;
+    assert(cubex_cpu_take_external_interrupt(&cpu) == 1);
+    assert(cpu.pc == 0xfff00500u);
+    assert(cpu.srr0 == CUBEX360_RAM_CACHED_BASE + 0x300u);
+    assert(cpu.srr1 == 0x00008040u);
+    assert((cpu.msr & 0x00008000u) == 0u);
+
+    /* Decrementer interrupt uses its own high vector and clears pending. */
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x304u);
+    cpu.msr = 0x00008040u;
+    cpu.dec_pending = 1u;
+    assert(cubex_cpu_take_decrementer_interrupt(&cpu) == 1);
+    assert(cpu.pc == 0xfff00900u);
+    assert(cpu.srr0 == CUBEX360_RAM_CACHED_BASE + 0x304u);
+    assert(cpu.dec_pending == 0u);
+    assert(cpu.srr1 == 0x00008040u);
+
     cubex_memory_destroy(&mem);
     puts("CubEX360 core host smoke: PASS");
     return 0;
