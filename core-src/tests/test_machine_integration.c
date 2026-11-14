@@ -178,6 +178,26 @@ int main(void) {
                                CUBEX_PI_IRQ_PE_FINISH) == 0);
     assert(!cubex_pi_irq_pending(&machine.pi));
 
+
+    /* Decrementer expiry enters the 0x900 exception vector and RFI returns. */
+    cubex_machine_destroy(&machine);
+    assert(cubex_machine_init(&machine, entry, 3u, 0) == 0);
+    assert(cubex_bus_write32be(&machine.memory, entry, 0x48000000u) == 0);
+    assert(cubex_bus_write32be(&machine.memory, 0x00000900u, 0x4c000064u) == 0);
+    machine.cpu.msr = 0x00008000u;
+    machine.cpu.dec = 1u;
+    assert(cubex_machine_step(&machine) == CUBEX_CPU_OK);
+    assert(machine.cpu.dec == 0u && machine.cpu.dec_pending == 1u);
+    assert(machine.cpu.pc == entry + 4u);
+    assert(cubex_machine_step(&machine) == CUBEX_CPU_OK);
+    assert(machine.cpu.pc == 0x00000900u);
+    assert(machine.cpu.srr0 == entry + 4u);
+    assert(machine.cpu.dec_pending == 0u);
+    assert(machine.cpu.retired_instructions == 1u);
+    assert(cubex_machine_step(&machine) == CUBEX_CPU_OK);
+    assert(machine.cpu.pc == entry + 4u);
+    assert(machine.cpu.msr == 0x00008000u);
+
     /* Periodic timer advances only for retired instructions, including run(). */
     cubex_machine_destroy(&machine);
     assert(cubex_machine_init(&machine, entry, 2u, 1) == 0);
