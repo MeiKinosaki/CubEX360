@@ -28,7 +28,7 @@ jobs:
           PREFIX="$HOME/xsdk-gcc" WORK="$HOME/xsdk-gcc-work" JOBS="$(nproc)" "$HOME/xsdk/tools/toolchain/build.sh"
       - name: Build xsdk runtime library
         run: |
-          make -C "$HOME/xsdk" -j"$(nproc)" "$HOME/xsdk/build/libxsdk.a" || make -C "$HOME/xsdk" -j"$(nproc)" build/libxsdk.a
+          make -C "$HOME/xsdk" -j"$(nproc)" build/libxsdk.a
       - name: Configure CubEX360 XEX title
         run: |
           cmake -S xex-target -B build-xex -G Ninja \
