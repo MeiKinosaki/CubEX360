@@ -36,6 +36,7 @@ typedef struct cubex_machine {
 int cubex_machine_init(cubex_machine_t *machine, uint32_t entry_pc,
                        uint32_t timer_period, int timer_periodic);
 void cubex_machine_destroy(cubex_machine_t *machine);
+void cubex_machine_cp_set_status(cubex_machine_t *machine, uint16_t set_bits, uint16_t clear_bits);
 void cubex_machine_pe_raise_finish(cubex_machine_t *machine);
 void cubex_machine_pe_raise_token(cubex_machine_t *machine, uint16_t token);
 cubex_cpu_result_t cubex_machine_step(cubex_machine_t *machine);
