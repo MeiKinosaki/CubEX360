@@ -34,7 +34,7 @@ case "$mode" in
     /tmp/cubex360-branch-edge-sanitizers
     "$cc" -std=c99 -Wall -Wextra -Werror -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer -Icore-src/include core-src/src/memory.c core-src/src/bus.c core-src/src/cpu.c core-src/tests/test_cr_xer_edges.c -o /tmp/cubex360-cr-xer-edge-sanitizers
     /tmp/cubex360-cr-xer-edge-sanitizers
-    "$cc" -std=c99 -Wall -Wextra -Werror -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer -Icore-src/include core-src/src/memory.c core-src/src/bus.c core-src/src/cpu.c core-src/src/state.c core-src/src/mmio.c core-src/src/dma.c core-src/src/timer.c core-src/src/machine.c core-src/tests/test_machine_integration.c -o /tmp/cubex360-machine-integration-sanitizers
+    "$cc" -std=c99 -Wall -Wextra -Werror -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer -Icore-src/include core-src/src/memory.c core-src/src/bus.c core-src/src/cpu.c core-src/src/state.c core-src/src/mmio.c core-src/src/dma.c core-src/src/timer.c core-src/src/cp.c core-src/src/flipper_map.c core-src/src/machine.c core-src/tests/test_machine_integration.c -o /tmp/cubex360-machine-integration-sanitizers
     /tmp/cubex360-machine-integration-sanitizers
     "$cc" -std=c99 -Wall -Wextra -Werror -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer -Icore-src/include core-src/src/flipper_map.c core-src/tests/test_flipper_map.c -o /tmp/cubex360-flipper-map-sanitizers
     /tmp/cubex360-flipper-map-sanitizers
