@@ -1,0 +1,57 @@
+name: CubEX360 default.xex cloud build (xsdk)
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'core-src/**'
+      - 'xex-target/**'
+      - '.github/workflows/default-xex-cloud.yml'
+permissions:
+  contents: read
+jobs:
+  build-default-xex:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - name: Checkout CubEX360
+        uses: actions/checkout@v4
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential bison flex texinfo libgmp-dev libmpfr-dev libmpc-dev curl xz-utils patch python3 cmake ninja-build git
+      - name: Fetch pinned open Xbox 360 SDK
+        run: |
+          git clone https://github.com/xenosworks/xsdk.git "$HOME/xsdk"
+          git -C "$HOME/xsdk" checkout 8a824102d8cbba14b08b245e294e6337be38f447
+      - name: Build PowerPC-XSDK cross toolchain
+        run: |
+          PREFIX="$HOME/xsdk-gcc" WORK="$HOME/xsdk-gcc-work" JOBS="$(nproc)" "$HOME/xsdk/tools/toolchain/build.sh"
+      - name: Build xsdk runtime library
+        run: |
+          make -C "$HOME/xsdk" -j"$(nproc)" "$HOME/xsdk/build/libxsdk.a" || make -C "$HOME/xsdk" -j"$(nproc)" build/libxsdk.a
+      - name: Configure CubEX360 XEX title
+        run: |
+          cmake -S xex-target -B build-xex -G Ninja \
+            -DCMAKE_TOOLCHAIN_FILE="$HOME/xsdk/cmake/xsdk.cmake" \
+            -DXSDK_TOOLCHAIN="$HOME/xsdk-gcc"
+      - name: Compile and pack default.xex
+        run: |
+          cmake --build build-xex --verbose
+          find build-xex -maxdepth 2 -type f -name '*.xex' -print
+          cp build-xex/cubex360.xex default.xex
+          file default.xex
+      - name: Validate XEX2 container and calculate hash
+        env:
+          CUBEX_XEX_OUTPUT: default.xex
+        run: |
+          python3 scripts/validate_xex_build.py
+          sha256sum default.xex | tee default.xex.sha256
+      - name: Upload default.xex candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: CubEX360-default-xex-candidate
+          path: |
+            default.xex
+            default.xex.sha256
+          if-no-files-found: error
+          retention-days: 14
