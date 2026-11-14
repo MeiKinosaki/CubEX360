@@ -46,6 +46,36 @@ int main(void) {
     assert(cubex_machine_mmio_read32(&machine, mmio_reg, &value) == 0);
     assert(value == 0x00551234u);
 
+    /* CP is a native 16-bit device: no 32-bit read-modify-write is allowed. */
+    {
+        uint16_t half = 0u;
+        assert(cubex_bus_read16be(&machine.memory, 0xCC000000u, &half) == 0);
+        assert(half == (CUBEX_CP_SR_GP_IDLE | CUBEX_CP_SR_READ_IDLE));
+        assert(cubex_bus_write16be(&machine.memory, 0xCC000002u,
+                                   CUBEX_CP_CR_IRQ_ENABLE) == 0);
+        assert(cubex_bus_read16be(&machine.memory, 0xCC000002u, &half) == 0);
+        assert(half == CUBEX_CP_CR_IRQ_ENABLE);
+        assert(cubex_bus_read32be(&machine.memory, 0xCC000000u, &value) != 0);
+        assert(cubex_bus_write32be(&machine.memory, 0xCC000000u, 0u) != 0);
+        assert(cubex_bus_read16be(&machine.memory, 0xCC000001u, &half) != 0);
+        assert(cubex_bus_write16be(&machine.memory, 0xCC000003u, 0u) != 0);
+        cubex_cp_set_status(&machine.cp, CUBEX_CP_SR_OVERFLOW, 0u);
+        assert(cubex_bus_write16be(&machine.memory, 0xCC000004u,
+                                   CUBEX_CP_SR_OVERFLOW) == 0);
+        assert(cubex_bus_read16be(&machine.memory, 0xCC000000u, &half) == 0);
+        assert((half & CUBEX_CP_SR_OVERFLOW) == 0u);
+    }
+
+    /* CPU STH/LHZ instructions reach the CP's 16-bit callback. */
+    assert(cubex_bus_write32be(&machine.memory, entry + 0x60u, 0x3ca0cc00u) == 0);
+    assert(cubex_bus_write32be(&machine.memory, entry + 0x64u, 0x38c00022u) == 0);
+    assert(cubex_bus_write32be(&machine.memory, entry + 0x68u, 0xb0c50002u) == 0);
+    assert(cubex_bus_write32be(&machine.memory, entry + 0x6cu, 0xa0e50002u) == 0);
+    machine.cpu.pc = entry + 0x60u;
+    assert(cubex_machine_run(&machine, 4u) == CUBEX_CPU_OK);
+    assert(machine.cpu.gpr[7] == CUBEX_CP_CR_IRQ_ENABLE);
+
+
     assert(cubex_bus_write32be(&machine.memory, entry + 0x40u, 0xaabbccddu) == 0);
     assert(cubex_machine_dma_copy(&machine, entry + 0x40u,
            CUBEX360_RAM_UNCACHED_BASE + 0x200u, 4u) == 0);
