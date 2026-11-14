@@ -161,18 +161,18 @@ int main(void) {
                                CUBEX_PE_INT_FINISH_ENABLE) == 0);
     assert(cubex_bus_write32be(&machine.memory, 0xCC003004u,
                                CUBEX_PI_IRQ_PE_FINISH) == 0);
-    machine.cpu.msr = 0x00008000u; /* MSR[EE] */
+    machine.cpu.msr = 0x0005ff3bu; /* EE + privilege/FP/trace/MMU + ILE/ME */
     cubex_machine_pe_raise_finish(&machine);
     assert(cubex_pi_irq_pending(&machine.pi));
     assert(cubex_machine_step(&machine) == CUBEX_CPU_OK);
     assert(machine.cpu.pc == 0x00000500u);
     assert(machine.cpu.srr0 == entry);
-    assert(machine.cpu.srr1 == 0x00008000u);
-    assert((machine.cpu.msr & 0x00008000u) == 0u);
+    assert(machine.cpu.srr1 == 0x0000ff3bu);
+    assert(machine.cpu.msr == 0x00011001u); /* ME, ILE and LE survive per 750CL rules */
     assert(machine.cpu.retired_instructions == 0u);
     assert(cubex_machine_step(&machine) == CUBEX_CPU_OK); /* RFI */
     assert(machine.cpu.pc == entry);
-    assert(machine.cpu.msr == 0x00008000u);
+    assert(machine.cpu.msr == 0x0005ff3bu);
     assert(machine.cpu.retired_instructions == 1u);
     assert(cubex_bus_write32be(&machine.memory, 0xCC003000u,
                                CUBEX_PI_IRQ_PE_FINISH) == 0);
