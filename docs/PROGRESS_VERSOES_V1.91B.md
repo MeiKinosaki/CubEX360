@@ -171,3 +171,16 @@ As falhas anteriores foram corrigidas: os testes de CPU para o banco genérico a
 - Escritas de controle/clear no CP recalculam a saída; a causa PI permanece latched até o W1C no PI Cause.
 - Teste integrado cobre habilitar overflow IRQ, gerar overflow, observar PI bit 11, limpar status CP e reconhecer separadamente a causa PI.
 - CI revelou que a primeira versão do teste tinha variável local ausente e, depois, que a sincronização CP→PI não estava chamada no caminho da máquina. Ambos os pontos foram corrigidos nos commits seguintes; aguardar o CI do commit `9c068c380fbce0b3caae6e7fd7b3db37847bdde4` ou posterior.
+
+
+### Reteste CP → PI — CI #43623917054
+
+Commit testado: `1c8567457228fda13f6d55aef9023727358edba2`.
+
+- `host-core-test`: **success**.
+- `host-sanitizers` (ASan/UBSan): **success**.
+- `frontend-config-validation`: **success**.
+- `xex-preflight-gate`: **success** (bloqueio esperado, sem toolchain XEX).
+- `build-core-smoke` e `build-probe`: ainda em execução no momento deste registro.
+
+O teste integrado de CP watermark → PI Cause bit 11 passou nos testes host. A integração PE Finish/Token → PI bits 10/9 permanece coberta pela mesma suíte. A versão segue em andamento até conclusão dos dois jobs restantes.
