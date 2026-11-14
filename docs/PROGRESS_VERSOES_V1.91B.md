@@ -1,6 +1,6 @@
-# CubEX360 — checkpoint incremental v1.91b
+# CubEX360 — checkpoint incremental v1.92b
 
-Data: 2026-10-29
+Data: 2026-11-14
 
 ## v1.90b — DMA RAM e regressão
 
@@ -32,3 +32,27 @@ Data: 2026-10-29
 - Novo `core-src/tests/test_cr_xer_edges.c`: cobre `MFCR`, máscara seletiva `MTCRF`, transferência `MCRXR` para campos CR distintos e limpeza apenas de SO/OV/CA.
 - A suíte foi integrada aos modos `strict` e `sanitize` de `scripts/run-host-tests.sh`.
 - Esta alteração adiciona cobertura de regressão, não novos opcodes. Não promover versão nem marcar a etapa como validada até o GitHub Actions concluir no commit correspondente.
+
+
+## v1.92b — barramento unificado CPU/RAM/MMIO (2026-11-14)
+
+**Concluído e validado por CI** no commit `483067feba7d07ac010707afba572b389290aacd`.
+
+- A estrutura de memória passou a aceitar callbacks de MMIO com contexto de barramento; inicialização e destruição limpam esses callbacks para evitar ponteiros indeterminados.
+- A máquina conecta seu banco MMIO ao barramento usado pela CPU.
+- Acesso de CPU a registradores MMIO agora passa pelo barramento para operações de palavra, byte e meia-palavra; transferências múltiplas de palavras também foram encaminhadas pelo barramento.
+- Mantidos os aliases cached/uncached da RAM principal.
+- Teste de integração executa instruções Gekko reais do subconjunto atual: `LIS`, `LI`, `STW`, `LWZ`, `STB` e `LBZ` contra o banco MMIO, verificando valor, lane big-endian e leitura de retorno.
+- GitHub Actions run [#216 — 43622302875](https://github.com/MeiKinosaki/CubEX360/actions/runs/43622302875) terminou com sucesso: host strict, ASan/UBSan, frontend config, libXenon probe, core smoke ELF32 e gate XEX.
+
+### Limites desta etapa
+
+- O banco MMIO continua genérico (64 registradores), não é ainda o mapa real dos blocos CP, PE, VI, PI, DSP, DI, SI, EXI e AI do Flipper.
+- Acesso de byte/meia-palavra usa read-modify-write sobre o banco genérico; semântica de side effects precisa ser implementada por dispositivo antes de usar em registradores reais.
+- `DCBZ` ainda opera diretamente sobre RAM; precisa ser tratado separadamente com semântica de cache coerente.
+- O ELF32 de smoke test foi compilado e publicado como artefato; não é `default.xex`. O gate XEX passou porque bloqueou corretamente a geração sem ferramentas XEX reais configuradas.
+- Nenhum boot no Xbox 360 RGH ou compatibilidade de jogos GameCube foi comprovado.
+
+### Próxima etapa
+
+Substituir o banco genérico por despacho de regiões/dispositivos com mapa documentado do Flipper. Prioridade: separar janelas CP/PE, VI e PI; implementar leitura/escrita de registradores com máscaras, largura, alinhamento e side effects; depois ligar interrupções e DMA aos dispositivos reais.
