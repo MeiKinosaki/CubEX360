@@ -5,7 +5,7 @@
 - `RFI` verifica o bit PR do MSR: execução em modo usuário provoca exceção de programa por instrução privilegiada; execução em supervisor restaura SRR0 alinhado e os bits de MSR expostos pelo modelo atual.
 - O helper de Program Exception recebe a causa e registra os bits de SRR1 para instrução ilegal e instrução privilegiada.
 - Testes host cobrem restauração em supervisor e rejeição em modo usuário.
-- **CI parcial:** host-core-test passou; sanitizers, build-core-smoke e build-probe aguardam conclusão nos runs #309 e #310.
+- **CI concluído:** todos os jobs passaram nos runs [#309](https://github.com/MeiKinosaki/CubEX360/actions/runs/43627224216) e [#310](https://github.com/MeiKinosaki/CubEX360/actions/runs/43627227898), incluindo host-core-test, ASan/UBSan, build-core-smoke e build-probe. O gate XEX validou apenas a pré-condição de falha segura; não gerou `default.xex`.
 
 ## Limitações ainda abertas
 
