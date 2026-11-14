@@ -12,6 +12,31 @@ void cubex_cpu_reset(cubex_cpu_state_t *c, uint32_t pc) {
     memset(c, 0, sizeof(*c));
     c->pc = pc;
 }
+
+/* PowerPC/Gekko MSR bit definitions use architectural bit numbering. */
+#define PPC_MSR_EE 0x00008000u
+#define PPC_MSR_PR 0x00004000u
+#define PPC_MSR_FP 0x00002000u
+#define PPC_MSR_FE0 0x00000800u
+#define PPC_MSR_SE 0x00000400u
+#define PPC_MSR_BE 0x00000200u
+#define PPC_MSR_IP 0x00000040u
+#define PPC_MSR_IR 0x00000020u
+#define PPC_MSR_DR 0x00000010u
+#define PPC_MSR_EXCEPTION_CLEAR (PPC_MSR_EE | PPC_MSR_PR | PPC_MSR_FP | \
+                                  PPC_MSR_FE0 | PPC_MSR_SE | PPC_MSR_BE | \
+                                  PPC_MSR_IR | PPC_MSR_DR)
+
+int cubex_cpu_take_external_interrupt(cubex_cpu_state_t *c) {
+    uint32_t vector;
+    if (!c || !(c->msr & PPC_MSR_EE)) return 0;
+    c->srr0 = c->pc;
+    c->srr1 = c->msr;
+    vector = (c->msr & PPC_MSR_IP) ? 0xfff00500u : 0x00000500u;
+    c->msr &= ~PPC_MSR_EXCEPTION_CLEAR;
+    c->pc = vector;
+    return 1;
+}
 static int32_t sx16(uint32_t v) { return (int16_t)(v & 0xffffu); }
 static void set_cr_field(cubex_cpu_state_t *c, uint32_t bf, uint32_t field) {
     uint32_t shift = 28u - (bf * 4u);
@@ -240,7 +265,12 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
         break;
     }
     case 19:
-        if (xo == 16u || xo == 528u) {
+        if (xo == 50u) { /* RFI: restore the interrupted context. */
+            c->pc = c->srr0 & ~3u;
+            c->msr = c->srr1;
+            c->retired_instructions++;
+            return CUBEX_CPU_OK;
+        } else if (xo == 16u || xo == 528u) {
             uint32_t bo = (ins >> 21) & 31u;
             uint32_t bi = (ins >> 16) & 31u;
             uint32_t target = (xo == 16u ? c->lr : c->ctr) & ~3u;
