@@ -2,6 +2,14 @@
 
 #include <string.h>
 
+static void machine_sync_device_irqs(cubex_machine_t *machine) {
+    uint32_t causes = 0u;
+    if (!machine) return;
+    if (cubex_pe_finish_irq(&machine->pe)) causes |= CUBEX_PI_IRQ_PE_FINISH;
+    if (cubex_pe_token_irq(&machine->pe)) causes |= CUBEX_PI_IRQ_PE_TOKEN;
+    if (causes) cubex_pi_raise(&machine->pi, causes);
+}
+
 static int machine_bus_mmio_read16(void *context, uint32_t address,
                                    uint16_t *value) {
     cubex_machine_t *machine = (cubex_machine_t *)context;
@@ -40,6 +48,30 @@ static int machine_bus_mmio_write32(void *context, uint32_t address,
     if (cubex_flipper_decode_address(address, &decoded) == 0 &&
         decoded.region == CUBEX_FLIPPER_REGION_CP) return -1;
     return cubex_mmio_write32(&machine->mmio, address, value);
+}
+
+static int machine_bus_mmio_read32_device(void *context, uint32_t address,
+                                         uint32_t *value) {
+    cubex_machine_t *machine = (cubex_machine_t *)context;
+    cubex_flipper_decoded_address_t decoded;
+    if (!machine || !value) return -1;
+    if (cubex_flipper_decode_address(address, &decoded) != 0) return -2;
+    if (decoded.region == CUBEX_FLIPPER_REGION_PI)
+        return cubex_pi_read32(&machine->pi, address, value);
+    return -1;
+}
+
+static int machine_bus_mmio_write32_device(void *context, uint32_t address,
+                                          uint32_t value) {
+    cubex_machine_t *machine = (cubex_machine_t *)context;
+    cubex_flipper_decoded_address_t decoded;
+    int result;
+    if (!machine) return -1;
+    if (cubex_flipper_decode_address(address, &decoded) != 0) return -2;
+    if (decoded.region != CUBEX_FLIPPER_REGION_PI) return -1;
+    result = cubex_pi_write32(&machine->pi, address, value);
+    machine_sync_device_irqs(machine);
+    return result;
 }
 
 int cubex_machine_init(cubex_machine_t *machine, uint32_t entry_pc,
