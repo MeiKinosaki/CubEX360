@@ -25,6 +25,8 @@ case "$mode" in
     /tmp/cubex360-flipper-map-test
     "$cc" -std=c99 -Wall -Wextra -Werror -O2 -Icore-src/include core-src/src/cp.c core-src/tests/test_cp.c -o /tmp/cubex360-cp-test
     /tmp/cubex360-cp-test
+    "$cc" -std=c99 -Wall -Wextra -Werror -O2 -Icore-src/include core-src/src/gx_fifo.c core-src/tests/test_gx_fifo.c -o /tmp/cubex360-gx-fifo-test
+    /tmp/cubex360-gx-fifo-test
     ;;
   sanitize)
     "$cc" -std=c99 -Wall -Wextra -Werror -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer -Icore-src/include $sources -o /tmp/cubex360-core-sanitizers
@@ -43,6 +45,8 @@ case "$mode" in
     /tmp/cubex360-flipper-map-sanitizers
     "$cc" -std=c99 -Wall -Wextra -Werror -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer -Icore-src/include core-src/src/cp.c core-src/tests/test_cp.c -o /tmp/cubex360-cp-sanitizers
     /tmp/cubex360-cp-sanitizers
+    "$cc" -std=c99 -Wall -Wextra -Werror -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer -Icore-src/include core-src/src/gx_fifo.c core-src/tests/test_gx_fifo.c -o /tmp/cubex360-gx-fifo-sanitizers
+    /tmp/cubex360-gx-fifo-sanitizers
     ;;
   *) echo "Usage: $0 [strict|sanitize]" >&2; exit 2 ;;
 esac
