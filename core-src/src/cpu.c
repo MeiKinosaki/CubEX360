@@ -188,7 +188,7 @@ static void set_compare_field(cubex_cpu_state_t *c, uint32_t bf, int lt, int gt,
 cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
     uint32_t ins, op, rt, ra, rb, xo, imm, next;
     if (!c || !m) return CUBEX_CPU_BAD_ARGUMENT;
-    if (cpu_read32(c, m, c->pc, &ins, 1, 0)) {
+    if (cpu_read32(c, m, c->pc, &ins, 1)) {
         c->srr0 = c->pc;
         c->srr1 = c->msr & PPC_MSR_SRR1_EXTERNAL_MASK;
         c->msr &= ~PPC_MSR_EXCEPTION_CLEAR;
