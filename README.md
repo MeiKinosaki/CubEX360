@@ -1,4 +1,4 @@
-# CubEX360 — toolchain-first development (v1.59b)
+# CubEX360 — toolchain-first development (v1.99b)
 
 Projeto experimental de interpretador parcial PowerPC/Gekko para um futuro emulador de GameCube no Xbox 360.
 
