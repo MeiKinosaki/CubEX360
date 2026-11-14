@@ -2,16 +2,44 @@
 
 #include <string.h>
 
+static int machine_bus_mmio_read16(void *context, uint32_t address,
+                                   uint16_t *value) {
+    cubex_machine_t *machine = (cubex_machine_t *)context;
+    cubex_flipper_decoded_address_t decoded;
+    if (!machine || !value) return -1;
+    if (cubex_flipper_decode_address(address, &decoded) != 0 ||
+        decoded.region != CUBEX_FLIPPER_REGION_CP) return -2;
+    return cubex_cp_read16(&machine->cp, address, value);
+}
+
+static int machine_bus_mmio_write16(void *context, uint32_t address,
+                                    uint16_t value) {
+    cubex_machine_t *machine = (cubex_machine_t *)context;
+    cubex_flipper_decoded_address_t decoded;
+    if (!machine) return -1;
+    if (cubex_flipper_decode_address(address, &decoded) != 0 ||
+        decoded.region != CUBEX_FLIPPER_REGION_CP) return -2;
+    return cubex_cp_write16(&machine->cp, address, value);
+}
+
 static int machine_bus_mmio_read32(void *context, uint32_t address,
                                    uint32_t *value) {
     cubex_machine_t *machine = (cubex_machine_t *)context;
-    return machine ? cubex_mmio_read32(&machine->mmio, address, value) : -1;
+    cubex_flipper_decoded_address_t decoded;
+    if (!machine || !value) return -1;
+    if (cubex_flipper_decode_address(address, &decoded) == 0 &&
+        decoded.region == CUBEX_FLIPPER_REGION_CP) return -1;
+    return cubex_mmio_read32(&machine->mmio, address, value);
 }
 
 static int machine_bus_mmio_write32(void *context, uint32_t address,
                                     uint32_t value) {
     cubex_machine_t *machine = (cubex_machine_t *)context;
-    return machine ? cubex_mmio_write32(&machine->mmio, address, value) : -1;
+    cubex_flipper_decoded_address_t decoded;
+    if (!machine) return -1;
+    if (cubex_flipper_decode_address(address, &decoded) == 0 &&
+        decoded.region == CUBEX_FLIPPER_REGION_CP) return -1;
+    return cubex_mmio_write32(&machine->mmio, address, value);
 }
 
 int cubex_machine_init(cubex_machine_t *machine, uint32_t entry_pc,
@@ -28,6 +56,9 @@ int cubex_machine_init(cubex_machine_t *machine, uint32_t entry_pc,
     machine->memory.bus_context = machine;
     machine->memory.mmio_read32 = machine_bus_mmio_read32;
     machine->memory.mmio_write32 = machine_bus_mmio_write32;
+    machine->memory.mmio_read16 = machine_bus_mmio_read16;
+    machine->memory.mmio_write16 = machine_bus_mmio_write16;
+    cubex_cp_init(&machine->cp);
     if (cubex_timer_init(&machine->timer, timer_period,
                          timer_periodic != 0) != 0) {
         cubex_memory_destroy(&machine->memory);
