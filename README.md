@@ -439,3 +439,13 @@ Os commits de código e teste não têm status de CI publicado verificado nesta 
 - Commits: CPU state `95d5a3b`, execução `7121247`, estado `889d0ab`, testes `2f7a0ad` e ajuste de offset `2f7a0ad`.
 
 **Validação pendente:** os novos testes e sanitizers ainda precisam passar no GitHub Actions para esta revisão. Isto ainda não implementa tradução de endereços por segmentos, BAT, SDR1/PTE ou MMU completa. `default.xex`, boot RGH e compatibilidade com jogos seguem não comprovados.
+
+
+## Desenvolvimento — v1.96b (registradores BAT do Gekko; tradução ainda pendente)
+
+- Adicionados IBAT0U–IBAT3L e DBAT0U–DBAT3L ao estado da CPU.
+- MFSpr/MTSpr leem e escrevem SPRs BAT 528–543 em modo supervisor; modo usuário gera Program Exception.
+- Save state avança para v6, persistindo os 16 registradores BAT e mantendo leitura de v1–v5.
+- Testes host cobrem escrita/leitura de IBAT0U, bloqueio em modo usuário e round-trip dos BATs.
+- Limite: ainda não há comparação BAT, tradução EA→PA, permissões WIMG/proteção ou MMU integrada ao fetch/load/store.
+- default.xex, boot RGH e execução de jogos continuam não comprovados.
