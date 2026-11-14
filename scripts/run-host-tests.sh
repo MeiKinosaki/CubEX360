@@ -3,7 +3,7 @@ set -eu
 cd "$(dirname "$0")/.."
 mode="${1:-strict}"
 cc="${CC:-cc}"
-sources="core-src/src/cp.c core-src/src/flipper_map.c core-src/src/memory.c core-src/src/bus.c core-src/src/cpu.c core-src/src/state.c core-src/src/covers.c core-src/src/mmio.c core-src/src/dma.c core-src/src/timer.c core-src/src/machine.c core-src/tests/test_core_host.c"
+sources="core-src/src/cp.c core-src/src/pe.c core-src/src/pi.c core-src/src/flipper_map.c core-src/src/memory.c core-src/src/bus.c core-src/src/cpu.c core-src/src/state.c core-src/src/covers.c core-src/src/mmio.c core-src/src/dma.c core-src/src/timer.c core-src/src/machine.c core-src/tests/test_core_host.c"
 case "$mode" in
   strict)
     "$cc" -std=c99 -Wall -Wextra -Werror -O2 -Icore-src/include $sources -o /tmp/cubex360-core-host-test
@@ -16,7 +16,7 @@ case "$mode" in
     /tmp/cubex360-branch-edge-test
     "$cc" -std=c99 -Wall -Wextra -Werror -O2 -Icore-src/include core-src/src/memory.c core-src/src/bus.c core-src/src/cpu.c core-src/tests/test_cr_xer_edges.c -o /tmp/cubex360-cr-xer-edge-test
     /tmp/cubex360-cr-xer-edge-test
-    "$cc" -std=c99 -Wall -Wextra -Werror -O2 -Icore-src/include core-src/src/memory.c core-src/src/bus.c core-src/src/cpu.c core-src/src/state.c core-src/src/mmio.c core-src/src/dma.c core-src/src/timer.c core-src/src/cp.c core-src/src/flipper_map.c core-src/src/machine.c core-src/tests/test_machine_integration.c -o /tmp/cubex360-machine-integration-test
+    "$cc" -std=c99 -Wall -Wextra -Werror -O2 -Icore-src/include core-src/src/memory.c core-src/src/bus.c core-src/src/cpu.c core-src/src/state.c core-src/src/mmio.c core-src/src/dma.c core-src/src/timer.c core-src/src/cp.c core-src/src/pe.c core-src/src/pi.c core-src/src/flipper_map.c core-src/src/machine.c core-src/tests/test_machine_integration.c -o /tmp/cubex360-machine-integration-test
     /tmp/cubex360-machine-integration-test
     "$cc" -std=c99 -Wall -Wextra -Werror -O2 -Icore-src/include core-src/src/flipper_map.c core-src/tests/test_flipper_map.c -o /tmp/cubex360-flipper-map-test
     /tmp/cubex360-flipper-map-test
