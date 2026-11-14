@@ -443,3 +443,8 @@ Os commits de código e teste não têm status de CI publicado verificado nesta 
 O estado da CPU contém SR0–SR15. O interpretador implementa as operações privilegiadas MTSR/MFSR e MTSRIN/MFSRIN, com verificação de MSR[PR]. O save state v5 serializa os 16 registradores e mantém leitura dos formatos v1–v4.
 
 **Limite importante:** esta etapa implementa armazenamento e movimentação dos SRs, não a semântica de tradução do PowerPC 750/Gekko. Ainda faltam integração dos SRs com fetch/load/store, BAT, SDR1, page table, proteção e exceções de tradução. CI para os commits desta etapa está pendente.
+
+
+## BAT SPRs — v1.96b
+
+Estado experimental com IBAT0U–IBAT3L e DBAT0U–DBAT3L (SPR 528–543), MFSpr/MTSpr privilegiados e persistência em save state v6. BL/BEPI/BRPN, WIMG/PP e tradução de endereços efetivos ainda não estão implementados; não contar BAT/MMU como funcionais.
