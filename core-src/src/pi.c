@@ -1,6 +1,6 @@
 #include "cubex360/pi.h"
 #include <string.h>
-#define PI_IMPLEMENTED_IRQ_MASK 0x00007fffu
+#define PI_IMPLEMENTED_IRQ_MASK 0x00003fffu
 void cubex_pi_init(cubex_pi_t *pi) { if (pi) memset(pi, 0, sizeof(*pi)); }
 static int pi_offset(uint32_t address, uint32_t *offset) {
     if (!offset || address < CUBEX360_PI_BASE ||
@@ -18,7 +18,7 @@ int cubex_pi_read32(const cubex_pi_t *pi, uint32_t address, uint32_t *value) {
 int cubex_pi_write32(cubex_pi_t *pi, uint32_t address, uint32_t value) {
     uint32_t off;
     if (!pi || pi_offset(address, &off)) return -1;
-    if (off == 0u) return 0; /* cause is read-only; source device acknowledges */
+    if (off == 0u) { pi->interrupt_cause &= ~(value & PI_IMPLEMENTED_IRQ_MASK); return 0; } /* W1C */
     if (off == 4u) { pi->interrupt_mask = value & PI_IMPLEMENTED_IRQ_MASK; return 0; }
     return -1;
 }
