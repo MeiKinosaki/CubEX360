@@ -180,6 +180,24 @@ int main(void) {
 
 
 
+
+    /* System call saves the next PC, enters 0xC00 and returns via RFI. */
+    cubex_machine_destroy(&machine);
+    assert(cubex_machine_init(&machine, entry, 3u, 0) == 0);
+    assert(cubex_bus_write32be(&machine.memory, entry, 0x44000002u) == 0); /* sc */
+    assert(cubex_bus_write32be(&machine.memory, 0x00000c00u, 0x4c000064u) == 0); /* rfi */
+    machine.cpu.msr = 0x0005ff3bu;
+    machine.cpu.dec = 0x100u;
+    assert(cubex_machine_step(&machine) == CUBEX_CPU_OK);
+    assert(machine.cpu.pc == 0x00000c00u);
+    assert(machine.cpu.srr0 == entry + 4u);
+    assert(machine.cpu.srr1 == 0x0000ff3bu);
+    assert(machine.cpu.msr == 0x00011001u);
+    assert(machine.cpu.retired_instructions == 1u);
+    assert(cubex_machine_step(&machine) == CUBEX_CPU_OK); /* RFI */
+    assert(machine.cpu.pc == entry + 4u);
+    assert(machine.cpu.msr == 0x0000ff3bu);
+
     /* MTSpr/MFSpr access the architectural DEC SPR through opcode 31. */
     cubex_machine_destroy(&machine);
     assert(cubex_machine_init(&machine, entry, 3u, 0) == 0);
