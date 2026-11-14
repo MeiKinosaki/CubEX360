@@ -513,3 +513,15 @@ Os commits de código e teste não têm status de CI publicado verificado nesta 
 **Limites que continuam abertos:** a fila ainda não decodifica os comandos GX nem executa listas de vértices/primitivas; SDR1, page-table walk, TLB e permissões PP ainda não estão implementados; FPU Gekko/paired-single e suas exceções ainda faltam; DSP e vários dispositivos Flipper continuam parciais. O build XEX por XSDK permanece em execução em revisões anteriores e não foi confirmado por artefato nesta validação. Não há boot em RGH nem compatibilidade de jogos comprovados.
 
 **Progresso estimado:** 62% de implementação geral. O avanço reflete a integração do endereço GX FIFO com o barramento e a aprovação dos testes strict e sanitizers; não significa GPU completa, MMU/FPU completas ou 62% de compatibilidade de jogos.
+
+## v2.3b — SDR1 SPR e correção do build XEX
+
+- Adicionado o registrador `SDR1` ao estado do Gekko.
+- Implementados `MFSPR` e `MTSPR` para SPR 25, com bloqueio em modo usuário e exceção de instrução privilegiada.
+- Testes de leitura, escrita e proteção de privilégio incluídos em `test_core_host.c`.
+- **Validação:** workflow libXenon no commit `56a4a797eed402c32abfeec10b235ff269dadf96`, execução #43647427810: seis jobs aprovados, incluindo host-core-test, host-sanitizers e build-core-smoke.
+- Corrigido o workflow `xex-cloud.yml` para invocar o script de toolchain com `bash`, evitando erro de permissão 126. Correção no commit `6f54436cc6c45ada11a4faf8f810bd577792f128`; nova execução aguardando resultado.
+
+**Ainda não implementado:** page-table walk PPC 6xx/Gekko, PTE0/PTE1, TLB, permissões PP/R/C e exceções completas de tradução/proteção. SDR1 está apenas armazenado e acessível como SPR; não há tradução por páginas ainda. FPU Gekko, paired-single e decodificador GX continuam pendentes/parciais. Nenhum `default.xex` final foi confirmado.
+
+**Progresso estimado:** 63% de implementação geral. O avanço cobre o estado e acesso privilegiado de SDR1 com testes aprovados; não representa MMU completa nem compatibilidade de jogos.
