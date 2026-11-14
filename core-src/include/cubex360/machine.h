@@ -13,7 +13,7 @@
 extern "C" {
 #endif
 
-#define CUBEX360_MACHINE_MMIO_BASE 0xCC000000u
+#define CUBEX360_MACHINE_MMIO_BASE 0xCC000100u
 #define CUBEX360_MACHINE_MMIO_REGISTERS 64u
 
 /* Integration coordinator for currently implemented prototypes.
