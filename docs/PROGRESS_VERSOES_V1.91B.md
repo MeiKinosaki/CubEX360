@@ -25,3 +25,10 @@ Data: 2026-10-29
 - O MMIO é um banco genérico de registradores; ainda não há mapa real completo do Flipper/DSP.
 - ELF32 de smoke test não equivale a `default.xex`; geração e boot no Xbox 360 RGH ainda não estão comprovados.
 - Não há alegação de compatibilidade de jogos comerciais.
+
+
+## CPU CR/XER regression suite — adicionada, CI pendente
+
+- Novo `core-src/tests/test_cr_xer_edges.c`: cobre `MFCR`, máscara seletiva `MTCRF`, transferência `MCRXR` para campos CR distintos e limpeza apenas de SO/OV/CA.
+- A suíte foi integrada aos modos `strict` e `sanitize` de `scripts/run-host-tests.sh`.
+- Esta alteração adiciona cobertura de regressão, não novos opcodes. Não promover versão nem marcar a etapa como validada até o GitHub Actions concluir no commit correspondente.
