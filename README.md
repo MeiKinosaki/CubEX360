@@ -457,3 +457,12 @@ Os commits de código e teste não têm status de CI publicado verificado nesta 
 - Testes host cobrem bloco de 128 KiB, seleção instruction/data, privilégio supervisor/usuário e miss.
 - Não integrado ao fetch/load/store: o barramento ainda recebe endereços efetivos diretamente; page table via SDR1, proteção PP, WIMG, exceções de tradução e aliases/cache seguem pendentes. Não contar MMU como funcional.
 - default.xex, boot RGH e jogos continuam não comprovados.
+
+
+## v1.98b — BAT ligado ao caminho de memória
+
+- Fetch de instrução e acessos escalares load/store agora passam por wrappers de endereço efetivo→físico quando MSR[IR]/MSR[DR] estão ativos.
+- Com relocação desativada, preserva o caminho físico atual; com relocação ativa, exige hit em BAT nesta etapa.
+- Testes host cobrem fetch por IBAT, load por DBAT e miss de DBAT gerando Data Storage.
+- Limitações: sem page-table/SDR1 fallback, proteção PP, atributos WIMG, exceção Instruction Storage específica para miss IBAT e tradução de operações especiais/bulk; MMU ainda parcial.
+- XEX/boot/jogos não comprovados.
