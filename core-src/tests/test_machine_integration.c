@@ -186,6 +186,9 @@ int main(void) {
     assert(cubex_machine_init(&machine, entry, 3u, 0) == 0);
     assert(cubex_bus_write32be(&machine.memory, entry, 0x44000002u) == 0); /* sc */
     assert(cubex_bus_write32be(&machine.memory, 0x00000c00u, 0x4c000064u) == 0); /* rfi */
+    /* IR is enabled: map the cached entry point through IBAT0. */
+    machine.cpu.ibat[0] = 0x80000002u; /* BEPI 0x80000000, supervisor-valid */
+    machine.cpu.ibat[1] = 0x00000000u; /* BRPN 0x00000000 */
     machine.cpu.msr = 0x0005ff3bu;
     machine.cpu.dec = 0x100u;
     assert(cubex_machine_step(&machine) == CUBEX_CPU_OK);
