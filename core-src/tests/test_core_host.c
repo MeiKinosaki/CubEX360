@@ -1107,7 +1107,10 @@ int main(void) {
     cpu.pc = CUBEX360_RAM_CACHED_BASE + 0x2d0u;
     cpu.gpr[3] = CUBEX360_RAM_CACHED_BASE + 1u;
     cpu.gpr[28] = 0xdeadbeefu;
-    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_MEMORY_FAULT);
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.pc == 0x00000600u);
+    assert(cpu.srr0 == CUBEX360_RAM_CACHED_BASE + 0x2d0u);
+    assert(cpu.dar == CUBEX360_RAM_CACHED_BASE + 1u);
     assert(cpu.gpr[28] == 0xdeadbeefu);
 
     /* Indexed update forms calculate RA+RB and update RA after success. */
@@ -1286,17 +1289,18 @@ int main(void) {
         cpu.lr = 0x12345678u;
         cpu.cr = 0xa5a5a5a5u;
         cpu.xer = 0x000000e0u;
-        cpu.msr = 0x00008000u; cpu.srr0 = 0x80001234u; cpu.srr1 = 0x0000abcdu; cpu.dec = 0x12345678u; cpu.dec_pending = 1u;
+        cpu.msr = 0x00008000u; cpu.srr0 = 0x80001234u; cpu.srr1 = 0x0000abcdu; cpu.dec = 0x12345678u; cpu.dec_pending = 1u; cpu.dar = 0x81234567u; cpu.dsisr = 0x02000000u;
         assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x1000u, 0xc001d00du) == 0);
         assert(cubex_state_save(state_path, &cpu, &mem) == 0);
         cpu.gpr[3] = 0u; cpu.pc = 0u; cpu.lr = 0u; cpu.cr = 0u; cpu.xer = 0u;
-        cpu.msr = 0u; cpu.srr0 = 0u; cpu.srr1 = 0u; cpu.dec = 0u; cpu.dec_pending = 0u;
+        cpu.msr = 0u; cpu.srr0 = 0u; cpu.srr1 = 0u; cpu.dec = 0u; cpu.dec_pending = 0u; cpu.dar = 0u; cpu.dsisr = 0u;
         assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x1000u, 0u) == 0);
         assert(cubex_state_load(state_path, &cpu, &mem) == 0);
         assert(cpu.gpr[3] == 0x13579bdfu && cpu.pc == CUBEX360_RAM_CACHED_BASE + 0x400u);
         assert(cpu.lr == 0x12345678u && cpu.cr == 0xa5a5a5a5u && cpu.xer == 0xe0u);
         assert(cpu.msr == 0x00008000u && cpu.srr0 == 0x80001234u && cpu.srr1 == 0x0000abcdu);
         assert(cpu.dec == 0x12345678u && cpu.dec_pending == 1u);
+        assert(cpu.dar == 0x81234567u && cpu.dsisr == 0x02000000u);
         assert(cubex_bus_read32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x1000u, &before) == 0);
         assert(before == 0xc001d00du);
         /* Corrupt a RAM byte: checksum failure must not partially restore state. */
