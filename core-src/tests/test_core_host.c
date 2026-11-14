@@ -1043,7 +1043,9 @@ int main(void) {
         cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x2bcu);
         cpu.gpr[4] = CUBEX360_RAM_CACHED_BASE + CUBEX360_MAIN_RAM_SIZE;
         cpu.gpr[5] = 0u;
-        assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_MEMORY_FAULT);
+        assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+        assert(cpu.pc == 0x00000300u);
+        assert(cpu.dar == CUBEX360_RAM_CACHED_BASE + CUBEX360_MAIN_RAM_SIZE);
         for (i = 0u; i < 16u; ++i) {
             assert(cubex_memory_read8(&mem, tail + i, &byte) == 0);
             assert(byte == (uint8_t)(0xa0u + i));
@@ -1287,10 +1289,11 @@ int main(void) {
     assert(cpu.gpr[3] == 42u && cpu.gpr[4] == 43u);
     assert(cpu.pc == CUBEX360_RAM_CACHED_BASE + 0x308u);
     assert(cpu.retired_instructions == 2u);
-    /* Fetch from an unmapped address faults without retiring an instruction. */
+    /* Unmapped instruction fetch enters Instruction Storage vector without retirement. */
     cubex_cpu_reset(&cpu, 0x70000000u);
-    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_MEMORY_FAULT);
-    assert(cpu.pc == 0x70000000u && cpu.retired_instructions == 0u);
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.pc == 0x00000400u);
+    assert(cpu.srr0 == 0x70000000u && cpu.retired_instructions == 0u);
     /* Save/load round-trip covers CPU registers and main RAM; file is host-test-only. */
     {
         const char *state_path = "/tmp/cubex360-state-test.bin";
