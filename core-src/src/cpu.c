@@ -166,32 +166,24 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
         c->gpr[ra] = a;
         break;
     }
-    case 46: { /* LMW: load words from RA+d into RT..r31 */
+    case 46: { /* LMW: load words from RA+d into RT..r31 via bus */
         uint32_t address = (ra ? c->gpr[ra] : 0u) + (uint32_t)sx16(imm);
-        uint32_t physical, reg, count = 32u - rt;
-        if ((address & 3u) != 0u ||
-            cubex_bus_translate_main_ram(address, &physical) ||
-            physical > m->main_ram_size ||
-            count * 4u > m->main_ram_size - physical)
-            return CUBEX_CPU_MEMORY_FAULT;
+        uint32_t reg;
+        if ((address & 3u) != 0u) return CUBEX_CPU_MEMORY_FAULT;
         for (reg = rt; reg < 32u; ++reg) {
-            if (cubex_memory_read32be(m, physical + ((reg - rt) * 4u),
-                                      &c->gpr[reg]))
+            if (cubex_bus_read32be(m, address + ((reg - rt) * 4u),
+                                   &c->gpr[reg]))
                 return CUBEX_CPU_MEMORY_FAULT;
         }
         break;
     }
-    case 47: { /* STMW: store words from RT..r31 to RA+d */
+    case 47: { /* STMW: store words from RT..r31 to RA+d via bus */
         uint32_t address = (ra ? c->gpr[ra] : 0u) + (uint32_t)sx16(imm);
-        uint32_t physical, reg, count = 32u - rt;
-        if ((address & 3u) != 0u ||
-            cubex_bus_translate_main_ram(address, &physical) ||
-            physical > m->main_ram_size ||
-            count * 4u > m->main_ram_size - physical)
-            return CUBEX_CPU_MEMORY_FAULT;
+        uint32_t reg;
+        if ((address & 3u) != 0u) return CUBEX_CPU_MEMORY_FAULT;
         for (reg = rt; reg < 32u; ++reg) {
-            if (cubex_memory_write32be(m, physical + ((reg - rt) * 4u),
-                                       c->gpr[reg]))
+            if (cubex_bus_write32be(m, address + ((reg - rt) * 4u),
+                                    c->gpr[reg]))
                 return CUBEX_CPU_MEMORY_FAULT;
         }
         break;
