@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.25)
 project(cubex360_xex C)
+set(CMAKE_C_STANDARD 17)
+set(CMAKE_C_STANDARD_REQUIRED ON)
 add_executable(cubex360
   main.c
   ../core-src/src/memory.c
