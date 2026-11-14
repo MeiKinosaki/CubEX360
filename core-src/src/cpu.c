@@ -23,26 +23,84 @@ int cubex_cpu_translate_bat(const cubex_cpu_state_t *c, uint32_t ea, int is_inst
  return 0;
 }
 
-/* Address-space-aware CPU bus access. With IR/DR clear, addresses are
- * physical as in the current reset/test environment. With translation on,
- * this first integration slice requires a BAT hit; page-table fallback is
- * not implemented yet. */
-static int cpu_translate_address(const cubex_cpu_state_t *c, uint32_t ea,
-                                 int instruction, uint32_t *pa) {
+/* PowerPC 6xx hashed page-table walk (4 KiB pages, 8-entry PTEGs).
+ * Returns 1 on translation, 0 on miss and -1 on protection violation. */
+int cubex_cpu_translate_hash(const cubex_cpu_state_t *c, const cubex_memory_t *m,
+                             uint32_t ea, int instruction, int is_store,
+                             uint32_t *pa) {
+    const uint32_t page_mask = 0xfffff000u;
+    const uint32_t htab_base = c ? (c->sdr1 & 0xffff0000u) : 0u;
+    const uint32_t htab_mask = c ? (((c->sdr1 & 0x1ffu) << 16) | 0xffffu) : 0u;
+    uint32_t sr, vsid, pgidx, hash, ptem, pteg, pte0, pte1;
+    uint32_t pte_offset = 0xffffffffu, i, secondary;
+    int key, pp, can_read, can_write, can_exec;
+    if (!c || !m || !pa) return 0;
+    sr = c->sr[ea >> 28];
+    if (instruction && (sr & 0x10000000u)) return -1; /* segment NX */
+    vsid = sr & 0x00ffffffu;
+    pgidx = (ea & 0x0fffffffu) >> 12;
+    hash = vsid ^ pgidx;
+    ptem = (vsid << 7) | (pgidx >> 10);
+    for (secondary = 0u; secondary < 2u; ++secondary) {
+        uint32_t h = secondary ? ~hash : hash;
+        pteg = (h * 64u) & htab_mask;
+        for (i = 0u; i < 8u; ++i) {
+            uint32_t off = htab_base + pteg + i * 8u;
+            if (cubex_bus_read32be(m, off, &pte0) != 0 ||
+                cubex_bus_read32be(m, off + 4u, &pte1) != 0) continue;
+            if ((pte0 & 0x80000000u) &&
+                (!!(pte0 & 0x40u) == (secondary != 0u)) &&
+                ((pte0 & 0x7fffffbfu) == ptem)) {
+                pte_offset = off;
+                break;
+            }
+        }
+        if (pte_offset != 0xffffffffu) break;
+    }
+    if (pte_offset == 0xffffffffu) return 0;
+    key = (c->msr & 0x00004000u) ? !!(sr & 0x20000000u) : !!(sr & 0x40000000u);
+    pp = (int)(pte1 & 3u);
+    if (key) {
+        can_read = (pp == 1 || pp == 2 || pp == 3);
+        can_write = (pp == 2);
+    } else {
+        can_read = 1;
+        can_write = (pp != 3);
+    }
+    can_exec = !(sr & 0x10000000u);
+    if ((instruction && !can_exec) || (!instruction && !is_store && !can_read) ||
+        (!instruction && is_store && !can_write)) return -1;
+    if (!(pte1 & 0x100u)) {
+        pte1 |= 0x100u;
+        if (cubex_bus_write32be((cubex_memory_t *)m, pte_offset + 4u, pte1) != 0) return 0;
+    }
+    if (is_store && !(pte1 & 0x80u)) {
+        pte1 |= 0x80u;
+        if (cubex_bus_write32be((cubex_memory_t *)m, pte_offset + 4u, pte1) != 0) return 0;
+    }
+    *pa = (pte1 & page_mask) | (ea & 0xfffu);
+    return 1;
+}
+static int cpu_translate_address(const cubex_cpu_state_t *c, const cubex_memory_t *m,
+                                 uint32_t ea, int instruction, int is_store,
+                                 uint32_t *pa) {
     uint32_t enable = instruction ? 0x20u : 0x10u;
+    int hash_result;
     if (!(c->msr & enable)) { *pa = ea; return 0; }
-    return cubex_cpu_translate_bat(c, ea, instruction,
-                                   (c->msr & 0x00004000u) != 0u, pa) ? 0 : -1;
+    if (cubex_cpu_translate_bat(c, ea, instruction,
+                                (c->msr & 0x00004000u) != 0u, pa)) return 0;
+    hash_result = cubex_cpu_translate_hash(c, m, ea, instruction, is_store, pa);
+    return hash_result == 1 ? 0 : -1;
 }
 static int cpu_read32(const cubex_cpu_state_t *c, const cubex_memory_t *m,
                       uint32_t ea, uint32_t *v, int instruction) {
     uint32_t pa;
-    if (cpu_translate_address(c, ea, instruction, &pa)) return -1;
+    if (cpu_translate_address(c, m, ea, instruction, 0, &pa)) return -1;
     return cubex_bus_read32be(m, pa, v);
 }
 static int cpu_read16(const cubex_cpu_state_t *c, const cubex_memory_t *m,
                       uint32_t ea, uint16_t *v) {
-    uint32_t pa; if (cpu_translate_address(c, ea, 0, &pa)) return -1;
+    uint32_t pa; if (cpu_translate_address(c, m, ea, 0, 0, &pa)) return -1;
     return cubex_bus_read16be(m, pa, v);
 }
 static int cpu_read8(const cubex_cpu_state_t *c, const cubex_memory_t *m,
