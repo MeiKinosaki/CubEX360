@@ -1375,6 +1375,24 @@ int main(void) {
       assert(cubex_cpu_translate_bat(&cpu,0xa0000000u,0,1,&translated)==0);
     }
     cpu.ibat[0]=0u; cpu.ibat[1]=0u; cpu.dbat[0]=0u; cpu.dbat[1]=0u;
+    /* Integrated BAT path: IR/DR translate effective addresses before bus access. */
+    assert(cubex_bus_write32be(&mem, 0x00000400u, 0x3860002au) == 0); /* addi r3,r0,42 */
+    assert(cubex_bus_write32be(&mem, 0x00000404u, 0x80601000u) == 0); /* lwz r3,0x1000(r0) */
+    assert(cubex_bus_write32be(&mem, 0x00001000u, 0xdecafbad) == 0);
+    cubex_cpu_reset(&cpu, 0x80000400u);
+    cpu.ibat[0]=0x80000002u; cpu.ibat[1]=0x00000000u;
+    cpu.dbat[0]=0x90000002u; cpu.dbat[1]=0x00000000u;
+    cpu.msr=0x00008030u; /* EE + IR + DR, supervisor */
+    assert(cubex_cpu_step(&cpu,&mem)==CUBEX_CPU_OK);
+    assert(cpu.gpr[3]==42u && cpu.pc==0x80000404u);
+    cpu.pc=0x80000404u; cpu.gpr[3]=0u;
+    assert(cubex_cpu_step(&cpu,&mem)==CUBEX_CPU_OK);
+    assert(cpu.gpr[3]==0xdecafbadu);
+    /* BAT miss with data relocation enabled becomes a data-storage exception. */
+    cpu.pc=0x80000404u; cpu.gpr[3]=0x00002000u; cpu.dbat[0]=0u;
+    assert(cubex_cpu_step(&cpu,&mem)==CUBEX_CPU_OK);
+    assert(cpu.pc==0x00000300u && cpu.dar==0x00002000u);
+    cpu.msr=0u; cpu.ibat[0]=cpu.ibat[1]=cpu.dbat[0]=cpu.dbat[1]=0u;
     /* BAT SPR access is supervisor-only; this tests register plumbing, not address translation. */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x35cu,
         (31u<<26)|(3u<<21)|((528u&31u)<<16)|((528u&0x3e0u)<<6)|(467u<<1)) == 0);
