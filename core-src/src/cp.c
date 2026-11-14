@@ -75,3 +75,14 @@ void cubex_cp_set_status(cubex_cp_t *cp, uint16_t set_bits,
         (set_bits & CUBEX_CP_SR_STATUS_MASK)) &
         (uint16_t)~(clear_bits & CUBEX_CP_SR_STATUS_MASK));
 }
+
+int cubex_cp_irq_pending(const cubex_cp_t *cp) {
+    if (!cp) return 0;
+    if ((cp->status & CUBEX_CP_SR_UNDERFLOW) &&
+        (cp->control & CUBEX_CP_CR_UNDERFLOW_IRQ)) return 1;
+    if ((cp->status & CUBEX_CP_SR_OVERFLOW) &&
+        (cp->control & CUBEX_CP_CR_OVERFLOW_IRQ)) return 1;
+    if ((cp->status & CUBEX_CP_SR_BP) &&
+        (cp->control & CUBEX_CP_CR_BP_ENABLE)) return 1;
+    return 0;
+}
