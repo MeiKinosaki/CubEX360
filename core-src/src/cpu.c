@@ -646,7 +646,13 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
             else if (spr == 9u) c->gpr[rt] = c->ctr;
             else if (spr == 1u) c->gpr[rt] = c->xer;
             else if (spr == 22u) c->gpr[rt] = c->dec;
-            else return illegal_instruction(c);
+            else if (spr >= 528u && spr <= 535u) {
+                if (c->msr & PPC_MSR_PR) return program_exception(c, 0x00020000u);
+                c->gpr[rt] = c->ibat[spr - 528u];
+            } else if (spr >= 536u && spr <= 543u) {
+                if (c->msr & PPC_MSR_PR) return program_exception(c, 0x00020000u);
+                c->gpr[rt] = c->dbat[spr - 536u];
+            } else return illegal_instruction(c);
             break;
         }
         case 467: {
@@ -655,7 +661,13 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
             else if (spr == 9u) c->ctr = c->gpr[rt];
             else if (spr == 1u) c->xer = c->gpr[rt];
             else if (spr == 22u) { c->dec = c->gpr[rt]; c->dec_pending = 0u; }
-            else return illegal_instruction(c);
+            else if (spr >= 528u && spr <= 535u) {
+                if (c->msr & PPC_MSR_PR) return program_exception(c, 0x00020000u);
+                c->ibat[spr - 528u] = c->gpr[rt];
+            } else if (spr >= 536u && spr <= 543u) {
+                if (c->msr & PPC_MSR_PR) return program_exception(c, 0x00020000u);
+                c->dbat[spr - 536u] = c->gpr[rt];
+            } else return illegal_instruction(c);
             break;
         }
         case 459: { /* DIVWU: unsigned word division; zero divisor has deterministic placeholder */
