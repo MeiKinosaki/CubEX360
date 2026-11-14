@@ -91,8 +91,8 @@ int main(void) {
         assert(cubex_bus_write16be(&machine.memory, 0xCC000004u,
                                    CUBEX_CP_SR_OVERFLOW) == 0);
         assert(cubex_bus_read16be(&machine.memory, 0xCC000000u,
-                                  (uint16_t *)&value) == 0);
-        assert((value & CUBEX_CP_SR_OVERFLOW) == 0u);
+                                  &cp_status) == 0);
+        assert((cp_status & CUBEX_CP_SR_OVERFLOW) == 0u);
         assert(cubex_bus_read32be(&machine.memory, 0xCC003000u, &value) == 0);
         assert((value & CUBEX_PI_IRQ_CP) != 0u);
         assert(cubex_bus_write32be(&machine.memory, 0xCC003000u,
