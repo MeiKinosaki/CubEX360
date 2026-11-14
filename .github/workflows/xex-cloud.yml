@@ -1,0 +1,77 @@
+name: CubEX360 cloud XEX build
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'core-src/**'
+      - 'xex-title/**'
+      - 'scripts/validate_xex_build.py'
+      - '.github/workflows/xex-cloud.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build-default-xex:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - name: Free runner disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android /usr/local/share/powershell
+          df -h
+      - name: Checkout CubEX360
+        uses: actions/checkout@v4
+      - name: Checkout pinned open Xbox 360 SDK
+        uses: actions/checkout@v4
+        with:
+          repository: xenosworks/xsdk
+          ref: ade2c81d914634834d77394c5d9f8c4575f395bc
+          path: xsdk
+      - name: Install Linux build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential bison flex texinfo libgmp-dev libmpfr-dev libmpc-dev curl xz-utils patch python3 cmake ninja-build git
+      - name: Build pinned PowerPC Xbox 360 toolchain
+        working-directory: xsdk
+        env:
+          PREFIX: ${{ runner.temp }}/xsdk-gcc
+          WORK: ${{ runner.temp }}/xsdk-gcc-work
+          JOBS: '4'
+        run: tools/toolchain/build.sh
+      - name: Build xsdk runtime library
+        working-directory: xsdk
+        env:
+          HOME: ${{ runner.temp }}
+        run: make -j4 build/libxsdk.a
+      - name: Configure CubEX360 title
+        env:
+          HOME: ${{ runner.temp }}
+        run: |
+          cmake -S xex-title -B xex-title/build -G Ninja \
+            -DCMAKE_TOOLCHAIN_FILE="$GITHUB_WORKSPACE/xsdk/cmake/xsdk.cmake" \
+            -DXSDK_TOOLCHAIN="$RUNNER_TEMP/xsdk-gcc" \
+            -DCMAKE_BUILD_TYPE=Release
+      - name: Compile and pack default.xex
+        run: |
+          cmake --build xex-title/build --verbose
+          test -s xex-title/build/cubex360.xex
+          cp xex-title/build/cubex360.xex default.xex
+      - name: Validate XEX2 container and calculate SHA-256
+        env:
+          CUBEX_XEX_OUTPUT: ${{ github.workspace }}/default.xex
+          GITHUB_WORKSPACE: ${{ github.workspace }}
+        run: |
+          python3 scripts/validate_xex_build.py
+          sha256sum default.xex | tee SHA256SUMS.txt
+          file default.xex
+      - name: Upload default.xex candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: CubEX360-default-xex-candidate
+          path: |
+            default.xex
+            SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 14
