@@ -1,8 +1,8 @@
 #include "cubex360/memory.h"
 #include <stdlib.h>
 #include <string.h>
-int cubex_memory_init(cubex_memory_t *m){if(!m)return -1;m->main_ram=0;m->main_ram_size=0;m->bus_context=0;m->mmio_read32=0;m->mmio_write32=0;m->main_ram=(uint8_t*)calloc(CUBEX360_MAIN_RAM_SIZE,1);if(!m->main_ram)return -2;m->main_ram_size=CUBEX360_MAIN_RAM_SIZE;return 0;}
-void cubex_memory_destroy(cubex_memory_t *m){if(!m)return;free(m->main_ram);m->main_ram=0;m->main_ram_size=0;m->bus_context=0;m->mmio_read32=0;m->mmio_write32=0;}
+int cubex_memory_init(cubex_memory_t *m){if(!m)return -1;m->main_ram=0;m->main_ram_size=0;m->bus_context=0;m->mmio_read32=0;m->mmio_write32=0;m->mmio_read16=0;m->mmio_write16=0;m->main_ram=(uint8_t*)calloc(CUBEX360_MAIN_RAM_SIZE,1);if(!m->main_ram)return -2;m->main_ram_size=CUBEX360_MAIN_RAM_SIZE;return 0;}
+void cubex_memory_destroy(cubex_memory_t *m){if(!m)return;free(m->main_ram);m->main_ram=0;m->main_ram_size=0;m->bus_context=0;m->mmio_read32=0;m->mmio_write32=0;m->mmio_read16=0;m->mmio_write16=0;}
 static int valid(const cubex_memory_t*m,uint32_t a,size_t n){return m&&m->main_ram&&n<=m->main_ram_size&&(size_t)a<=m->main_ram_size-n;}
 int cubex_memory_read8(const cubex_memory_t*m,uint32_t a,uint8_t*o){if(!o||!valid(m,a,1))return -1;*o=m->main_ram[a];return 0;}
 int cubex_memory_read16be(const cubex_memory_t*m,uint32_t a,uint16_t*o){if(!o||(a&1)||!valid(m,a,2))return -1;*o=(uint16_t)(((uint16_t)m->main_ram[a]<<8)|m->main_ram[a+1]);return 0;}
