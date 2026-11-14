@@ -501,3 +501,15 @@ Os commits de código e teste não têm status de CI publicado verificado nesta 
 **Validação:** os novos jobs strict e ASan/UBSan foram disparados pelo commit de integração; aguardam resultado. Os workflows de XEX também estão em andamento, sem artefato `default.xex` confirmado nesta revisão. Sem boot RGH ou jogos comprovados.
 
 **Progresso estimado:** 61% de implementação geral. O aumento de 60% para 61% corresponde exclusivamente ao módulo de fila GX FIFO e sua cobertura de teste adicionada; não significa avanço equivalente na GPU completa ou na compatibilidade de jogos.
+
+## v2.2b — integração GX FIFO validada por CI
+
+- A FIFO GX foi conectada ao barramento Flipper no endereço de escrita `0xCC008000`; palavras de 32 bits são enfileiradas e podem ser consumidas pela API interna.
+- O teste de integração verifica duas escritas consecutivas, ordem de leitura, porta não legível e comportamento da fila vazia.
+- Correção dos scripts strict e ASan/UBSan para ligar `gx_fifo.c` aos alvos de integração.
+- **Validação concluída no commit `b6c28291659f91301a637533d6df6d86a35d9cc9`:** os seis jobs do workflow [#43646955709](https://github.com/MeiKinosaki/CubEX360/actions/runs/43646955709) passaram: host-core-test, host-sanitizers, xex-preflight-gate, frontend-config-validation, build-probe e build-core-smoke.
+- Artefatos publicados: `cubex360-libxenon-elf32` (SHA-256 `9b70f082b36207e20d387e8ba42a3500b3419d431e2287154a4a958fa7863c2e`) e `cubex360-core-smoke-elf32` (SHA-256 `84aa846b8f1f09a81fde48c95618b75a88faa3d8b893b5003b883387cd7e4298`). São ELF32 de probe/smoke test, não o executável final.
+
+**Limites que continuam abertos:** a fila ainda não decodifica os comandos GX nem executa listas de vértices/primitivas; SDR1, page-table walk, TLB e permissões PP ainda não estão implementados; FPU Gekko/paired-single e suas exceções ainda faltam; DSP e vários dispositivos Flipper continuam parciais. O build XEX por XSDK permanece em execução em revisões anteriores e não foi confirmado por artefato nesta validação. Não há boot em RGH nem compatibilidade de jogos comprovados.
+
+**Progresso estimado:** 62% de implementação geral. O avanço reflete a integração do endereço GX FIFO com o barramento e a aprovação dos testes strict e sanitizers; não significa GPU completa, MMU/FPU completas ou 62% de compatibilidade de jogos.
