@@ -1333,7 +1333,39 @@ int main(void) {
     assert(cpu.srr0 == CUBEX360_RAM_CACHED_BASE + 0x348u);
     assert(cpu.srr1 == (0x00004000u | 0x00020000u));
     assert(cpu.msr == 0u && cpu.retired_instructions == 0u);
-    /* Save/load round-trip covers CPU registers and main RAM; file is host-test-only. */
+    /* Segment register moves: direct/indirect reads and writes are privileged. */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x34cu,
+        (31u<<26)|(3u<<21)|(5u<<16)|(210u<<1)) == 0); /* mtsr 5,r3 */
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x34cu);
+    cpu.msr = 0x00008000u;
+    cpu.gpr[3] = 0x12345678u;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.sr[5] == 0x12345678u);
+    assert(cpu.retired_instructions == 1u);
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x350u,
+        (31u<<26)|(4u<<21)|(5u<<16)|(595u<<1)) == 0); /* mfsr r4,5 */
+    cpu.pc = CUBEX360_RAM_CACHED_BASE + 0x350u;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[4] == 0x12345678u);
+    cpu.gpr[6] = 0x50000000u;
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x354u,
+        (31u<<26)|(3u<<21)|(6u<<11)|(242u<<1)) == 0); /* mtsrin r3,r6 */
+    cpu.pc = CUBEX360_RAM_CACHED_BASE + 0x354u;
+    cpu.gpr[3] = 0xabcdef01u;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.sr[5] == 0xabcdef01u);
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x358u,
+        (31u<<26)|(7u<<21)|(6u<<11)|(659u<<1)) == 0); /* mfsrin r7,r6 */
+    cpu.pc = CUBEX360_RAM_CACHED_BASE + 0x358u;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.gpr[7] == 0xabcdef01u);
+    /* User-mode segment-register access traps as a privileged instruction. */
+    cpu.pc = CUBEX360_RAM_CACHED_BASE + 0x350u;
+    cpu.msr = 0x00004000u;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.pc == 0x00000700u && cpu.srr0 == CUBEX360_RAM_CACHED_BASE + 0x350u);
+    assert(cpu.srr1 == (0x00004000u | 0x00020000u));
+    /* Save/load round-trip covers CPU registers, segment registers and main RAM; file is host-test-only. */
     {
         const char *state_path = "/tmp/cubex360-state-test.bin";
         uint32_t before;
@@ -1342,11 +1374,11 @@ int main(void) {
         cpu.lr = 0x12345678u;
         cpu.cr = 0xa5a5a5a5u;
         cpu.xer = 0x000000e0u;
-        cpu.msr = 0x00008000u; cpu.srr0 = 0x80001234u; cpu.srr1 = 0x0000abcdu; cpu.dec = 0x12345678u; cpu.dec_pending = 1u; cpu.dar = 0x81234567u; cpu.dsisr = 0x02000000u;
+        cpu.msr = 0x00008000u; cpu.srr0 = 0x80001234u; cpu.srr1 = 0x0000abcdu; cpu.dec = 0x12345678u; cpu.dec_pending = 1u; cpu.dar = 0x81234567u; cpu.dsisr = 0x02000000u; cpu.sr[0] = 0x11112222u; cpu.sr[15] = 0xeeeeffffu;
         assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x1000u, 0xc001d00du) == 0);
         assert(cubex_state_save(state_path, &cpu, &mem) == 0);
         cpu.gpr[3] = 0u; cpu.pc = 0u; cpu.lr = 0u; cpu.cr = 0u; cpu.xer = 0u;
-        cpu.msr = 0u; cpu.srr0 = 0u; cpu.srr1 = 0u; cpu.dec = 0u; cpu.dec_pending = 0u; cpu.dar = 0u; cpu.dsisr = 0u;
+        cpu.msr = 0u; cpu.srr0 = 0u; cpu.srr1 = 0u; cpu.dec = 0u; cpu.dec_pending = 0u; cpu.dar = 0u; cpu.dsisr = 0u; cpu.sr[0] = 0u; cpu.sr[15] = 0u;
         assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x1000u, 0u) == 0);
         assert(cubex_state_load(state_path, &cpu, &mem) == 0);
         assert(cpu.gpr[3] == 0x13579bdfu && cpu.pc == CUBEX360_RAM_CACHED_BASE + 0x400u);
@@ -1354,6 +1386,7 @@ int main(void) {
         assert(cpu.msr == 0x00008000u && cpu.srr0 == 0x80001234u && cpu.srr1 == 0x0000abcdu);
         assert(cpu.dec == 0x12345678u && cpu.dec_pending == 1u);
         assert(cpu.dar == 0x81234567u && cpu.dsisr == 0x02000000u);
+        assert(cpu.sr[0] == 0x11112222u && cpu.sr[15] == 0xeeeeffffu);
         assert(cubex_bus_read32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x1000u, &before) == 0);
         assert(before == 0xc001d00du);
         /* Corrupt a RAM byte: checksum failure must not partially restore state. */
@@ -1361,7 +1394,7 @@ int main(void) {
             FILE *state_file = fopen(state_path, "r+b");
             int byte;
             assert(state_file != NULL);
-            assert(fseek(state_file, 20L + 176L + 0x1000L, SEEK_SET) == 0);
+            assert(fseek(state_file, 20L + 240L + 0x1000L, SEEK_SET) == 0);
             byte = fgetc(state_file);
             assert(byte != EOF);
             assert(fseek(state_file, -1L, SEEK_CUR) == 0);
