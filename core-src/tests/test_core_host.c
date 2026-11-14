@@ -1380,7 +1380,7 @@ int main(void) {
     cpu.ibat[0]=0u; cpu.ibat[1]=0u; cpu.dbat[0]=0u; cpu.dbat[1]=0u;
     /* Integrated BAT path: IR/DR translate effective addresses before bus access. */
     assert(cubex_bus_write32be(&mem, 0x00000400u, 0x3860002au) == 0); /* addi r3,r0,42 */
-    assert(cubex_bus_write32be(&mem, 0x00000404u, 0x80601000u) == 0); /* lwz r3,0x1000(r0) */
+    assert(cubex_bus_write32be(&mem, 0x00000404u, 0x80650000u) == 0); /* lwz r3,0(r5) */
     assert(cubex_bus_write32be(&mem, 0x00001000u, 0xdecafbad) == 0);
     cubex_cpu_reset(&cpu, 0x80000400u);
     cpu.ibat[0]=0x80000002u; cpu.ibat[1]=0x00000000u;
