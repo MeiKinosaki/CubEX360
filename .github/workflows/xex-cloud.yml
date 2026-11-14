@@ -39,7 +39,7 @@ jobs:
           PREFIX: ${{ runner.temp }}/xsdk-gcc
           WORK: ${{ runner.temp }}/xsdk-gcc-work
           JOBS: '4'
-        run: tools/toolchain/build.sh
+        run: bash tools/toolchain/build.sh
       - name: Build xsdk runtime library
         working-directory: xsdk
         env:
