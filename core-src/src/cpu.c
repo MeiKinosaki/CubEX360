@@ -108,11 +108,11 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
         break;
     }
     case 35: { /* LBZU: load byte and update RA */
-        uint32_t a, p;
+        uint32_t a;
         uint8_t v;
         if (ra == 0u || ra == rt) return CUBEX_CPU_UNSUPPORTED;
         a = c->gpr[ra] + (uint32_t)sx16(imm);
-        if (cubex_bus_translate_main_ram(a, &p) || cubex_memory_read8(m, p, &v))
+        if (cubex_bus_read8(m, a, &v))
             return CUBEX_CPU_MEMORY_FAULT;
         c->gpr[rt] = v;
         c->gpr[ra] = a;
@@ -127,41 +127,41 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
         break;
     }
     case 39: { /* STBU: store byte and update RA */
-        uint32_t a, p;
+        uint32_t a;
         if (ra == 0u) return CUBEX_CPU_UNSUPPORTED;
         a = c->gpr[ra] + (uint32_t)sx16(imm);
-        if (cubex_bus_translate_main_ram(a, &p) || cubex_memory_write8(m, p, (uint8_t)c->gpr[rt]))
+        if (cubex_bus_write8(m, a, (uint8_t)c->gpr[rt]))
             return CUBEX_CPU_MEMORY_FAULT;
         c->gpr[ra] = a;
         break;
     }
     case 41: { /* LHZU: load halfword and update RA */
-        uint32_t a, p;
+        uint32_t a;
         uint16_t v;
         if (ra == 0u || ra == rt) return CUBEX_CPU_UNSUPPORTED;
         a = c->gpr[ra] + (uint32_t)sx16(imm);
-        if (cubex_bus_translate_main_ram(a, &p) || cubex_memory_read16be(m, p, &v))
+        if (cubex_bus_read16be(m, a, &v))
             return CUBEX_CPU_MEMORY_FAULT;
         c->gpr[rt] = v;
         c->gpr[ra] = a;
         break;
     }
     case 43: { /* LHAU: load algebraic halfword and update RA */
-        uint32_t a, p;
+        uint32_t a;
         uint16_t v;
         if (ra == 0u || ra == rt) return CUBEX_CPU_UNSUPPORTED;
         a = c->gpr[ra] + (uint32_t)sx16(imm);
-        if (cubex_bus_translate_main_ram(a, &p) || cubex_memory_read16be(m, p, &v))
+        if (cubex_bus_read16be(m, a, &v))
             return CUBEX_CPU_MEMORY_FAULT;
         c->gpr[rt] = (v & 0x8000u) ? (uint32_t)(int32_t)(int16_t)v : (uint32_t)v;
         c->gpr[ra] = a;
         break;
     }
     case 45: { /* STHU: store halfword and update RA */
-        uint32_t a, p;
+        uint32_t a;
         if (ra == 0u) return CUBEX_CPU_UNSUPPORTED;
         a = c->gpr[ra] + (uint32_t)sx16(imm);
-        if (cubex_bus_translate_main_ram(a, &p) || cubex_memory_write16be(m, p, (uint16_t)c->gpr[rt]))
+        if (cubex_bus_write16be(m, a, (uint16_t)c->gpr[rt]))
             return CUBEX_CPU_MEMORY_FAULT;
         c->gpr[ra] = a;
         break;
@@ -202,17 +202,17 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
         break;
     }
     case 34: {
-        uint32_t a = (ra ? c->gpr[ra] : 0u) + (uint32_t)sx16(imm), p;
+        uint32_t a = (ra ? c->gpr[ra] : 0u) + (uint32_t)sx16(imm);
         uint8_t v;
-        if (cubex_bus_translate_main_ram(a, &p) || cubex_memory_read8(m, p, &v)) return CUBEX_CPU_MEMORY_FAULT;
+        if (cubex_bus_read8(m, a, &v)) return CUBEX_CPU_MEMORY_FAULT;
         c->gpr[rt] = v;
         break;
     }
     case 40:
     case 42: {
-        uint32_t a = (ra ? c->gpr[ra] : 0u) + (uint32_t)sx16(imm), p;
+        uint32_t a = (ra ? c->gpr[ra] : 0u) + (uint32_t)sx16(imm);
         uint16_t v;
-        if (cubex_bus_translate_main_ram(a, &p) || cubex_memory_read16be(m, p, &v)) return CUBEX_CPU_MEMORY_FAULT;
+        if (cubex_bus_read16be(m, a, &v)) return CUBEX_CPU_MEMORY_FAULT;
         c->gpr[rt] = (op == 42 && (v & 0x8000u)) ? (uint32_t)(int32_t)(int16_t)v : (uint32_t)v;
         break;
     }
@@ -222,13 +222,13 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
         break;
     }
     case 38: {
-        uint32_t a = (ra ? c->gpr[ra] : 0u) + (uint32_t)sx16(imm), p;
-        if (cubex_bus_translate_main_ram(a, &p) || cubex_memory_write8(m, p, (uint8_t)c->gpr[rt])) return CUBEX_CPU_MEMORY_FAULT;
+        uint32_t a = (ra ? c->gpr[ra] : 0u) + (uint32_t)sx16(imm);
+        if (cubex_bus_write8(m, a, (uint8_t)c->gpr[rt])) return CUBEX_CPU_MEMORY_FAULT;
         break;
     }
     case 44: {
-        uint32_t a = (ra ? c->gpr[ra] : 0u) + (uint32_t)sx16(imm), p;
-        if (cubex_bus_translate_main_ram(a, &p) || cubex_memory_write16be(m, p, (uint16_t)c->gpr[rt])) return CUBEX_CPU_MEMORY_FAULT;
+        uint32_t a = (ra ? c->gpr[ra] : 0u) + (uint32_t)sx16(imm);
+        if (cubex_bus_write16be(m, a, (uint16_t)c->gpr[rt])) return CUBEX_CPU_MEMORY_FAULT;
         break;
     }
     case 20:
@@ -305,10 +305,9 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
             break;
         }
         case 87: { /* LBZX: indexed load byte */
-            uint32_t address = (ra ? c->gpr[ra] : 0u) + c->gpr[rb], physical;
+            uint32_t address = (ra ? c->gpr[ra] : 0u) + c->gpr[rb];
             uint8_t value;
-            if (cubex_bus_translate_main_ram(address, &physical) ||
-                cubex_memory_read8(m, physical, &value)) return CUBEX_CPU_MEMORY_FAULT;
+            if (cubex_bus_read8(m, address, &value)) return CUBEX_CPU_MEMORY_FAULT;
             c->gpr[rt] = value;
             break;
         }
@@ -318,32 +317,28 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
             break;
         }
         case 215: { /* STBX: indexed store byte */
-            uint32_t address = (ra ? c->gpr[ra] : 0u) + c->gpr[rb], physical;
-            if (cubex_bus_translate_main_ram(address, &physical) ||
-                cubex_memory_write8(m, physical, (uint8_t)c->gpr[rt]))
+            uint32_t address = (ra ? c->gpr[ra] : 0u) + c->gpr[rb];
+            if (cubex_bus_write8(m, address, (uint8_t)c->gpr[rt]))
                 return CUBEX_CPU_MEMORY_FAULT;
             break;
         }
         case 279: { /* LHZX: indexed load halfword */
-            uint32_t address = (ra ? c->gpr[ra] : 0u) + c->gpr[rb], physical;
+            uint32_t address = (ra ? c->gpr[ra] : 0u) + c->gpr[rb];
             uint16_t value;
-            if (cubex_bus_translate_main_ram(address, &physical) ||
-                cubex_memory_read16be(m, physical, &value)) return CUBEX_CPU_MEMORY_FAULT;
+            if (cubex_bus_read16be(m, address, &value)) return CUBEX_CPU_MEMORY_FAULT;
             c->gpr[rt] = value;
             break;
         }
         case 343: { /* LHAX: indexed load algebraic halfword */
-            uint32_t address = (ra ? c->gpr[ra] : 0u) + c->gpr[rb], physical;
+            uint32_t address = (ra ? c->gpr[ra] : 0u) + c->gpr[rb];
             uint16_t value;
-            if (cubex_bus_translate_main_ram(address, &physical) ||
-                cubex_memory_read16be(m, physical, &value)) return CUBEX_CPU_MEMORY_FAULT;
+            if (cubex_bus_read16be(m, address, &value)) return CUBEX_CPU_MEMORY_FAULT;
             c->gpr[rt] = (value & 0x8000u) ? (uint32_t)(int32_t)(int16_t)value : (uint32_t)value;
             break;
         }
         case 407: { /* STHX: indexed store halfword */
-            uint32_t address = (ra ? c->gpr[ra] : 0u) + c->gpr[rb], physical;
-            if (cubex_bus_translate_main_ram(address, &physical) ||
-                cubex_memory_write16be(m, physical, (uint16_t)c->gpr[rt]))
+            uint32_t address = (ra ? c->gpr[ra] : 0u) + c->gpr[rb];
+            if (cubex_bus_write16be(m, address, (uint16_t)c->gpr[rt]))
                 return CUBEX_CPU_MEMORY_FAULT;
             break;
         }
@@ -357,12 +352,11 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
             break;
         }
         case 119: { /* LBZUX: indexed load byte and update RA */
-            uint32_t address, physical;
+            uint32_t address;
             uint8_t value;
             if (ra == 0u || ra == rt) return CUBEX_CPU_UNSUPPORTED;
             address = c->gpr[ra] + c->gpr[rb];
-            if (cubex_bus_translate_main_ram(address, &physical) ||
-                cubex_memory_read8(m, physical, &value))
+            if (cubex_bus_read8(m, address, &value))
                 return CUBEX_CPU_MEMORY_FAULT;
             c->gpr[rt] = value;
             c->gpr[ra] = address;
@@ -378,34 +372,31 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
             break;
         }
         case 247: { /* STBUX: indexed store byte and update RA */
-            uint32_t address, physical;
+            uint32_t address;
             if (ra == 0u) return CUBEX_CPU_UNSUPPORTED;
             address = c->gpr[ra] + c->gpr[rb];
-            if (cubex_bus_translate_main_ram(address, &physical) ||
-                cubex_memory_write8(m, physical, (uint8_t)c->gpr[rt]))
+            if (cubex_bus_write8(m, address, (uint8_t)c->gpr[rt]))
                 return CUBEX_CPU_MEMORY_FAULT;
             c->gpr[ra] = address;
             break;
         }
         case 311: { /* LHZUX: indexed halfword load and update RA */
-            uint32_t address, physical;
+            uint32_t address;
             uint16_t value;
             if (ra == 0u || ra == rt) return CUBEX_CPU_UNSUPPORTED;
             address = c->gpr[ra] + c->gpr[rb];
-            if (cubex_bus_translate_main_ram(address, &physical) ||
-                cubex_memory_read16be(m, physical, &value))
+            if (cubex_bus_read16be(m, address, &value))
                 return CUBEX_CPU_MEMORY_FAULT;
             c->gpr[rt] = value;
             c->gpr[ra] = address;
             break;
         }
         case 375: { /* LHAUX: indexed signed halfword load and update RA */
-            uint32_t address, physical;
+            uint32_t address;
             uint16_t value;
             if (ra == 0u || ra == rt) return CUBEX_CPU_UNSUPPORTED;
             address = c->gpr[ra] + c->gpr[rb];
-            if (cubex_bus_translate_main_ram(address, &physical) ||
-                cubex_memory_read16be(m, physical, &value))
+            if (cubex_bus_read16be(m, address, &value))
                 return CUBEX_CPU_MEMORY_FAULT;
             c->gpr[rt] = (value & 0x8000u) ?
                          (uint32_t)(int32_t)(int16_t)value : (uint32_t)value;
@@ -413,11 +404,10 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
             break;
         }
         case 439: { /* STHUX: indexed halfword store and update RA */
-            uint32_t address, physical;
+            uint32_t address;
             if (ra == 0u) return CUBEX_CPU_UNSUPPORTED;
             address = c->gpr[ra] + c->gpr[rb];
-            if (cubex_bus_translate_main_ram(address, &physical) ||
-                cubex_memory_write16be(m, physical, (uint16_t)c->gpr[rt]))
+            if (cubex_bus_write16be(m, address, (uint16_t)c->gpr[rt]))
                 return CUBEX_CPU_MEMORY_FAULT;
             c->gpr[ra] = address;
             break;
