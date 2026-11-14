@@ -24,6 +24,7 @@ typedef struct cubex_machine {
     uint32_t mmio_storage[CUBEX360_MACHINE_MMIO_REGISTERS];
     cubex_timer_t timer;
     int initialized;
+    int timer_enabled;
 } cubex_machine_t;
 
 int cubex_machine_init(cubex_machine_t *machine, uint32_t entry_pc,
