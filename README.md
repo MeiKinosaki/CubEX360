@@ -418,3 +418,13 @@ Os commits de código e teste não têm status de CI publicado verificado nesta 
 - Commit do teste: `8e3bbe609debf7414eb9e77f263c972075e80bbc`.
 
 **Validação:** o CI para o SHA desta alteração ainda precisa ser confirmado. Os estados continuam abrangendo somente CPU e RAM principal, não GPU/DSP/timers/disco. `default.xex` funcional e boot no RGH permanecem não comprovados.
+
+
+## Desenvolvimento atual — v1.94b (RFI e Program Exception)
+
+- O caminho de exceção de programa foi organizado para registrar a causa em SRR1: instrução ilegal e instrução privilegiada.
+- `RFI` agora verifica o modo privilegiado antes de restaurar SRR0/SRR1; em modo usuário, gera Program Exception em vez de restaurar contexto.
+- Testes host cobrem RFI em supervisor (alinhamento do PC e restauração do MSR) e tentativa em modo usuário (vetor `0x700` e causa em SRR1).
+- Commits: `89ad39d` (implementação) e `6ccd973` (testes).
+- **Validação parcial:** host-core-test passou para ambos os SHAs; sanitizers e builds smoke/probe ainda estão em execução nos workflows [#309](https://github.com/MeiKinosaki/CubEX360/actions/runs/43627224216) e [#310](https://github.com/MeiKinosaki/CubEX360/actions/runs/43627227898). Não considerar v1.94b validada até todos os jobs terminarem.
+- Permanecem pendentes o tratamento completo de todas as exceções, a semântica detalhada de MSR/SRR1 por tipo de exceção, MMU/TLB, FPU, Flipper/GPU, DSP, drive/IPL e integração de jogo. Não há `default.xex` funcional, boot RGH ou compatibilidade de jogos comprovados.
