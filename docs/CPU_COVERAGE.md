@@ -436,3 +436,10 @@ Os commits de código e teste não têm status de CI publicado verificado nesta 
 - Commit do teste: `8e3bbe609debf7414eb9e77f263c972075e80bbc`.
 
 **Validação:** o CI para o SHA desta alteração ainda precisa ser confirmado. Os estados continuam abrangendo somente CPU e RAM principal, não GPU/DSP/timers/disco. `default.xex` funcional e boot no RGH permanecem não comprovados.
+
+
+## Registradores de segmento Gekko — v1.95b (implementação inicial)
+
+O estado da CPU contém SR0–SR15. O interpretador implementa as operações privilegiadas MTSR/MFSR e MTSRIN/MFSRIN, com verificação de MSR[PR]. O save state v5 serializa os 16 registradores e mantém leitura dos formatos v1–v4.
+
+**Limite importante:** esta etapa implementa armazenamento e movimentação dos SRs, não a semântica de tradução do PowerPC 750/Gekko. Ainda faltam integração dos SRs com fetch/load/store, BAT, SDR1, page table, proteção e exceções de tradução. CI para os commits desta etapa está pendente.
