@@ -1312,6 +1312,27 @@ int main(void) {
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
     assert(cpu.pc == 0x00000700u && cpu.srr0 == CUBEX360_RAM_CACHED_BASE + 0x344u);
     assert((cpu.srr1 & 0x00100000u) != 0u);
+    /* Supervisor RFI restores aligned SRR0 and the architecturally exposed MSR. */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x348u,
+        (19u<<26)|(50u<<1)) == 0);
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x348u);
+    cpu.srr0 = CUBEX360_RAM_CACHED_BASE + 0x381u;
+    cpu.srr1 = 0x87c0ffffu;
+    cpu.msr = 0x00008000u;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.pc == CUBEX360_RAM_CACHED_BASE + 0x380u);
+    assert(cpu.msr == 0x87c0ffffu);
+    assert(cpu.retired_instructions == 1u);
+    /* User-mode RFI raises privileged-instruction Program Exception instead. */
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x348u);
+    cpu.msr = 0x00004000u;
+    cpu.srr0 = CUBEX360_RAM_CACHED_BASE + 0x500u;
+    cpu.srr1 = 0x12345678u;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.pc == 0x00000700u);
+    assert(cpu.srr0 == CUBEX360_RAM_CACHED_BASE + 0x348u);
+    assert(cpu.srr1 == (0x00004000u | 0x00020000u));
+    assert(cpu.msr == 0u && cpu.retired_instructions == 0u);
     /* Save/load round-trip covers CPU registers and main RAM; file is host-test-only. */
     {
         const char *state_path = "/tmp/cubex360-state-test.bin";
