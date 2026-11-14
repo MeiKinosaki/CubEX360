@@ -161,3 +161,13 @@ As falhas anteriores foram corrigidas: os testes de CPU para o banco genérico a
 - Os eventos PE são acionados por API de teste/integração; ainda não são produzidos por um pipeline GX funcional.
 - CP ainda não consome FIFO, não executa display lists e ainda não está conectado ao PI via seu evento de watermark.
 - Não há execução de jogos, renderização gráfica, boot em Xbox 360 ou `default.xex` comprovados.
+
+
+### CP → PI event routing — atualização incremental
+
+- `cubex_cp_irq_pending()` calcula a saída de interrupção CP usando flags de overflow/underflow/breakpoint e seus bits de habilitação.
+- A máquina sincroniza CP para PI Cause bit 11; PE Finish e PE Token seguem nos bits 10 e 9.
+- `cubex_machine_cp_set_status()` permite gerar eventos de hardware de CP através da máquina e propaga a causa latched para PI.
+- Escritas de controle/clear no CP recalculam a saída; a causa PI permanece latched até o W1C no PI Cause.
+- Teste integrado cobre habilitar overflow IRQ, gerar overflow, observar PI bit 11, limpar status CP e reconhecer separadamente a causa PI.
+- CI revelou que a primeira versão do teste tinha variável local ausente e, depois, que a sincronização CP→PI não estava chamada no caminho da máquina. Ambos os pontos foram corrigidos nos commits seguintes; aguardar o CI do commit `9c068c380fbce0b3caae6e7fd7b3db37847bdde4` ou posterior.
