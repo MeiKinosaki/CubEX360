@@ -94,6 +94,13 @@ int cubex_machine_init(cubex_machine_t *machine, uint32_t entry_pc,
     return 0;
 }
 
+void cubex_machine_cp_set_status(cubex_machine_t *machine, uint16_t set_bits,
+                                 uint16_t clear_bits) {
+    if (!machine || !machine->initialized) return;
+    cubex_cp_set_status(&machine->cp, set_bits, clear_bits);
+    machine_sync_device_irqs(machine);
+}
+
 void cubex_machine_pe_raise_finish(cubex_machine_t *machine) {
     if (!machine || !machine->initialized) return;
     cubex_pe_raise_finish(&machine->pe);
