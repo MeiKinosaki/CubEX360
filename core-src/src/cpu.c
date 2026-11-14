@@ -60,6 +60,30 @@ int cubex_cpu_take_external_interrupt(cubex_cpu_state_t *c) {
     c->pc = vector;
     return 1;
 }
+/* Enter a synchronous storage/alignment exception.  The caller supplies
+ * the faulting effective address and whether the access was a store. */
+static void take_data_exception(cubex_cpu_state_t *c, uint32_t vector,
+                                uint32_t address, int is_store,
+                                uint32_t saved_pc) {
+    c->srr0 = saved_pc;
+    c->srr1 = c->msr & PPC_MSR_SRR1_EXTERNAL_MASK;
+    c->dar = address;
+    c->dsisr = is_store ? 0x02000000u : 0u;
+    c->msr &= ~PPC_MSR_EXCEPTION_CLEAR;
+    if (c->msr & PPC_MSR_ILE) c->msr |= PPC_MSR_LE;
+    else c->msr &= ~PPC_MSR_LE;
+    c->pc = (c->msr & PPC_MSR_IP) ? (0xfff00000u | vector) : vector;
+}
+static cubex_cpu_result_t data_fault(cubex_cpu_state_t *c, uint32_t address,
+                                     int is_store) {
+    take_data_exception(c, 0x300u, address, is_store, c->pc);
+    return CUBEX_CPU_OK;
+}
+static cubex_cpu_result_t alignment_fault(cubex_cpu_state_t *c, uint32_t address,
+                                          int is_store) {
+    take_data_exception(c, 0x600u, address, is_store, c->pc);
+    return CUBEX_CPU_OK;
+}
 static int32_t sx16(uint32_t v) { return (int16_t)(v & 0xffffu); }
 static void set_cr_field(cubex_cpu_state_t *c, uint32_t bf, uint32_t field) {
     uint32_t shift = 28u - (bf * 4u);
@@ -238,7 +262,8 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
     }
     case 32: {
         uint32_t a = (ra ? c->gpr[ra] : 0u) + (uint32_t)sx16(imm);
-        if (cubex_bus_read32be(m, a, &c->gpr[rt])) return CUBEX_CPU_MEMORY_FAULT;
+        if (a & 3u) return alignment_fault(c, a, 0);
+        if (cubex_bus_read32be(m, a, &c->gpr[rt])) return data_fault(c, a, 0);
         break;
     }
     case 34: {
@@ -252,13 +277,15 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
     case 42: {
         uint32_t a = (ra ? c->gpr[ra] : 0u) + (uint32_t)sx16(imm);
         uint16_t v;
-        if (cubex_bus_read16be(m, a, &v)) return CUBEX_CPU_MEMORY_FAULT;
+        if (a & 1u) return alignment_fault(c, a, 0);
+        if (cubex_bus_read16be(m, a, &v)) return data_fault(c, a, 0);
         c->gpr[rt] = (op == 42 && (v & 0x8000u)) ? (uint32_t)(int32_t)(int16_t)v : (uint32_t)v;
         break;
     }
     case 36: {
         uint32_t a = (ra ? c->gpr[ra] : 0u) + (uint32_t)sx16(imm);
-        if (cubex_bus_write32be(m, a, c->gpr[rt])) return CUBEX_CPU_MEMORY_FAULT;
+        if (a & 3u) return alignment_fault(c, a, 1);
+        if (cubex_bus_write32be(m, a, c->gpr[rt])) return data_fault(c, a, 1);
         break;
     }
     case 38: {
@@ -268,7 +295,8 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
     }
     case 44: {
         uint32_t a = (ra ? c->gpr[ra] : 0u) + (uint32_t)sx16(imm);
-        if (cubex_bus_write16be(m, a, (uint16_t)c->gpr[rt])) return CUBEX_CPU_MEMORY_FAULT;
+        if (a & 1u) return alignment_fault(c, a, 1);
+        if (cubex_bus_write16be(m, a, (uint16_t)c->gpr[rt])) return data_fault(c, a, 1);
         break;
     }
     case 20:
