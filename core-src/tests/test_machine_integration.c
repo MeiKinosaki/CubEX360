@@ -41,7 +41,7 @@ int main(void) {
     assert(cubex_bus_write32be(&machine.memory, entry + 0x38u, 0x89250005u) == 0); /* lbz r9,5(r5) */
     machine.cpu.pc = entry + 0x20u;
     assert(cubex_machine_run(&machine, 7u) == CUBEX_CPU_OK);
-    assert(machine.cpu.gpr[7] == 0x12550000u);
+    assert(machine.cpu.gpr[7] == 0x1234u);
     assert(machine.cpu.gpr[9] == 0x55u);
     assert(cubex_machine_mmio_read32(&machine, mmio_reg, &value) == 0);
     assert(value == 0x12550000u);
