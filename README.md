@@ -428,3 +428,14 @@ Os commits de código e teste não têm status de CI publicado verificado nesta 
 - Commits: `89ad39d` (implementação) e `6ccd973` (testes).
 - **Validação concluída:** todos os seis jobs passaram nos workflows [#309](https://github.com/MeiKinosaki/CubEX360/actions/runs/43627224216) e [#310](https://github.com/MeiKinosaki/CubEX360/actions/runs/43627227898), incluindo host-core-test, ASan/UBSan, build-core-smoke e build-probe. Isso valida a revisão de código testada; não significa que um `default.xex` final foi produzido.
 - Permanecem pendentes o tratamento completo de todas as exceções, a semântica detalhada de MSR/SRR1 por tipo de exceção, MMU/TLB, FPU, Flipper/GPU, DSP, drive/IPL e integração de jogo. Não há `default.xex` funcional, boot RGH ou compatibilidade de jogos comprovados.
+
+
+## Desenvolvimento — v1.95b (registradores de segmento Gekko; CI pendente)
+
+- Estado da CPU ampliado com os 16 registradores de segmento (SR0–SR15).
+- Interpretador recebeu instruções privilegiadas `MTSR`, `MFSR`, `MTSRIN` e `MFSRIN`; acessos em modo usuário geram Program Exception.
+- Formato de save state avançou para versão 5, preservando leitura dos formatos v1–v4 e incluindo SR0–SR15 no novo formato.
+- Testes host adicionados para acesso direto/indireto, privilégio e round-trip dos registradores SR.
+- Commits: CPU state `95d5a3b`, execução `7121247`, estado `889d0ab`, testes `2f7a0ad` e ajuste de offset `2f7a0ad`.
+
+**Validação pendente:** os novos testes e sanitizers ainda precisam passar no GitHub Actions para esta revisão. Isto ainda não implementa tradução de endereços por segmentos, BAT, SDR1/PTE ou MMU completa. `default.xex`, boot RGH e compatibilidade com jogos seguem não comprovados.
