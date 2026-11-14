@@ -2,6 +2,18 @@
 
 #include <string.h>
 
+static int machine_bus_mmio_read32(void *context, uint32_t address,
+                                   uint32_t *value) {
+    cubex_machine_t *machine = (cubex_machine_t *)context;
+    return machine ? cubex_mmio_read32(&machine->mmio, address, value) : -1;
+}
+
+static int machine_bus_mmio_write32(void *context, uint32_t address,
+                                    uint32_t value) {
+    cubex_machine_t *machine = (cubex_machine_t *)context;
+    return machine ? cubex_mmio_write32(&machine->mmio, address, value) : -1;
+}
+
 int cubex_machine_init(cubex_machine_t *machine, uint32_t entry_pc,
                        uint32_t timer_period, int timer_periodic) {
     if (!machine || timer_period == 0u) return -1;
@@ -13,6 +25,9 @@ int cubex_machine_init(cubex_machine_t *machine, uint32_t entry_pc,
         cubex_memory_destroy(&machine->memory);
         return -1;
     }
+    machine->memory.bus_context = machine;
+    machine->memory.mmio_read32 = machine_bus_mmio_read32;
+    machine->memory.mmio_write32 = machine_bus_mmio_write32;
     if (cubex_timer_init(&machine->timer, timer_period,
                          timer_periodic != 0) != 0) {
         cubex_memory_destroy(&machine->memory);
