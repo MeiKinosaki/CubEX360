@@ -151,6 +151,33 @@ int main(void) {
     assert(value == 0xaabbccddu);
 
 
+
+    /* PI external interrupt enters the Gekko exception vector and RFI restores context. */
+    cubex_machine_destroy(&machine);
+    assert(cubex_machine_init(&machine, entry, 2u, 0) == 0);
+    assert(cubex_bus_write32be(&machine.memory, entry, 0x48000000u) == 0);
+    assert(cubex_bus_write32be(&machine.memory, 0x00000500u, 0x4c000064u) == 0); /* rfi */
+    assert(cubex_bus_write16be(&machine.memory, 0xCC00100Au,
+                               CUBEX_PE_INT_FINISH_ENABLE) == 0);
+    assert(cubex_bus_write32be(&machine.memory, 0xCC003004u,
+                               CUBEX_PI_IRQ_PE_FINISH) == 0);
+    machine.cpu.msr = 0x00008000u; /* MSR[EE] */
+    cubex_machine_pe_raise_finish(&machine);
+    assert(cubex_pi_irq_pending(&machine.pi));
+    assert(cubex_machine_step(&machine) == CUBEX_CPU_OK);
+    assert(machine.cpu.pc == 0x00000500u);
+    assert(machine.cpu.srr0 == entry);
+    assert(machine.cpu.srr1 == 0x00008000u);
+    assert((machine.cpu.msr & 0x00008000u) == 0u);
+    assert(machine.cpu.retired_instructions == 0u);
+    assert(cubex_machine_step(&machine) == CUBEX_CPU_OK); /* RFI */
+    assert(machine.cpu.pc == entry);
+    assert(machine.cpu.msr == 0x00008000u);
+    assert(machine.cpu.retired_instructions == 1u);
+    assert(cubex_bus_write32be(&machine.memory, 0xCC003000u,
+                               CUBEX_PI_IRQ_PE_FINISH) == 0);
+    assert(!cubex_pi_irq_pending(&machine.pi));
+
     /* Periodic timer advances only for retired instructions, including run(). */
     cubex_machine_destroy(&machine);
     assert(cubex_machine_init(&machine, entry, 2u, 1) == 0);
