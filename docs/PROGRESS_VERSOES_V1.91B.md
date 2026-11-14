@@ -187,3 +187,32 @@ O teste integrado de CP watermark → PI Cause bit 11 passou nos testes host. A 
 
 
 **Resultado final do CI #43623917054:** os seis jobs concluíram com sucesso: host strict, ASan/UBSan, build-probe, core smoke, frontend config e XEX preflight gate. Foram publicados os artefatos `cubex360-libxenon-elf32` e `cubex360-core-smoke-elf32`. Ambos são ELF32; o gate XEX aprovou por bloquear a geração sem ferramentas de conversão reais. Nenhum `default.xex` foi produzido nem testado em console.
+
+
+## Exceção externa Gekko e contexto de interrupção — v1.93b em andamento
+
+### Implementação de código adicionada
+
+- Estado da CPU agora inclui SRR0 e SRR1.
+- `cubex_cpu_take_external_interrupt()` aceita interrupção externa apenas quando MSR[EE] está ativo.
+- Entrada salva PC em SRR0 e MSR em SRR1, limpa bits de estado definidos para entrada de exceção e seleciona vetor externo pelo MSR[IP] (0x00000500 ou 0xFFF00500).
+- A máquina verifica PI Cause & PI Mask no limite entre instruções e entrega a exceção ao Gekko; a aceitação de interrupção não conta como instrução aposentada nem avança o timer.
+- Instrução RFI (opcode 19, XO 50) restaura PC e MSR a partir de SRR0/SRR1.
+- Save state promovido para formato v2 (CPU payload 168 bytes) para persistir SRR0/SRR1; carregamento do formato v1 (160 bytes) permanece aceito, inicializando SRR0/SRR1 em zero.
+- Teste integrado provoca PE Finish com PI mask habilitada, verifica entrada no vetor 0x00000500, SRR0/SRR1, MSR[EE] limpo e retorno por RFI.
+- Teste host do save state cobre round-trip de MSR/SRR0/SRR1 e atualiza o offset de corrupção/checksum.
+
+### Validação observada
+
+- CI #43624356812, commit `8bcd30633c27d84299fd71da5458260a87496a1d`: seis jobs concluídos com sucesso, incluindo host-core-test, host-sanitizers, build-probe e build-core-smoke. Isso valida o teste de entrada externa e RFI antes da mudança posterior do save-state.
+- CI #43624398453, commit `37dd96b07db25da2ac9ef8d5bcf6fa5c8ee1d8bc`: host-core-test e frontend-config-validation passaram; host-sanitizers, build-probe e build-core-smoke estavam em execução durante a consulta.
+- CI #43624411135 foi disparado para o commit de teste de round-trip SRR; aguardar conclusão.
+- XEX preflight continua sendo gate de segurança; não significa que um default.xex tenha sido produzido.
+
+### Limites e próximos passos
+
+- O vetor baixo 0x00000500 foi testado no barramento de RAM. O caminho de vetor alto 0xFFF00500 (MSR[IP]=1) ainda precisa de mapeamento/validação.
+- Ainda não existe exceção completa para todas as classes (alignment, program, DSI/ISI, decrementer, system call).
+- O modelo PI ainda não está ligado a todos os dispositivos reais; apenas CP/PE estão roteados.
+- O caminho de exceção precisa ser confrontado com testes de referência Gekko/PowerPC, inclusive preservação detalhada de bits MSR.
+- Sem boot de jogo GameCube e sem execução em Xbox 360 comprovados.
