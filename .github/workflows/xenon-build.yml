@@ -60,7 +60,7 @@ jobs:
             free60/libxenon:latest \
             bash -lc 'set -eu; export DEVKITXENON="${DEVKITXENON:-/usr/local/xenon}"; export PATH="$DEVKITXENON/bin:$DEVKITXENON/usr/bin:$PATH"; command -v xenon-gcc; make clean; make; test -s cubex360_core_smoke.elf32; file cubex360_core_smoke.elf32; xenon-objdump -f cubex360_core_smoke.elf32'
           cp core-src/cubex360_core_smoke.elf32 artifacts/
-          ./scripts/verify-xenon-elf.sh artifacts/cubex360_core_smoke.elf32 | tee artifacts/ELF32-REPORT.txt
+          sh ./scripts/verify-xenon-elf.sh artifacts/cubex360_core_smoke.elf32 | tee artifacts/ELF32-REPORT.txt
           sha256sum artifacts/cubex360_core_smoke.elf32 | tee artifacts/SHA256SUMS.txt
       - name: Upload core smoke ELF32
         uses: actions/upload-artifact@v4
@@ -84,7 +84,7 @@ jobs:
             free60/libxenon:latest \
             bash -lc 'set -eu; export DEVKITXENON="${DEVKITXENON:-/usr/local/xenon}"; export PATH="$DEVKITXENON/bin:$DEVKITXENON/usr/bin:$PATH"; command -v xenon-gcc; make clean; make; test -s cubex360_toolchain_probe.elf32; file cubex360_toolchain_probe.elf32; xenon-objdump -f cubex360_toolchain_probe.elf32'
           cp xenon-probe/cubex360_toolchain_probe.elf32 artifacts/
-          ./scripts/verify-xenon-elf.sh artifacts/cubex360_toolchain_probe.elf32 | tee artifacts/ELF32-REPORT.txt
+          sh ./scripts/verify-xenon-elf.sh artifacts/cubex360_toolchain_probe.elf32 | tee artifacts/ELF32-REPORT.txt
           sha256sum artifacts/cubex360_toolchain_probe.elf32 | tee artifacts/SHA256SUMS.txt
       - name: Upload verified ELF32 diagnostic artifact
         uses: actions/upload-artifact@v4
