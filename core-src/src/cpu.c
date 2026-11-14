@@ -14,12 +14,16 @@ void cubex_cpu_reset(cubex_cpu_state_t *c, uint32_t pc) {
 }
 
 /* PowerPC/Gekko MSR bit definitions use architectural bit numbering. */
+#define PPC_MSR_POW 0x00040000u
+#define PPC_MSR_ILE 0x00010000u
 #define PPC_MSR_EE 0x00008000u
 #define PPC_MSR_PR 0x00004000u
 #define PPC_MSR_FP 0x00002000u
+#define PPC_MSR_ME 0x00001000u
 #define PPC_MSR_FE0 0x00000800u
 #define PPC_MSR_SE 0x00000400u
 #define PPC_MSR_BE 0x00000200u
+#define PPC_MSR_FE1 0x00000100u
 #define PPC_MSR_IP 0x00000040u
 #define PPC_MSR_IR 0x00000020u
 #define PPC_MSR_DR 0x00000010u
@@ -31,9 +35,11 @@ int cubex_cpu_take_external_interrupt(cubex_cpu_state_t *c) {
     uint32_t vector;
     if (!c || !(c->msr & PPC_MSR_EE)) return 0;
     c->srr0 = c->pc;
-    c->srr1 = c->msr;
+    c->srr1 = c->msr & PPC_MSR_SRR1_EXTERNAL_MASK;
     vector = (c->msr & PPC_MSR_IP) ? 0xfff00500u : 0x00000500u;
     c->msr &= ~PPC_MSR_EXCEPTION_CLEAR;
+    if (c->msr & PPC_MSR_ILE) c->msr |= PPC_MSR_LE;
+    else c->msr &= ~PPC_MSR_LE;
     c->pc = vector;
     return 1;
 }
