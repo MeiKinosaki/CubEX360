@@ -185,9 +185,9 @@ int main(void) {
     assert(cubex_bus_write32be(&machine.memory, entry, 0x48000000u) == 0);
     assert(cubex_bus_write32be(&machine.memory, 0x00000900u, 0x4c000064u) == 0);
     machine.cpu.msr = 0x00008000u;
-    machine.cpu.dec = 1u;
+    machine.cpu.dec = 0u;
     assert(cubex_machine_step(&machine) == CUBEX_CPU_OK);
-    assert(machine.cpu.dec == 0u && machine.cpu.dec_pending == 1u);
+    assert(machine.cpu.dec == 0xffffffffu && machine.cpu.dec_pending == 1u);
     assert(machine.cpu.pc == entry + 4u);
     assert(cubex_machine_step(&machine) == CUBEX_CPU_OK);
     assert(machine.cpu.pc == 0x00000900u);
