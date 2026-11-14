@@ -172,7 +172,7 @@ int main(void) {
     assert(machine.cpu.retired_instructions == 0u);
     assert(cubex_machine_step(&machine) == CUBEX_CPU_OK); /* RFI */
     assert(machine.cpu.pc == entry);
-    assert(machine.cpu.msr == 0x0005ff3bu);
+    assert(machine.cpu.msr == 0x0000ff3bu); /* RFI restores architecturally saved SRR1 fields */
     assert(machine.cpu.retired_instructions == 1u);
     assert(cubex_bus_write32be(&machine.memory, 0xCC003000u,
                                CUBEX_PI_IRQ_PE_FINISH) == 0);
