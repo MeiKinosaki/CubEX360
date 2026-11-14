@@ -487,3 +487,17 @@ Os commits de código e teste não têm status de CI publicado verificado nesta 
 **Estado de validação:** os workflows host, sanitizers e builds foram disparados para este SHA e ainda estão na fila. Portanto, os testes estão escritos, mas ainda não estão aprovados. A porcentagem de 60% representa estimativa de implementação do projeto, não compatibilidade de jogos nem conclusão do núcleo de exceções.
 
 **Pendências:** confirmar CI; corrigir qualquer falha; completar auditoria de SRR1/RFI e permissões BAT; implementar SDR1/page tables/TLB; desenvolver GX FIFO/command processor; concluir o alvo `default.xex` e verificar boot no RGH. Nenhum jogo GameCube está comprovadamente executável nesta revisão.
+
+
+## v2.1b — primeiro módulo de fila GX FIFO limitada
+
+- Criada uma fila circular de palavras de 32 bits para preparar o caminho de escrita do GX FIFO: capacidade fixa de 256 palavras, índices circulares, contagem, detecção de cheia/vazia e sinalização de overflow.
+- Adicionados testes host para FIFO vazia, ordem FIFO, capacidade/overflow, esvaziamento e wrap-around do buffer.
+- Os testes foram ligados aos modos strict e ASan/UBSan de `scripts/run-host-tests.sh`.
+- Commits: módulo `c5f17e0` / `0c6f2b6`, testes `7b0ad18`, integração CI `91e15ea`.
+
+**Limite importante:** este é somente o contêiner de fila bounded. Ainda não está conectado ao endereço físico de escrita GX FIFO `0xCC008000`, ao CP/GP command processor, à rasterização, ao EFB/XFB ou ao sincronismo da GPU. Não representa GPU GameCube funcional nem execução de comandos GX. MMU/TLB, FPU e exceções permanecem parciais.
+
+**Validação:** os novos jobs strict e ASan/UBSan foram disparados pelo commit de integração; aguardam resultado. Os workflows de XEX também estão em andamento, sem artefato `default.xex` confirmado nesta revisão. Sem boot RGH ou jogos comprovados.
+
+**Progresso estimado:** 61% de implementação geral. O aumento de 60% para 61% corresponde exclusivamente ao módulo de fila GX FIFO e sua cobertura de teste adicionada; não significa avanço equivalente na GPU completa ou na compatibilidade de jogos.
