@@ -1296,6 +1296,22 @@ int main(void) {
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
     assert(cpu.pc == 0x00000400u);
     assert(cpu.srr0 == 0x70000000u && cpu.retired_instructions == 0u);
+    /* Illegal zero word enters Program vector and records SRR1[11]. */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x340u, 0u) == 0);
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x340u);
+    cpu.msr = 0x0000e032u;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.pc == 0x00000700u);
+    assert(cpu.srr0 == CUBEX360_RAM_CACHED_BASE + 0x340u);
+    assert(cpu.srr1 == (0x0000e032u | 0x00100000u));
+    assert(cpu.msr == 0u && cpu.retired_instructions == 0u);
+    /* Invalid compare-immediate L form also raises illegal-instruction. */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x344u,
+        (11u<<26)|(1u<<21)) == 0);
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x344u);
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.pc == 0x00000700u && cpu.srr0 == CUBEX360_RAM_CACHED_BASE + 0x344u);
+    assert((cpu.srr1 & 0x00100000u) != 0u);
     /* Save/load round-trip covers CPU registers and main RAM; file is host-test-only. */
     {
         const char *state_path = "/tmp/cubex360-state-test.bin";
