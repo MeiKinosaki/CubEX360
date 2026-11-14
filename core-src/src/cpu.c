@@ -84,6 +84,16 @@ static cubex_cpu_result_t alignment_fault(cubex_cpu_state_t *c, uint32_t address
     take_data_exception(c, 0x600u, address, is_store, c->pc);
     return CUBEX_CPU_OK;
 }
+/* PowerPC 750 SRR1[11] marks an illegal-instruction program exception. */
+static cubex_cpu_result_t illegal_instruction(cubex_cpu_state_t *c) {
+    c->srr0 = c->pc;
+    c->srr1 = (c->msr & PPC_MSR_SRR1_EXTERNAL_MASK) | 0x00100000u;
+    c->msr &= ~PPC_MSR_EXCEPTION_CLEAR;
+    if (c->msr & PPC_MSR_ILE) c->msr |= PPC_MSR_LE;
+    else c->msr &= ~PPC_MSR_LE;
+    c->pc = (c->msr & PPC_MSR_IP) ? 0xfff00700u : 0x00000700u;
+    return CUBEX_CPU_OK;
+}
 static int32_t sx16(uint32_t v) { return (int16_t)(v & 0xffffu); }
 static void set_cr_field(cubex_cpu_state_t *c, uint32_t bf, uint32_t field) {
     uint32_t shift = 28u - (bf * 4u);
@@ -123,6 +133,8 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
         c->pc = (c->msr & PPC_MSR_IP) ? 0xfff00400u : 0x00000400u;
         return CUBEX_CPU_OK;
     }
+    /* An all-zero instruction word is architecturally illegal on the 750. */
+    if (ins == 0u) return illegal_instruction(c);
     op = ins >> 26;
     rt = (ins >> 21) & 31u;
     ra = (ins >> 16) & 31u;
@@ -135,7 +147,7 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
     case 11: {
         uint32_t bf = (ins >> 23) & 7u;
         uint32_t ra_value = c->gpr[ra];
-        if (ins & 0x00200000u) return CUBEX_CPU_UNSUPPORTED;
+        if (ins & 0x00200000u) return illegal_instruction(c);
         if (op == 11) {
             int32_t a = (int32_t)ra_value, b = sx16(imm);
             set_compare_field(c, bf, a < b, a > b, a == b);
@@ -181,7 +193,7 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
         break;
     case 33: { /* LWZU: load word and update RA */
         uint32_t a;
-        if (ra == 0u || ra == rt) return CUBEX_CPU_UNSUPPORTED;
+        if (ra == 0u || ra == rt) return illegal_instruction(c);
         a = c->gpr[ra] + (uint32_t)sx16(imm);
         if (a & 3u) return alignment_fault(c, a, 0);
         if (cubex_bus_read32be(m, a, &c->gpr[rt])) return data_fault(c, a, 0);
@@ -191,7 +203,7 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
     case 35: { /* LBZU: load byte and update RA */
         uint32_t a;
         uint8_t v;
-        if (ra == 0u || ra == rt) return CUBEX_CPU_UNSUPPORTED;
+        if (ra == 0u || ra == rt) return illegal_instruction(c);
         a = c->gpr[ra] + (uint32_t)sx16(imm);
         if (cubex_bus_read8(m, a, &v)) return data_fault(c, a, 0);
         c->gpr[rt] = v;
@@ -200,7 +212,7 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
     }
     case 37: { /* STWU: store word and update RA */
         uint32_t a;
-        if (ra == 0u) return CUBEX_CPU_UNSUPPORTED;
+        if (ra == 0u) return illegal_instruction(c);
         a = c->gpr[ra] + (uint32_t)sx16(imm);
         if (a & 3u) return alignment_fault(c, a, 1);
         if (cubex_bus_write32be(m, a, c->gpr[rt])) return data_fault(c, a, 1);
@@ -209,7 +221,7 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
     }
     case 39: { /* STBU: store byte and update RA */
         uint32_t a;
-        if (ra == 0u) return CUBEX_CPU_UNSUPPORTED;
+        if (ra == 0u) return illegal_instruction(c);
         a = c->gpr[ra] + (uint32_t)sx16(imm);
         if (cubex_bus_write8(m, a, (uint8_t)c->gpr[rt])) return data_fault(c, a, 1);
         c->gpr[ra] = a;
@@ -218,7 +230,7 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
     case 41: { /* LHZU: load halfword and update RA */
         uint32_t a;
         uint16_t v;
-        if (ra == 0u || ra == rt) return CUBEX_CPU_UNSUPPORTED;
+        if (ra == 0u || ra == rt) return illegal_instruction(c);
         a = c->gpr[ra] + (uint32_t)sx16(imm);
         if (a & 1u) return alignment_fault(c, a, 0);
         if (cubex_bus_read16be(m, a, &v)) return data_fault(c, a, 0);
@@ -229,7 +241,7 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
     case 43: { /* LHAU: load algebraic halfword and update RA */
         uint32_t a;
         uint16_t v;
-        if (ra == 0u || ra == rt) return CUBEX_CPU_UNSUPPORTED;
+        if (ra == 0u || ra == rt) return illegal_instruction(c);
         a = c->gpr[ra] + (uint32_t)sx16(imm);
         if (a & 1u) return alignment_fault(c, a, 0);
         if (cubex_bus_read16be(m, a, &v)) return data_fault(c, a, 0);
@@ -239,7 +251,7 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
     }
     case 45: { /* STHU: store halfword and update RA */
         uint32_t a;
-        if (ra == 0u) return CUBEX_CPU_UNSUPPORTED;
+        if (ra == 0u) return illegal_instruction(c);
         a = c->gpr[ra] + (uint32_t)sx16(imm);
         if (a & 1u) return alignment_fault(c, a, 1);
         if (cubex_bus_write16be(m, a, (uint16_t)c->gpr[rt])) return data_fault(c, a, 1);
@@ -370,7 +382,7 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
         case 0:
         case 32: {
             uint32_t bf = (ins >> 23) & 7u;
-            if (ins & 0x00200000u) return CUBEX_CPU_UNSUPPORTED;
+            if (ins & 0x00200000u) return illegal_instruction(c);
             if (xo == 0u) {
                 int32_t a = (int32_t)c->gpr[ra], b = (int32_t)c->gpr[rb];
                 set_compare_field(c, bf, a < b, a > b, a == b);
@@ -428,7 +440,7 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
         }
         case 55: { /* LWZUX: indexed load word and update RA */
             uint32_t address, value;
-            if (ra == 0u || ra == rt) return CUBEX_CPU_UNSUPPORTED;
+            if (ra == 0u || ra == rt) return illegal_instruction(c);
             address = c->gpr[ra] + c->gpr[rb];
             if (address & 3u) return alignment_fault(c, address, 0);
             if (cubex_bus_read32be(m, address, &value)) return data_fault(c, address, 0);
@@ -439,7 +451,7 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
         case 119: { /* LBZUX: indexed load byte and update RA */
             uint32_t address;
             uint8_t value;
-            if (ra == 0u || ra == rt) return CUBEX_CPU_UNSUPPORTED;
+            if (ra == 0u || ra == rt) return illegal_instruction(c);
             address = c->gpr[ra] + c->gpr[rb];
             if (cubex_bus_read8(m, address, &value)) return data_fault(c, address, 0);
             c->gpr[rt] = value;
@@ -448,7 +460,7 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
         }
         case 183: { /* STWUX: indexed store word and update RA */
             uint32_t address;
-            if (ra == 0u) return CUBEX_CPU_UNSUPPORTED;
+            if (ra == 0u) return illegal_instruction(c);
             address = c->gpr[ra] + c->gpr[rb];
             if (address & 3u) return alignment_fault(c, address, 1);
             if (cubex_bus_write32be(m, address, c->gpr[rt])) return data_fault(c, address, 1);
@@ -457,7 +469,7 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
         }
         case 247: { /* STBUX: indexed store byte and update RA */
             uint32_t address;
-            if (ra == 0u) return CUBEX_CPU_UNSUPPORTED;
+            if (ra == 0u) return illegal_instruction(c);
             address = c->gpr[ra] + c->gpr[rb];
             if (cubex_bus_write8(m, address, (uint8_t)c->gpr[rt])) return data_fault(c, address, 1);
             c->gpr[ra] = address;
@@ -466,7 +478,7 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
         case 311: { /* LHZUX: indexed halfword load and update RA */
             uint32_t address;
             uint16_t value;
-            if (ra == 0u || ra == rt) return CUBEX_CPU_UNSUPPORTED;
+            if (ra == 0u || ra == rt) return illegal_instruction(c);
             address = c->gpr[ra] + c->gpr[rb];
             if (address & 1u) return alignment_fault(c, address, 0);
             if (cubex_bus_read16be(m, address, &value)) return data_fault(c, address, 0);
@@ -477,7 +489,7 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
         case 375: { /* LHAUX: indexed signed halfword load and update RA */
             uint32_t address;
             uint16_t value;
-            if (ra == 0u || ra == rt) return CUBEX_CPU_UNSUPPORTED;
+            if (ra == 0u || ra == rt) return illegal_instruction(c);
             address = c->gpr[ra] + c->gpr[rb];
             if (address & 1u) return alignment_fault(c, address, 0);
             if (cubex_bus_read16be(m, address, &value)) return data_fault(c, address, 0);
@@ -488,7 +500,7 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
         }
         case 439: { /* STHUX: indexed halfword store and update RA */
             uint32_t address;
-            if (ra == 0u) return CUBEX_CPU_UNSUPPORTED;
+            if (ra == 0u) return illegal_instruction(c);
             address = c->gpr[ra] + c->gpr[rb];
             if (address & 1u) return alignment_fault(c, address, 1);
             if (cubex_bus_write16be(m, address, (uint16_t)c->gpr[rt])) return data_fault(c, address, 1);
@@ -627,7 +639,7 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
             else if (spr == 9u) c->gpr[rt] = c->ctr;
             else if (spr == 1u) c->gpr[rt] = c->xer;
             else if (spr == 22u) c->gpr[rt] = c->dec;
-            else return CUBEX_CPU_UNSUPPORTED;
+            else return illegal_instruction(c);
             break;
         }
         case 467: {
@@ -636,7 +648,7 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
             else if (spr == 9u) c->ctr = c->gpr[rt];
             else if (spr == 1u) c->xer = c->gpr[rt];
             else if (spr == 22u) { c->dec = c->gpr[rt]; c->dec_pending = 0u; }
-            else return CUBEX_CPU_UNSUPPORTED;
+            else return illegal_instruction(c);
             break;
         }
         case 459: { /* DIVWU: unsigned word division; zero divisor has deterministic placeholder */
