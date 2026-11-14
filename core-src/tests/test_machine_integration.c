@@ -179,6 +179,19 @@ int main(void) {
     assert(!cubex_pi_irq_pending(&machine.pi));
 
 
+
+    /* MTSpr/MFSpr access the architectural DEC SPR through opcode 31. */
+    cubex_machine_destroy(&machine);
+    assert(cubex_machine_init(&machine, entry, 3u, 0) == 0);
+    machine.cpu.gpr[3] = 0x12345678u;
+    assert(cubex_bus_write32be(&machine.memory, entry, 0x7c7603a6u) == 0); /* mtspr 22,r3 */
+    assert(cubex_bus_write32be(&machine.memory, entry + 4u, 0x7c9602a6u) == 0); /* mfspr r4,22 */
+    assert(cubex_bus_write32be(&machine.memory, entry + 8u, 0x48000000u) == 0);
+    assert(cubex_machine_step(&machine) == CUBEX_CPU_OK);
+    assert(machine.cpu.dec == 0x12345677u);
+    assert(cubex_machine_step(&machine) == CUBEX_CPU_OK);
+    assert(machine.cpu.gpr[4] == 0x12345677u);
+
     /* Decrementer expiry enters the 0x900 exception vector and RFI returns. */
     cubex_machine_destroy(&machine);
     assert(cubex_machine_init(&machine, entry, 3u, 0) == 0);
