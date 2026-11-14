@@ -77,6 +77,30 @@ int main(void) {
 
 
 
+
+    /* CP FIFO watermark event is routed into PI cause bit 11. */
+    {
+        assert(cubex_bus_write16be(&machine.memory, 0xCC000002u,
+                                   CUBEX_CP_CR_OVERFLOW_IRQ) == 0);
+        assert(cubex_bus_write32be(&machine.memory, 0xCC003004u,
+                                   CUBEX_PI_IRQ_CP) == 0);
+        cubex_machine_cp_set_status(&machine, CUBEX_CP_SR_OVERFLOW, 0u);
+        assert(cubex_bus_read32be(&machine.memory, 0xCC003000u, &value) == 0);
+        assert((value & CUBEX_PI_IRQ_CP) != 0u);
+        assert(cubex_pi_irq_pending(&machine.pi));
+        assert(cubex_bus_write16be(&machine.memory, 0xCC000004u,
+                                   CUBEX_CP_SR_OVERFLOW) == 0);
+        assert(cubex_bus_read16be(&machine.memory, 0xCC000000u,
+                                  (uint16_t *)&value) == 0);
+        assert((value & CUBEX_CP_SR_OVERFLOW) == 0u);
+        assert(cubex_bus_read32be(&machine.memory, 0xCC003000u, &value) == 0);
+        assert((value & CUBEX_PI_IRQ_CP) != 0u);
+        assert(cubex_bus_write32be(&machine.memory, 0xCC003000u,
+                                   CUBEX_PI_IRQ_CP) == 0);
+        assert(!cubex_pi_irq_pending(&machine.pi));
+        assert(cubex_bus_write16be(&machine.memory, 0xCC000002u, 0u) == 0);
+    }
+
     /* PE registers are 16-bit; PE events latch PI cause independently of PI mask. */
     {
         uint16_t half = 0u;
