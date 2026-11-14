@@ -890,6 +890,30 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
             if (ins & 1u) set_cr0(c, result);
             break;
         }
+        case 210: { /* MTSR: privileged move to segment register */
+            uint32_t sr = ra & 15u;
+            if (c->msr & PPC_MSR_PR) return program_exception(c, 0x00020000u);
+            c->sr[sr] = c->gpr[rt];
+            break;
+        }
+        case 242: { /* MTSRIN: SR index is EA[0:3] */
+            uint32_t sr = c->gpr[rb] >> 28;
+            if (c->msr & PPC_MSR_PR) return program_exception(c, 0x00020000u);
+            c->sr[sr] = c->gpr[rt];
+            break;
+        }
+        case 595: { /* MFSR: privileged move from segment register */
+            uint32_t sr = ra & 15u;
+            if (c->msr & PPC_MSR_PR) return program_exception(c, 0x00020000u);
+            c->gpr[rt] = c->sr[sr];
+            break;
+        }
+        case 659: { /* MFSRIN: SR index is EA[0:3] */
+            uint32_t sr = c->gpr[rb] >> 28;
+            if (c->msr & PPC_MSR_PR) return program_exception(c, 0x00020000u);
+            c->gpr[rt] = c->sr[sr];
+            break;
+        }
         case 28: c->gpr[ra] = c->gpr[rt] & c->gpr[rb]; if (ins & 1u) set_cr0(c, c->gpr[ra]); break;
         case 412: /* ORC */
             c->gpr[ra] = c->gpr[rt] | ~c->gpr[rb];
