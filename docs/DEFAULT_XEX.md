@@ -73,7 +73,7 @@ Não publicar nem renomear um ELF como `default.xex`. O job XEX só deve ser hab
 
 ## v1.99b — pipeline de XEX em runner Linux
 
-Foi criado .github/workflows/default-xex-cloud.yml, que usa o projeto aberto xenosworks/xsdk, MIT, fixado no commit 8a824102d8cbba14b08b245e294e6337be38f447. O xsdk documenta GCC/binutils/newlib para powerpc-xsdk-elf, runtime para títulos homebrew e o empacotador tools/elf2xex.py que produz contêiner XEX2.
+Foi criado .github/workflows/default-xex-cloud.yml, que usa o projeto aberto xenosworks/xsdk, MIT, fixado no commit ade2c81d914634834d77394c5d9f8c4575f395bc. O xsdk documenta GCC/binutils/newlib para powerpc-xsdk-elf, runtime para títulos homebrew e o empacotador tools/elf2xex.py que produz contêiner XEX2.
 
 O alvo xex-target/ liga os fontes atuais de memória, barramento e CPU e executa somente um smoke test de duas instruções. O workflow gera default.xex, verifica magic XEX2, tamanho mínimo e SHA-256, e publica o arquivo como artefato com retenção de 14 dias.
 
