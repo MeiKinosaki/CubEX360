@@ -7,6 +7,22 @@
 #define PPC_CR0_EQ 0x20000000u
 #define PPC_CR0_SO 0x10000000u
 
+/* Experimental 750/Gekko BAT block lookup; PP/WIMG and page tables are separate. */
+int cubex_cpu_translate_bat(const cubex_cpu_state_t *c, uint32_t ea, int is_instruction, int user_mode, uint32_t *pa) {
+ const uint32_t *bat; unsigned i;
+ if (!c || !pa) return 0;
+ bat = is_instruction ? c->ibat : c->dbat;
+ for (i=0;i<4u;i++) {
+  uint32_t upper=bat[i*2u], lower=bat[i*2u+1u];
+  uint32_t bl=(upper>>2)&0x7ffu;
+  uint32_t mask=((bl+1u)<<17)-1u;
+  uint32_t valid=user_mode ? (upper&1u) : (upper&2u);
+  if (!valid || (ea&~mask)!=((upper&0xfffe0000u)&~mask)) continue;
+  *pa=((lower&0xfffe0000u)&~mask)|(ea&mask); return 1;
+ }
+ return 0;
+}
+
 void cubex_cpu_reset(cubex_cpu_state_t *c, uint32_t pc) {
     if (!c) return;
     memset(c, 0, sizeof(*c));
