@@ -471,7 +471,7 @@ Os commits de código e teste não têm status de CI publicado verificado nesta 
 ## v1.99b — pipeline Linux para candidato default.xex
 
 - O workflow #333 passou nos seis jobs: host-core-test, host-sanitizers, xex-preflight-gate, frontend-config-validation, build-core-smoke e build-probe. Isso valida a revisão v1.98b no SHA testado.
-- Adicionado .github/workflows/default-xex-cloud.yml: runner GitHub-hosted Ubuntu, checkout do xsdk aberto e fixado no commit 8a824102d8cbba14b08b245e294e6337be38f447, construção da toolchain powerpc-xsdk-elf, link do runtime xsdk, compilação do alvo CMake CubEX360 e empacotamento ELF→XEX2.
+- Adicionado .github/workflows/default-xex-cloud.yml: runner GitHub-hosted Ubuntu, checkout do xsdk aberto e fixado no commit ade2c81d914634834d77394c5d9f8c4575f395bc, construção da toolchain powerpc-xsdk-elf, link do runtime xsdk, compilação do alvo CMake CubEX360 e empacotamento ELF→XEX2.
 - Adicionado xex-target/ com um título mínimo que liga memory.c, bus.c e cpu.c, executa duas instruções e registra o resultado. É um candidato inicial de bring-up do núcleo, não o emulador GameCube completo.
 - O workflow valida o contêiner XEX2, calcula SHA-256 e publica default.xex como artefato de Actions.
 - Status: pipeline criado, ainda sem execução validada. Não há arquivo default.xex publicado, nem boot RGH ou compatibilidade de jogos comprovados até o workflow terminar e o artefato ser inspecionado no console.
