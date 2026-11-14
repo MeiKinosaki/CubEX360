@@ -3,7 +3,15 @@
 #include <stddef.h>
 #include <stdint.h>
 #define CUBEX360_MAIN_RAM_SIZE (24u * 1024u * 1024u)
-typedef struct cubex_memory { uint8_t *main_ram; size_t main_ram_size; } cubex_memory_t;
+typedef int (*cubex_memory_mmio_read32_fn)(void *context, uint32_t address, uint32_t *value);
+typedef int (*cubex_memory_mmio_write32_fn)(void *context, uint32_t address, uint32_t value);
+typedef struct cubex_memory {
+    uint8_t *main_ram;
+    size_t main_ram_size;
+    void *bus_context;
+    cubex_memory_mmio_read32_fn mmio_read32;
+    cubex_memory_mmio_write32_fn mmio_write32;
+} cubex_memory_t;
 int cubex_memory_init(cubex_memory_t *mem);
 void cubex_memory_destroy(cubex_memory_t *mem);
 int cubex_memory_read8(const cubex_memory_t *mem,uint32_t address,uint8_t *out);
