@@ -124,3 +124,40 @@ As falhas anteriores foram corrigidas: os testes de CPU para o banco genérico a
 
 
 **Resultado final do run #43623206618:** todos os seis jobs terminaram com sucesso (host-core-test, host-sanitizers, frontend-config-validation, xex-preflight-gate, build-core-smoke e build-probe). O artefato publicado é `cubex360-core-smoke-elf32.zip`; não é XEX. A execução completa não comprova boot em hardware Xbox 360.
+
+
+## v1.93b — Pixel Engine (PE) + Processor Interface (PI), em validação
+
+### Modelos criados
+
+- `core-src/include/cubex360/pe.h`, `core-src/src/pe.c`: registradores PE de 16 bits para Z configuration, Alpha configuration, destination alpha, Alpha Mode, Alpha Read, Interrupt Status e PE Token.
+- PE Interrupt Status no offset `0x0A`: flags de FINISH/TOKEN e bits enable correspondentes; acknowledge por write-one-to-clear nas flags de evento.
+- `core-src/include/cubex360/pi.h`, `core-src/src/pi.c`: PI Cause e PI Mask em registradores de 32 bits nos offsets `0x00` e `0x04`; cause com W1C e máscara para as 14 fontes documentadas.
+- Integração PE e PI no estado de `cubex_machine_t`; callbacks nativos de 16 bits para CP/PE e 32 bits para PI.
+- Eventos explícitos `cubex_machine_pe_raise_finish()` e `cubex_machine_pe_raise_token()` sincronizam flags PE com os bits PI 10 (FINISH) e 9 (TOKEN).
+- A causa PI permanece latched até software escrever os bits correspondentes no registrador PI Cause. O acknowledge PE e o acknowledge PI são operações distintas.
+- Testes integrados verificam largura/alinhamento, enable, eventos, token, PI cause/mask, IRQ pendente e acknowledge individual/total.
+- Acesso de 16 bits a regiões Flipper sem callback nativo é rejeitado, para evitar read-modify-write sobre registradores com side effects.
+- Banco MMIO genérico continua acessível fora das janelas Flipper documentadas.
+
+### Auditoria e correção baseada em documentação
+
+- CP/PE/PI endereços e bits foram comparados com YAGCD §§5.1, 5.2 e 6.2.
+- PI causa usa os bits 0–13 (ERROR, RSW, DI, SI, EXI, AI, DSP, MEM, VI, PE TOKEN, PE FINISH, CP, DEBUG, HSP).
+- Referências: https://hitmen.c02.at/files/yagcd/yagcd/chap5.html e https://hitmen.c02.at/files/yagcd/yagcd/chap6.html
+- Referência cruzada para os campos de controle CP: Dolphin CommandProcessor.cpp e WiiBrew Hardware/GX/Command Processor.
+
+### Validação
+
+- CI para commit `f3924f9151066f5bde42d7491a644064317b3afc`: `host-core-test` passou; `frontend-config-validation` passou; `xex-preflight-gate` passou. `host-sanitizers`, `build-core-smoke` e `build-probe` estavam em execução no momento deste registro.
+- Run: https://github.com/MeiKinosaki/CubEX360/actions/runs/43623584025
+- Corrigidos erros anteriores de símbolos de callbacks MMIO 32-bit duplicados/não utilizados e de despacho da máquina.
+- Não promover a versão até ASan/UBSan e demais jobs terminarem.
+
+### Limites
+
+- PE ainda não rasteriza pixels, não escreve no Embedded Framebuffer (EFB), não executa blending/depth tests reais e não recebe comandos GP.
+- PI ainda não injeta exceção External Interrupt no estado CPU/MSR/vetor 0x500; `cubex_pi_irq_pending()` só expõe a condição lógica pendente.
+- Os eventos PE são acionados por API de teste/integração; ainda não são produzidos por um pipeline GX funcional.
+- CP ainda não consome FIFO, não executa display lists e ainda não está conectado ao PI via seu evento de watermark.
+- Não há execução de jogos, renderização gráfica, boot em Xbox 360 ou `default.xex` comprovados.
