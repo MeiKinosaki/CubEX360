@@ -38,6 +38,29 @@ int main(void) {
            CUBEX360_RAM_CACHED_BASE + 0x200u, &value) == 0);
     assert(value == 0xaabbccddu);
 
+
+    /* Periodic timer advances only for retired instructions, including run(). */
+    cubex_machine_destroy(&machine);
+    assert(cubex_machine_init(&machine, entry, 2u, 1) == 0);
+    assert(cubex_bus_write32be(&machine.memory, entry, 0x48000000u) == 0);
+    assert(cubex_timer_enable(&machine.timer, 1) == 0);
+    assert(cubex_machine_run(&machine, 5u) == CUBEX_CPU_OK);
+    assert(machine.cpu.retired_instructions == 5u);
+    assert(machine.cpu.pc == entry);
+    assert(machine.timer.interrupt_pending);
+    assert(machine.timer.enabled && machine.timer.remaining == 1u);
+    cubex_timer_clear_interrupt(&machine.timer);
+    assert(cubex_machine_step(&machine) == CUBEX_CPU_OK);
+    assert(machine.timer.interrupt_pending && machine.timer.remaining == 2u);
+
+    /* A fetch fault must not consume a device tick or retire an instruction. */
+    cubex_machine_destroy(&machine);
+    assert(cubex_machine_init(&machine, 0x70000000u, 3u, 1) == 0);
+    assert(cubex_timer_enable(&machine.timer, 1) == 0);
+    assert(cubex_machine_step(&machine) == CUBEX_CPU_MEMORY_FAULT);
+    assert(machine.cpu.retired_instructions == 0u);
+    assert(machine.timer.remaining == 3u && !machine.timer.interrupt_pending);
+
     cubex_machine_destroy(&machine);
     assert(cubex_machine_step(&machine) == CUBEX_CPU_BAD_ARGUMENT);
     return 0;
