@@ -1381,7 +1381,7 @@ int main(void) {
     assert(cubex_bus_write32be(&mem, 0x00001000u, 0xdecafbad) == 0);
     cubex_cpu_reset(&cpu, 0x80000400u);
     cpu.ibat[0]=0x80000002u; cpu.ibat[1]=0x00000000u;
-    cpu.dbat[0]=0x90000002u; cpu.dbat[1]=0x00000000u;
+    cpu.dbat[0]=0x00000002u; cpu.dbat[1]=0x00000000u;
     cpu.msr=0x00008030u; /* EE + IR + DR, supervisor */
     assert(cubex_cpu_step(&cpu,&mem)==CUBEX_CPU_OK);
     assert(cpu.gpr[3]==42u && cpu.pc==0x80000404u);
