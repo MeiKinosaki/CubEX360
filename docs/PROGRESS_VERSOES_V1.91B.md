@@ -245,3 +245,26 @@ O teste integrado de CP watermark → PI Cause bit 11 passou nos testes host. A 
 
 ### Limite de fidelidade
 O DEC está temporizado por instrução aposentada (um tick por instrução), não por ciclos reais do Gekko. É uma fatia funcional de exceção e estado, não uma temporização fiel. Próxima etapa é introduzir custo de ciclos por instrução e validar prioridade DEC/External com referências 750CL; não declarar o timer GameCube real concluído.
+
+
+## Exceção System Call (SC) Gekko — v1.93b em andamento
+
+### Código e teste adicionados
+- Opcode primário 17 (SC) reconhecido na CPU.
+- SRR0 recebe o endereço da instrução seguinte (PC + 4), conforme a semântica da chamada de sistema.
+- SRR1 recebe os campos MSR arquiteturalmente preservados pela máscara 0x87C0FFFF.
+- A entrada limpa os bits de estado definidos no modelo de exceções e transfere ILE para LE.
+- Vetor de exceção SC: 0x00000C00; vetor alto provisório 0xFFF00C00 quando MSR[IP] está ativo.
+- Teste integrado adicionado para SC, verificação de SRR0/SRR1/MSR, entrada no vetor e retorno RFI.
+- O teste usa DEC inicializado longe do underflow para isolar o cenário SC.
+
+### Referência arquitetural
+- IBM PowerPC 750CL User's Manual, §4.3 e tabela de exceções: SC salva o próximo endereço de execução em SRR0 e usa o vetor 0xC00.
+- IBM 750GX manual também identifica System Call no offset 0xC00 e a transição do MSR em entrada de exceção.
+- Fontes: https://fail0verflow.com/media/files/ppc_750cl.pdf e https://www.manualsdump.com/en/manuals/ibm-750gx-750gl/120559/153
+
+### Validação pendente
+- CI #43625416455 foi disparado para o teste integrado SC; todos os seis jobs estavam em fila/em execução durante a atualização deste registro.
+- A implementação de SC ainda não está marcada como validada por CI.
+- O vetor alto 0xFFF00C00 precisa ser confirmado para a configuração real de exceção Gekko/Flipper.
+- Não há prova de boot de jogo ou execução Xbox 360 nesta etapa.
