@@ -7,6 +7,7 @@
 #include "cubex360/pe.h"
 #include "cubex360/pi.h"
 #include "cubex360/flipper_map.h"
+#include "cubex360/gx_fifo.h"
 #include "cubex360/dma.h"
 #include "cubex360/mmio.h"
 #include "cubex360/timer.h"
@@ -18,9 +19,8 @@ extern "C" {
 #define CUBEX360_MACHINE_MMIO_BASE 0xCC000100u
 #define CUBEX360_MACHINE_MMIO_REGISTERS 64u
 
-/* Integration coordinator for currently implemented prototypes.
- * MMIO is a generic bank, DMA is RAM-to-RAM, and timer IRQs are pending
- * signals only; this is not yet the GameCube Flipper hardware map. */
+/* Integration coordinator. GX FIFO currently models the 32-bit write-gather
+ * port and bounded queue; it does not yet decode the complete GX command set. */
 typedef struct cubex_machine {
     cubex_memory_t memory;
     cubex_cpu_state_t cpu;
@@ -28,6 +28,7 @@ typedef struct cubex_machine {
     cubex_cp_t cp;
     cubex_pe_t pe;
     cubex_pi_t pi;
+    cubex_gx_fifo_t gx_fifo;
     uint32_t mmio_storage[CUBEX360_MACHINE_MMIO_REGISTERS];
     cubex_timer_t timer;
     int initialized;
@@ -48,6 +49,8 @@ int cubex_machine_mmio_read32(const cubex_machine_t *machine,
                               uint32_t address, uint32_t *value);
 int cubex_machine_mmio_write32(cubex_machine_t *machine,
                                uint32_t address, uint32_t value);
+/* Host-side consumer hook: retrieves one 32-bit word written to 0xCC008000. */
+int cubex_machine_gx_fifo_pop(cubex_machine_t *machine, uint32_t *word);
 
 #ifdef __cplusplus
 }
