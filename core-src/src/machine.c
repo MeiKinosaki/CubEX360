@@ -31,8 +31,11 @@ static int machine_bus_mmio_write16(void *context, uint32_t address,
     int result;
     if (!machine) return -1;
     if (cubex_flipper_decode_address(address, &decoded) != 0) return -2;
-    if (decoded.region == CUBEX_FLIPPER_REGION_CP)
-        return cubex_cp_write16(&machine->cp, address, value);
+    if (decoded.region == CUBEX_FLIPPER_REGION_CP) {
+        result = cubex_cp_write16(&machine->cp, address, value);
+        machine_sync_device_irqs(machine);
+        return result;
+    }
     if (decoded.region != CUBEX_FLIPPER_REGION_PE) return -1;
     result = cubex_pe_write16(&machine->pe, address, value);
     machine_sync_device_irqs(machine);
