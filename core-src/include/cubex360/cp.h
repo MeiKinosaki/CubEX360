@@ -38,6 +38,7 @@ int cubex_cp_write16(cubex_cp_t *cp, uint32_t address, uint16_t value);
 /* Device events update status independently of CPU register writes. */
 void cubex_cp_set_status(cubex_cp_t *cp, uint16_t set_bits,
                          uint16_t clear_bits);
+int cubex_cp_irq_pending(const cubex_cp_t *cp);
 
 #ifdef __cplusplus
 }
