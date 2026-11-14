@@ -121,3 +121,6 @@ No run #43623206618, commit `c674c9a42dc93a972e3e208188d655f6dec70f33`:
 - `build-core-smoke` e `build-probe`: ainda em execução no momento desta atualização.
 
 As falhas anteriores foram corrigidas: os testes de CPU para o banco genérico agora usam a janela deslocada para `0xCC000100`, a instrução `STH` grava o valor de controle esperado e o alvo sanitizer de integração vincula CP e decoder Flipper. Não marcar a etapa completa até o restante do run terminar.
+
+
+**Resultado final do run #43623206618:** todos os seis jobs terminaram com sucesso (host-core-test, host-sanitizers, frontend-config-validation, xex-preflight-gate, build-core-smoke e build-probe). O artefato publicado é `cubex360-core-smoke-elf32.zip`; não é XEX. A execução completa não comprova boot em hardware Xbox 360.
