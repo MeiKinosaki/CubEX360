@@ -133,8 +133,15 @@ cubex_cpu_result_t cubex_machine_step(cubex_machine_t *machine) {
     if (cubex_pi_irq_pending(&machine->pi) &&
         cubex_cpu_take_external_interrupt(&machine->cpu))
         return CUBEX_CPU_OK;
-    result = cubex_cpu_step(&machine->cpu, &machine->memory);
-    if (result != CUBEX_CPU_OK) return result;
+    {
+        uint64_t retired_before = machine->cpu.retired_instructions;
+        result = cubex_cpu_step(&machine->cpu, &machine->memory);
+        if (result != CUBEX_CPU_OK) return result;
+        /* Synchronous exceptions change PC/state but do not retire an
+         * instruction and therefore must not consume DEC or device time. */
+        if (machine->cpu.retired_instructions == retired_before)
+            return CUBEX_CPU_OK;
+    }
     if (machine->cpu.dec == 0u) machine->cpu.dec_pending = 1u;
     machine->cpu.dec--;
     if (cubex_timer_advance(&machine->timer, 1u) != 0)
