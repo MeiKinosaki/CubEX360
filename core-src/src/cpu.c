@@ -332,7 +332,7 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
     case 31:
         switch (xo) {
         case 339: { /* MFSPR: decrementer SPR 22 */
-            uint32_t spr = (((ins >> 16) & 31u) << 5) | ((ins >> 11) & 31u);
+            uint32_t spr = ((ins >> 16) & 31u) | (((ins >> 11) & 31u) << 5);
             if (spr != 22u) return CUBEX_CPU_UNSUPPORTED;
             c->gpr[rt] = c->dec;
             break;
