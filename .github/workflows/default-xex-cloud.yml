@@ -22,7 +22,7 @@ jobs:
       - name: Fetch pinned open Xbox 360 SDK
         run: |
           git clone https://github.com/xenosworks/xsdk.git "$HOME/xsdk"
-          git -C "$HOME/xsdk" checkout 8a824102d8cbba14b08b245e294e6337be38f447
+          git -C "$HOME/xsdk" checkout ade2c81d914634834d77394c5d9f8c4575f395bc
       - name: Build PowerPC-XSDK cross toolchain
         run: |
           PREFIX="$HOME/xsdk-gcc" WORK="$HOME/xsdk-gcc-work" JOBS="$(nproc)" "$HOME/xsdk/tools/toolchain/build.sh"
