@@ -31,6 +31,21 @@ int main(void) {
            CUBEX360_MACHINE_MMIO_BASE + CUBEX360_MACHINE_MMIO_REGISTERS * 4u,
            &value) != 0);
 
+    /* CPU accesses to the MMIO bank must traverse the unified bus. */
+    assert(cubex_bus_write32be(&machine.memory, entry + 0x20u, 0x3ca0cc00u) == 0); /* lis r5,0xcc00 */
+    assert(cubex_bus_write32be(&machine.memory, entry + 0x24u, 0x38c01234u) == 0); /* li r6,0x1234 */
+    assert(cubex_bus_write32be(&machine.memory, entry + 0x28u, 0x90c50004u) == 0); /* stw r6,4(r5) */
+    assert(cubex_bus_write32be(&machine.memory, entry + 0x2cu, 0x80e50004u) == 0); /* lwz r7,4(r5) */
+    assert(cubex_bus_write32be(&machine.memory, entry + 0x30u, 0x39000055u) == 0); /* li r8,0x55 */
+    assert(cubex_bus_write32be(&machine.memory, entry + 0x34u, 0x99050005u) == 0); /* stb r8,5(r5) */
+    assert(cubex_bus_write32be(&machine.memory, entry + 0x38u, 0x89250005u) == 0); /* lbz r9,5(r5) */
+    machine.cpu.pc = entry + 0x20u;
+    assert(cubex_machine_run(&machine, 7u) == CUBEX_CPU_OK);
+    assert(machine.cpu.gpr[7] == 0x12345555u);
+    assert(machine.cpu.gpr[9] == 0x55u);
+    assert(cubex_machine_mmio_read32(&machine, mmio_reg, &value) == 0);
+    assert(value == 0x12345555u);
+
     assert(cubex_bus_write32be(&machine.memory, entry + 0x40u, 0xaabbccddu) == 0);
     assert(cubex_machine_dma_copy(&machine, entry + 0x40u,
            CUBEX360_RAM_UNCACHED_BASE + 0x200u, 4u) == 0);
