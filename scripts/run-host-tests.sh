@@ -3,6 +3,7 @@ set -eu
 cd "$(dirname "$0")/.."
 mode="${1:-strict}"
 # Integration targets link CP, PE, PI and Flipper map device models in both modes.
+# Machine integration asserts CP/PE event propagation and PI W1C acknowledgement.
 cc="${CC:-cc}"
 sources="core-src/src/cp.c core-src/src/pe.c core-src/src/pi.c core-src/src/flipper_map.c core-src/src/memory.c core-src/src/bus.c core-src/src/cpu.c core-src/src/state.c core-src/src/covers.c core-src/src/mmio.c core-src/src/dma.c core-src/src/timer.c core-src/src/machine.c core-src/tests/test_core_host.c"
 case "$mode" in
