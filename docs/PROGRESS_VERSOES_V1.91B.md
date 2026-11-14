@@ -226,3 +226,22 @@ O teste integrado de CP watermark → PI Cause bit 11 passou nos testes host. A 
 - Adicionado teste com múltiplos bits MSR ativos, verificando SRR1 mascarado, MSR do handler e restauração por RFI.
 - Referência primária: IBM 750CL User's Manual, §4.3.4, §4.5.5 e Tabela 4-7: https://fail0verflow.com/media/files/ppc_750cl.pdf
 - CI #43624411135 (commit `f15bb68c20fba1c25da9ddb5cd706c4c772f1f75`) terminou 6/6 jobs com sucesso, incluindo save-state v2 + SRR0/SRR1 round-trip e ASan/UBSan. A correção arquitetural de SRR1/MSR e o teste mais estrito foram adicionados depois desse run; aguardam CI #43624502524 ou posterior.
+
+
+## Decrementer Gekko (DEC) — implementação inicial em validação
+
+### Código adicionado
+- Estado da CPU ampliado com DEC (32 bits) e latch `dec_pending`.
+- `MFSPR` e `MTSPR` existentes ampliados para SPR 22 (DEC), preservando LR/CTR/XER.
+- DEC decrementa uma unidade após cada instrução aposentada no modelo atual; transição de 0 para 0xFFFFFFFF arma o evento.
+- Evento DEC é entregue ao Gekko quando MSR[EE] está habilitado, salva SRR0/SRR1, usa vetor 0x00000900 ou 0xFFF00900 e pode retornar por RFI.
+- Save state avançou para v3 (CPU payload 176 bytes), persistindo DEC e DEC pending; loader mantém compatibilidade com v1 (160 bytes) e v2 (168 bytes).
+- Testes host cobrem acesso MFSPR/MTSPR, underflow/entrada no vetor DEC/RFI e round-trip do novo estado salvo.
+
+### CI
+- CI #43625102329, commit `e70bfcd57821da6acd807015794f5924d0b7ccdd`: `host-core-test`, `host-sanitizers`, `frontend-config-validation` e `xex-preflight-gate` concluíram com sucesso.
+- `build-probe` e `build-core-smoke` estavam em execução durante a atualização deste registro.
+- Os runs anteriores com falha foram causados primeiro por warning de compilador estrito e depois por duplicação de casos XO ao adicionar SPR; as correções foram aplicadas no commit atual.
+
+### Limite de fidelidade
+O DEC está temporizado por instrução aposentada (um tick por instrução), não por ciclos reais do Gekko. É uma fatia funcional de exceção e estado, não uma temporização fiel. Próxima etapa é introduzir custo de ciclos por instrução e validar prioridade DEC/External com referências 750CL; não declarar o timer GameCube real concluído.
