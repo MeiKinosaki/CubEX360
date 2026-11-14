@@ -102,6 +102,18 @@ int cubex_machine_init(cubex_machine_t *machine, uint32_t entry_pc,
     return 0;
 }
 
+void cubex_machine_pe_raise_finish(cubex_machine_t *machine) {
+    if (!machine || !machine->initialized) return;
+    cubex_pe_raise_finish(&machine->pe);
+    machine_sync_device_irqs(machine);
+}
+
+void cubex_machine_pe_raise_token(cubex_machine_t *machine, uint16_t token) {
+    if (!machine || !machine->initialized) return;
+    cubex_pe_raise_token(&machine->pe, token);
+    machine_sync_device_irqs(machine);
+}
+
 void cubex_machine_destroy(cubex_machine_t *machine) {
     if (!machine) return;
     if (machine->initialized) cubex_memory_destroy(&machine->memory);
