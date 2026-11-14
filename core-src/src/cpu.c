@@ -84,15 +84,20 @@ static cubex_cpu_result_t alignment_fault(cubex_cpu_state_t *c, uint32_t address
     take_data_exception(c, 0x600u, address, is_store, c->pc);
     return CUBEX_CPU_OK;
 }
-/* PowerPC 750 SRR1[11] marks an illegal-instruction program exception. */
-static cubex_cpu_result_t illegal_instruction(cubex_cpu_state_t *c) {
+/* SRR1 cause bits follow the PowerPC 750 program-exception encoding:
+ * bit 11 = illegal instruction; bit 14 = privileged instruction. */
+static cubex_cpu_result_t program_exception(cubex_cpu_state_t *c,
+                                             uint32_t cause) {
     c->srr0 = c->pc;
-    c->srr1 = (c->msr & PPC_MSR_SRR1_EXTERNAL_MASK) | 0x00100000u;
+    c->srr1 = (c->msr & PPC_MSR_SRR1_EXTERNAL_MASK) | cause;
     c->msr &= ~PPC_MSR_EXCEPTION_CLEAR;
     if (c->msr & PPC_MSR_ILE) c->msr |= PPC_MSR_LE;
     else c->msr &= ~PPC_MSR_LE;
     c->pc = (c->msr & PPC_MSR_IP) ? 0xfff00700u : 0x00000700u;
     return CUBEX_CPU_OK;
+}
+static cubex_cpu_result_t illegal_instruction(cubex_cpu_state_t *c) {
+    return program_exception(c, 0x00100000u);
 }
 static int32_t sx16(uint32_t v) { return (int16_t)(v & 0xffffu); }
 static void set_cr_field(cubex_cpu_state_t *c, uint32_t bf, uint32_t field) {
@@ -336,7 +341,9 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
         break;
     }
     case 19:
-        if (xo == 50u) { /* RFI: restore the interrupted context. */
+        if (xo == 50u) { /* RFI is privileged and restores SRR0/SRR1. */
+            if (c->msr & PPC_MSR_PR)
+                return program_exception(c, 0x00020000u);
             c->pc = c->srr0 & ~3u;
             c->msr = c->srr1 & PPC_MSR_SRR1_EXTERNAL_MASK;
             c->retired_instructions++;
