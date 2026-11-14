@@ -1,4 +1,4 @@
-# CubEX360 — checkpoint incremental v1.92b
+# CubEX360 — checkpoint incremental v1.92b (v1.93b em andamento)
 
 Data: 2026-11-14
 
@@ -56,3 +56,41 @@ Data: 2026-11-14
 ### Próxima etapa
 
 Substituir o banco genérico por despacho de regiões/dispositivos com mapa documentado do Flipper. Prioridade: separar janelas CP/PE, VI e PI; implementar leitura/escrita de registradores com máscaras, largura, alinhamento e side effects; depois ligar interrupções e DMA aos dispositivos reais.
+
+
+## v1.93b — Flipper map decoder + primeiro modelo CP (em andamento)
+
+### Mapa de endereços
+
+- Adicionados `cubex_flipper_decode_address()`, enum de regiões e offsets relativos para CP, PE, VI, PI, MI, DSP, DI, SI, EXI, AI e GX FIFO.
+- Janelas registradas como aperturas de decodificação; não significam que todos os offsets sejam registradores válidos.
+- Corrigido tamanho da janela MI para 0x80 bytes.
+- Testes de limites, lacunas e regiões adicionados em `test_flipper_map.c`.
+- Documentação técnica em `docs/FLIPPER_MMIO_MAP.md`.
+
+### Command Processor (CP) — primeiro modelo parcial
+
+- Criado `cubex_cp_t` com interface de acesso de 16 bits, alinhamento obrigatório e validação de faixa.
+- Implementados estado inicial idle, leitura de SR, máscara de CR, clear register com limpeza write-one-to-clear de overflow/underflow, token e armazenamento dos registradores de FIFO/bounding-box documentados.
+- Eventos internos podem atualizar flags de status via `cubex_cp_set_status()`.
+- Testes isolados em `test_cp.c`; adicionados aos modos strict e sanitize.
+
+### Limites explícitos
+
+- CP ainda **não está ligado ao barramento da CPU nem ao decodificador da máquina**. Os testes atuais exercitam a API do dispositivo diretamente.
+- A semântica exata de alguns bits de controle/IRQ do CP é parcialmente incerta na documentação; as máscaras implementadas são conservadoras e não simulam processamento GX.
+- Não há FIFO de comandos GX, GP, PE, interrupção PI ou execução de display lists implementados nesta etapa.
+- O modelo ainda não foi validado por CI após as últimas alterações; aguardar a execução no commit mais recente antes de marcar os testes como aprovados.
+- Nenhum boot de jogo, compatibilidade comercial ou `default.xex` foi comprovado.
+
+### Referências
+
+- YAGCD §5.1 — CP: https://hitmen.c02.at/files/yagcd/yagcd/chap5.html
+- YAGCD §4 — mapa de memória: https://hitmen.c02.at/files/yagcd/yagcd/chap4.html
+
+### Próxima prioridade
+
+1. Confirmar CI strict + ASan/UBSan para mapa e CP.
+2. Introduzir callbacks MMIO de 16 bits sem read-modify-write destrutivo.
+3. Integrar o CP ao despacho por região, mantendo FIFO como porta especial.
+4. Depois modelar PE e PI; somente então ligar as fontes de interrupção reais.
