@@ -182,7 +182,7 @@ int main(void) {
     /* Decrementer expiry enters the 0x900 exception vector and RFI returns. */
     cubex_machine_destroy(&machine);
     assert(cubex_machine_init(&machine, entry, 3u, 0) == 0);
-    assert(cubex_bus_write32be(&machine.memory, entry, 0x48000000u) == 0);
+    assert(cubex_bus_write32be(&machine.memory, entry, 0x60000000u) == 0); /* nop */
     assert(cubex_bus_write32be(&machine.memory, 0x00000900u, 0x4c000064u) == 0);
     machine.cpu.msr = 0x00008000u;
     machine.cpu.dec = 0u;
