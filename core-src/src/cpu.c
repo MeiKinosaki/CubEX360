@@ -862,6 +862,13 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
         if (ins & 1u) c->lr = c->pc + 4u;
         break;
     }
+    case 17: { /* SC: system-call exception */
+        c->srr0 = next;
+        c->srr1 = c->msr;
+        c->msr &= ~(PPC_MSR_EE | PPC_MSR_PR | PPC_MSR_IR | PPC_MSR_DR);
+        next = (c->msr & PPC_MSR_IP) ? 0xfff00c00u : 0x00000c00u;
+        break;
+    }
     case 18: {
         int32_t d = (int32_t)(ins & 0x03fffffcu);
         if (d & 0x02000000) d |= (int32_t)0xfc000000u;
