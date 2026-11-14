@@ -453,3 +453,8 @@ Estado experimental com IBAT0U–IBAT3L e DBAT0U–DBAT3L (SPR 528–543), MFSpr
 ## BAT lookup — v1.97b
 
 Helper isolado para lookup dos quatro pares BAT de instrução/dados, com comparação de bloco e bits de validade por privilégio. Testes host cobrem hits/misses básicos. O helper ainda não é chamado pelo caminho de fetch/load/store; não há tradução integrada nem tratamento completo de PP/WIMG/page table.
+
+
+## BAT integration — v1.98b
+
+CPU fetch e loads/stores escalares passam pelos wrappers de tradução quando IR/DR estão ativos. BAT miss em dados chega ao caminho Data Storage. Page tables SDR1, PP/WIMG, Instruction Storage em miss IBAT e cobertura de todas as operações de memória permanecem pendentes.
