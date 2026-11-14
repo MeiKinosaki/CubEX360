@@ -50,6 +50,7 @@ static int machine_bus_mmio_read32(void *context, uint32_t address,
     if (cubex_flipper_decode_address(address, &decoded) == 0) {
         if (decoded.region == CUBEX_FLIPPER_REGION_PI)
             return cubex_pi_read32(&machine->pi, address, value);
+        /* GX FIFO is a write-gather port, not readable storage. */
         return -1;
     }
     return cubex_mmio_read32(&machine->mmio, address, value);
@@ -63,6 +64,9 @@ static int machine_bus_mmio_write32(void *context, uint32_t address,
     if (cubex_flipper_decode_address(address, &decoded) == 0) {
         if (decoded.region == CUBEX_FLIPPER_REGION_PI)
             return cubex_pi_write32(&machine->pi, address, value);
+        if (decoded.region == CUBEX_FLIPPER_REGION_GX_FIFO &&
+            decoded.offset == 0u && (address & 3u) == 0u)
+            return cubex_gx_fifo_write(&machine->gx_fifo, value);
         return -1;
     }
     return cubex_mmio_write32(&machine->mmio, address, value);
@@ -87,6 +91,7 @@ int cubex_machine_init(cubex_machine_t *machine, uint32_t entry_pc,
     cubex_cp_init(&machine->cp);
     cubex_pe_init(&machine->pe);
     cubex_pi_init(&machine->pi);
+    cubex_gx_fifo_reset(&machine->gx_fifo);
     if (cubex_timer_init(&machine->timer, timer_period,
                          timer_periodic != 0) != 0) {
         cubex_memory_destroy(&machine->memory);
@@ -137,8 +142,6 @@ cubex_cpu_result_t cubex_machine_step(cubex_machine_t *machine) {
         uint64_t retired_before = machine->cpu.retired_instructions;
         result = cubex_cpu_step(&machine->cpu, &machine->memory);
         if (result != CUBEX_CPU_OK) return result;
-        /* Synchronous exceptions change PC/state but do not retire an
-         * instruction and therefore must not consume DEC or device time. */
         if (machine->cpu.retired_instructions == retired_before)
             return CUBEX_CPU_OK;
     }
@@ -177,4 +180,9 @@ int cubex_machine_mmio_write32(cubex_machine_t *machine,
                                uint32_t address, uint32_t value) {
     if (!machine || !machine->initialized) return -1;
     return cubex_mmio_write32(&machine->mmio, address, value);
+}
+
+int cubex_machine_gx_fifo_pop(cubex_machine_t *machine, uint32_t *word) {
+    if (!machine || !machine->initialized) return -1;
+    return cubex_gx_fifo_read(&machine->gx_fifo, word);
 }
