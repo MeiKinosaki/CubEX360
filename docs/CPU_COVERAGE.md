@@ -448,3 +448,8 @@ O estado da CPU contém SR0–SR15. O interpretador implementa as operações pr
 ## BAT SPRs — v1.96b
 
 Estado experimental com IBAT0U–IBAT3L e DBAT0U–DBAT3L (SPR 528–543), MFSpr/MTSpr privilegiados e persistência em save state v6. BL/BEPI/BRPN, WIMG/PP e tradução de endereços efetivos ainda não estão implementados; não contar BAT/MMU como funcionais.
+
+
+## BAT lookup — v1.97b
+
+Helper isolado para lookup dos quatro pares BAT de instrução/dados, com comparação de bloco e bits de validade por privilégio. Testes host cobrem hits/misses básicos. O helper ainda não é chamado pelo caminho de fetch/load/store; não há tradução integrada nem tratamento completo de PP/WIMG/page table.
