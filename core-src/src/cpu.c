@@ -27,9 +27,14 @@ void cubex_cpu_reset(cubex_cpu_state_t *c, uint32_t pc) {
 #define PPC_MSR_IP 0x00000040u
 #define PPC_MSR_IR 0x00000020u
 #define PPC_MSR_DR 0x00000010u
-#define PPC_MSR_EXCEPTION_CLEAR (PPC_MSR_EE | PPC_MSR_PR | PPC_MSR_FP | \
-                                  PPC_MSR_FE0 | PPC_MSR_SE | PPC_MSR_BE | \
-                                  PPC_MSR_IR | PPC_MSR_DR)
+#define PPC_MSR_PM 0x00000008u
+#define PPC_MSR_RI 0x00000002u
+#define PPC_MSR_LE 0x00000001u
+#define PPC_MSR_SRR1_EXTERNAL_MASK 0x87c0ffffu
+#define PPC_MSR_EXCEPTION_CLEAR (PPC_MSR_POW | PPC_MSR_EE | PPC_MSR_PR | \
+                                  PPC_MSR_FP | PPC_MSR_FE0 | PPC_MSR_SE | \
+                                  PPC_MSR_BE | PPC_MSR_FE1 | PPC_MSR_IR | \
+                                  PPC_MSR_DR | PPC_MSR_PM | PPC_MSR_RI)
 
 int cubex_cpu_take_external_interrupt(cubex_cpu_state_t *c) {
     uint32_t vector;
