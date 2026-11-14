@@ -76,6 +76,48 @@ int main(void) {
     assert(machine.cpu.gpr[7] == CUBEX_CP_CR_IRQ_ENABLE);
 
 
+
+    /* PE registers are 16-bit; PE events latch PI cause independently of PI mask. */
+    {
+        uint16_t half = 0u;
+        assert(cubex_bus_write16be(&machine.memory, 0xCC00100Au,
+                                   CUBEX_PE_INT_FINISH_ENABLE |
+                                   CUBEX_PE_INT_TOKEN_ENABLE) == 0);
+        assert(cubex_bus_read16be(&machine.memory, 0xCC00100Au, &half) == 0);
+        assert(half == (CUBEX_PE_INT_FINISH_ENABLE |
+                        CUBEX_PE_INT_TOKEN_ENABLE));
+        assert(cubex_bus_write32be(&machine.memory, 0xCC00100Au, 0u) != 0);
+        assert(cubex_bus_write16be(&machine.memory, 0xCC001001u, 0u) != 0);
+        assert(cubex_bus_write32be(&machine.memory, 0xCC003004u,
+                                   CUBEX_PI_IRQ_PE_FINISH |
+                                   CUBEX_PI_IRQ_PE_TOKEN) == 0);
+        cubex_machine_pe_raise_finish(&machine);
+        cubex_machine_pe_raise_token(&machine, 0x4a5bu);
+        assert(cubex_bus_read16be(&machine.memory, 0xCC00100Eu, &half) == 0);
+        assert(half == 0x4a5bu);
+        assert(cubex_bus_read16be(&machine.memory, 0xCC00100Au, &half) == 0);
+        assert((half & (CUBEX_PE_INT_FINISH | CUBEX_PE_INT_TOKEN)) ==
+               (CUBEX_PE_INT_FINISH | CUBEX_PE_INT_TOKEN));
+        assert(cubex_bus_read32be(&machine.memory, 0xCC003000u, &value) == 0);
+        assert((value & (CUBEX_PI_IRQ_PE_FINISH | CUBEX_PI_IRQ_PE_TOKEN)) ==
+               (CUBEX_PI_IRQ_PE_FINISH | CUBEX_PI_IRQ_PE_TOKEN));
+        assert(cubex_pi_irq_pending(&machine.pi));
+        assert(cubex_bus_write32be(&machine.memory, 0xCC003000u,
+                                   CUBEX_PI_IRQ_PE_FINISH) == 0);
+        assert(cubex_bus_read32be(&machine.memory, 0xCC003000u, &value) == 0);
+        assert((value & CUBEX_PI_IRQ_PE_FINISH) == 0u);
+        assert((value & CUBEX_PI_IRQ_PE_TOKEN) != 0u);
+        assert(cubex_pi_irq_pending(&machine.pi));
+        assert(cubex_bus_write16be(&machine.memory, 0xCC00100Au,
+                                   CUBEX_PE_INT_FINISH |
+                                   CUBEX_PE_INT_TOKEN) == 0);
+        assert(cubex_bus_read16be(&machine.memory, 0xCC00100Au, &half) == 0);
+        assert((half & CUBEX_PE_INT_PENDING_MASK) == 0u);
+        assert(cubex_bus_write32be(&machine.memory, 0xCC003000u,
+                                   CUBEX_PI_IRQ_PE_TOKEN) == 0);
+        assert(!cubex_pi_irq_pending(&machine.pi));
+    }
+
     assert(cubex_bus_write32be(&machine.memory, entry + 0x40u, 0xaabbccddu) == 0);
     assert(cubex_machine_dma_copy(&machine, entry + 0x40u,
            CUBEX360_RAM_UNCACHED_BASE + 0x200u, 4u) == 0);
