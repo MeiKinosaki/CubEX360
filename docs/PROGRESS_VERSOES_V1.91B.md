@@ -109,3 +109,15 @@ Substituir o banco genérico por despacho de regiões/dispositivos com mapa docu
 **Validação:** GitHub Actions run #43623131846 foi criado para o commit `c4ff3fa0839bb696fcd79c8a8305c4f23d51d60a`. No momento do registro, o run estava queued/in progress; não marcar como aprovado até conclusão. Se falhar, corrigir com base nos logs e repetir.
 
 **Limite:** o CP ainda não gera nem consome FIFO GX, não processa display lists, não sincroniza PE e não dispara interrupções reais via PI. O mapa e o CP permanecem em desenvolvimento.
+
+
+### Reteste após correções — 2026-11-14
+
+No run #43623206618, commit `c674c9a42dc93a972e3e208188d655f6dec70f33`:
+- `host-core-test`: **success**.
+- `host-sanitizers` (ASan/UBSan): **success**.
+- `frontend-config-validation`: **success**.
+- `xex-preflight-gate`: **success** (gate bloqueou corretamente a geração sem ferramentas XEX reais).
+- `build-core-smoke` e `build-probe`: ainda em execução no momento desta atualização.
+
+As falhas anteriores foram corrigidas: os testes de CPU para o banco genérico agora usam a janela deslocada para `0xCC000100`, a instrução `STH` grava o valor de controle esperado e o alvo sanitizer de integração vincula CP e decoder Flipper. Não marcar a etapa completa até o restante do run terminar.
