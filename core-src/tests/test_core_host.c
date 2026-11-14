@@ -316,8 +316,11 @@ int main(void) {
     assert(cubex_memory_read32be(&mem, CUBEX360_MAIN_RAM_SIZE, &value) != 0);
     cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 64u);
     cpu.gpr[16] = 0x101u;
-    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_MEMORY_FAULT);
-    assert(cpu.pc == CUBEX360_RAM_CACHED_BASE + 64u);
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.pc == 0x00000600u);
+    assert(cpu.srr0 == CUBEX360_RAM_CACHED_BASE + 64u);
+    assert(cpu.dar == 0x102u);
+    assert(cpu.dsisr == 0u);
     assert(cpu.retired_instructions == 0u);
     cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 68u);
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_UNSUPPORTED);
