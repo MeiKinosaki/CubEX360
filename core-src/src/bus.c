@@ -52,6 +52,11 @@ int cubex_bus_read16be(const cubex_memory_t *m, uint32_t a, uint16_t *o) {
     if (!o || !m) return -1;
     if (cubex_bus_translate_main_ram(a, &p) == 0)
         return cubex_memory_read16be(m, p, o);
+    if (a & 1u) return -1;
+    if (m->mmio_read16) {
+        int handled = m->mmio_read16(m->bus_context, a, o);
+        if (handled != -2) return handled;
+    }
     if ((a & 3u) == 3u || mmio_read_word(m, a, &word) != 0) return -1;
     shift = (2u - (a & 2u)) * 8u;
     *o = (uint16_t)(word >> shift);
@@ -84,6 +89,11 @@ int cubex_bus_write16be(cubex_memory_t *m, uint32_t a, uint16_t v) {
     if (!m) return -1;
     if (cubex_bus_translate_main_ram(a, &p) == 0)
         return cubex_memory_write16be(m, p, v);
+    if (a & 1u) return -1;
+    if (m->mmio_write16) {
+        int handled = m->mmio_write16(m->bus_context, a, v);
+        if (handled != -2) return handled;
+    }
     if ((a & 3u) == 3u || mmio_read_word(m, a, &word) != 0) return -1;
     shift = (2u - (a & 2u)) * 8u;
     word = (word & ~(0xffffu << shift)) | ((uint32_t)v << shift);
