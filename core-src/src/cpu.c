@@ -43,7 +43,7 @@ int cubex_cpu_translate_hash(const cubex_cpu_state_t *c, const cubex_memory_t *m
     ptem = (vsid << 7) | (pgidx >> 10);
     for (secondary = 0u; secondary < 2u; ++secondary) {
         uint32_t h = secondary ? ~hash : hash;
-        pteg = (h * 64u) & htab_mask;
+        pteg = (h & ((c->sdr1 >> 16) & 0x1ffu)) << 6;
         for (i = 0u; i < 8u; ++i) {
             uint32_t off = htab_base + pteg + i * 8u;
             if (cubex_bus_read32be(m, off, &pte0) != 0 ||
