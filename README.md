@@ -476,3 +476,14 @@ Os commits de código e teste não têm status de CI publicado verificado nesta 
 - O workflow valida o contêiner XEX2, calcula SHA-256 e publica default.xex como artefato de Actions.
 - Status: pipeline criado, ainda sem execução validada. Não há arquivo default.xex publicado, nem boot RGH ou compatibilidade de jogos comprovados até o workflow terminar e o artefato ser inspecionado no console.
 - Referência da toolchain: https://github.com/xenosworks/xsdk (MIT; commit fixado no workflow).
+
+## v2.0b — regressões de exceções com vetor alto
+
+- Ampliados os testes host para verificar seleção dos vetores de Data Storage, Alignment e Program Exception com MSR[IP] ativo.
+- Adicionados casos para interrupção externa: bloqueio quando MSR[EE] está desligado, entrada pelo vetor alto quando habilitado, salvamento de SRR0/SRR1 e limpeza de EE.
+- Adicionados casos para decrementer: vetor alto, salvamento de contexto e limpeza de DEC pending.
+- Commit dos testes: `382b9cce871180c9a15ee0d0babb49dd6b18bdd8`.
+
+**Estado de validação:** os workflows host, sanitizers e builds foram disparados para este SHA e ainda estão na fila. Portanto, os testes estão escritos, mas ainda não estão aprovados. A porcentagem de 60% representa estimativa de implementação do projeto, não compatibilidade de jogos nem conclusão do núcleo de exceções.
+
+**Pendências:** confirmar CI; corrigir qualquer falha; completar auditoria de SRR1/RFI e permissões BAT; implementar SDR1/page tables/TLB; desenvolver GX FIFO/command processor; concluir o alvo `default.xex` e verificar boot no RGH. Nenhum jogo GameCube está comprovadamente executável nesta revisão.
