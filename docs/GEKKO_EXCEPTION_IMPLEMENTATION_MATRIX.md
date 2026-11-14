@@ -25,6 +25,19 @@ This is instruction-step timing, not cycle-accurate Gekko timing.
 - PI pending line sourced from CP/PE event synchronization.
 - CPU fetch/data operations currently use the memory bus callbacks.
 
+## Concrete defects confirmed in current cpu.c
+
+- RFI currently assigns `MSR = SRR1` directly and aligns SRR0 with `& ~3`. This is not a sufficient implementation of the architectural MSR restoration mask and should not be called validated RFI behavior.
+- SC, external interrupt, and Decrementer paths share a simplified MSR transition helper pattern; the source currently does not show a separately tested synchronous-exception framework.
+- Instruction fetch failure returns `CUBEX_CPU_MEMORY_FAULT` directly; it does not enter the Instruction Storage vector.
+- Data load/store bus failures return `CUBEX_CPU_MEMORY_FAULT` directly; they do not populate DAR/DSISR or enter Data Storage.
+- Misalignment is explicitly checked only in LMW/STMW paths in the audited decoder. Other halfword/word operations can reach the bus and return a generic memory fault instead of an Alignment exception.
+- Unsupported opcodes return `CUBEX_CPU_UNSUPPORTED`; they do not raise Program Exception.
+- The public CPU state has no DAR or DSISR fields.
+- The machine advances DEC by one per instruction step, not by documented processor/bus cycles.
+
+These are source observations, not assumptions about behavior hidden in an uninspected test.
+
 ## Remaining exception work
 
 | Cause | Vector | Required work |
