@@ -864,8 +864,10 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
     }
     case 17: { /* SC: system-call exception */
         c->srr0 = next;
-        c->srr1 = c->msr;
-        c->msr &= ~(PPC_MSR_EE | PPC_MSR_PR | PPC_MSR_IR | PPC_MSR_DR);
+        c->srr1 = c->msr & PPC_MSR_SRR1_EXTERNAL_MASK;
+        c->msr &= ~PPC_MSR_EXCEPTION_CLEAR;
+        if (c->msr & PPC_MSR_ILE) c->msr |= PPC_MSR_LE;
+        else c->msr &= ~PPC_MSR_LE;
         next = (c->msr & PPC_MSR_IP) ? 0xfff00c00u : 0x00000c00u;
         break;
     }
