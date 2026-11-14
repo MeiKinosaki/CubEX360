@@ -80,6 +80,7 @@ int main(void) {
 
     /* CP FIFO watermark event is routed into PI cause bit 11. */
     {
+        uint16_t cp_status = 0u;
         assert(cubex_bus_write16be(&machine.memory, 0xCC000002u,
                                    CUBEX_CP_CR_OVERFLOW_IRQ) == 0);
         assert(cubex_bus_write32be(&machine.memory, 0xCC003004u,
