@@ -449,3 +449,11 @@ Os commits de código e teste não têm status de CI publicado verificado nesta 
 - Testes host cobrem escrita/leitura de IBAT0U, bloqueio em modo usuário e round-trip dos BATs.
 - Limite: ainda não há comparação BAT, tradução EA→PA, permissões WIMG/proteção ou MMU integrada ao fetch/load/store.
 - default.xex, boot RGH e execução de jogos continuam não comprovados.
+
+
+## v1.97b — lookup experimental de BAT
+
+- Adicionada função isolada de lookup BAT para IBAT/DBAT: compara BEPI/BL, valida Vs/Vu e forma o endereço físico a partir de BRPN + deslocamento.
+- Testes host cobrem bloco de 128 KiB, seleção instruction/data, privilégio supervisor/usuário e miss.
+- Não integrado ao fetch/load/store: o barramento ainda recebe endereços efetivos diretamente; page table via SDR1, proteção PP, WIMG, exceções de tradução e aliases/cache seguem pendentes. Não contar MMU como funcional.
+- default.xex, boot RGH e jogos continuam não comprovados.
