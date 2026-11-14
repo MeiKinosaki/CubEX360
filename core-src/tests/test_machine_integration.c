@@ -31,6 +31,23 @@ int main(void) {
            CUBEX360_MACHINE_MMIO_BASE + CUBEX360_MACHINE_MMIO_REGISTERS * 4u,
            &value) != 0);
 
+    /* GX FIFO write-gather port at 0xCC008000 accepts ordered 32-bit words. */
+    {
+        uint32_t fifo_word = 0u;
+        assert(cubex_bus_write32be(&machine.memory, 0xCC008000u,
+                                   0x08000000u) == 0);
+        assert(cubex_bus_write32be(&machine.memory, 0xCC008000u,
+                                   0x12345678u) == 0);
+        assert(cubex_gx_fifo_count(&machine.gx_fifo) == 2u);
+        assert(cubex_bus_read32be(&machine.memory, 0xCC008000u,
+                                  &fifo_word) != 0);
+        assert(cubex_machine_gx_fifo_pop(&machine, &fifo_word) == 0);
+        assert(fifo_word == 0x08000000u);
+        assert(cubex_machine_gx_fifo_pop(&machine, &fifo_word) == 0);
+        assert(fifo_word == 0x12345678u);
+        assert(cubex_machine_gx_fifo_pop(&machine, &fifo_word) == -2);
+    }
+
     /* CPU accesses to the MMIO bank must traverse the unified bus. */
     assert(cubex_bus_write32be(&machine.memory, entry + 0x20u, 0x3ca0cc00u) == 0); /* lis r5,0xcc00 */
     assert(cubex_bus_write32be(&machine.memory, entry + 0x24u, 0x38c01234u) == 0); /* li r6,0x1234 */
