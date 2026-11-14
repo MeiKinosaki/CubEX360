@@ -44,7 +44,7 @@ int main(void) {
     assert(machine.cpu.gpr[7] == 0x1234u);
     assert(machine.cpu.gpr[9] == 0x55u);
     assert(cubex_machine_mmio_read32(&machine, mmio_reg, &value) == 0);
-    assert(value == 0x00550034u);
+    assert(value == 0x00551234u);
 
     assert(cubex_bus_write32be(&machine.memory, entry + 0x40u, 0xaabbccddu) == 0);
     assert(cubex_machine_dma_copy(&machine, entry + 0x40u,
