@@ -14,6 +14,8 @@ case "$mode" in
     /tmp/cubex360-dma-edge-test
     "$cc" -std=c99 -Wall -Wextra -Werror -O2 -Icore-src/include core-src/src/memory.c core-src/src/bus.c core-src/src/cpu.c core-src/tests/test_branch_edges.c -o /tmp/cubex360-branch-edge-test
     /tmp/cubex360-branch-edge-test
+    "$cc" -std=c99 -Wall -Wextra -Werror -O2 -Icore-src/include core-src/src/memory.c core-src/src/bus.c core-src/src/cpu.c core-src/tests/test_cr_xer_edges.c -o /tmp/cubex360-cr-xer-edge-test
+    /tmp/cubex360-cr-xer-edge-test
     ;;
   sanitize)
     "$cc" -std=c99 -Wall -Wextra -Werror -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer -Icore-src/include $sources -o /tmp/cubex360-core-sanitizers
@@ -24,6 +26,8 @@ case "$mode" in
     /tmp/cubex360-dma-edge-sanitizers
     "$cc" -std=c99 -Wall -Wextra -Werror -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer -Icore-src/include core-src/src/memory.c core-src/src/bus.c core-src/src/cpu.c core-src/tests/test_branch_edges.c -o /tmp/cubex360-branch-edge-sanitizers
     /tmp/cubex360-branch-edge-sanitizers
+    "$cc" -std=c99 -Wall -Wextra -Werror -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer -Icore-src/include core-src/src/memory.c core-src/src/bus.c core-src/src/cpu.c core-src/tests/test_cr_xer_edges.c -o /tmp/cubex360-cr-xer-edge-sanitizers
+    /tmp/cubex360-cr-xer-edge-sanitizers
     ;;
   *) echo "Usage: $0 [strict|sanitize]" >&2; exit 2 ;;
 esac
