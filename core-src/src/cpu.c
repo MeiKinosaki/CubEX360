@@ -23,6 +23,49 @@ int cubex_cpu_translate_bat(const cubex_cpu_state_t *c, uint32_t ea, int is_inst
  return 0;
 }
 
+/* Address-space-aware CPU bus access. With IR/DR clear, addresses are
+ * physical as in the current reset/test environment. With translation on,
+ * this first integration slice requires a BAT hit; page-table fallback is
+ * not implemented yet. */
+static int cpu_translate_address(const cubex_cpu_state_t *c, uint32_t ea,
+                                 int instruction, uint32_t *pa) {
+    uint32_t enable = instruction ? 0x20u : 0x10u;
+    if (!(c->msr & enable)) { *pa = ea; return 0; }
+    return cubex_cpu_translate_bat(c, ea, instruction,
+                                   (c->msr & 0x00004000u) != 0u, pa) ? 0 : -1;
+}
+static int cpu_read32(const cubex_cpu_state_t *c, const cubex_memory_t *m,
+                      uint32_t ea, uint32_t *v, int instruction) {
+    uint32_t pa;
+    if (cpu_translate_address(c, ea, instruction, &pa)) return -1;
+    return cubex_bus_read32be(m, pa, v);
+}
+static int cpu_read16(const cubex_cpu_state_t *c, const cubex_memory_t *m,
+                      uint32_t ea, uint16_t *v) {
+    uint32_t pa; if (cpu_translate_address(c, ea, 0, &pa)) return -1;
+    return cubex_bus_read16be(m, pa, v);
+}
+static int cpu_read8(const cubex_cpu_state_t *c, const cubex_memory_t *m,
+                     uint32_t ea, uint8_t *v) {
+    uint32_t pa; if (cpu_translate_address(c, ea, 0, &pa)) return -1;
+    return cubex_bus_read8(m, pa, v);
+}
+static int cpu_write32(const cubex_cpu_state_t *c, cubex_memory_t *m,
+                       uint32_t ea, uint32_t v) {
+    uint32_t pa; if (cpu_translate_address(c, ea, 0, &pa)) return -1;
+    return cubex_bus_write32be(m, pa, v);
+}
+static int cpu_write16(const cubex_cpu_state_t *c, cubex_memory_t *m,
+                       uint32_t ea, uint16_t v) {
+    uint32_t pa; if (cpu_translate_address(c, ea, 0, &pa)) return -1;
+    return cubex_bus_write16be(m, pa, v);
+}
+static int cpu_write8(const cubex_cpu_state_t *c, cubex_memory_t *m,
+                      uint32_t ea, uint8_t v) {
+    uint32_t pa; if (cpu_translate_address(c, ea, 0, &pa)) return -1;
+    return cubex_bus_write8(m, pa, v);
+}
+
 void cubex_cpu_reset(cubex_cpu_state_t *c, uint32_t pc) {
     if (!c) return;
     memset(c, 0, sizeof(*c));
@@ -145,7 +188,7 @@ static void set_compare_field(cubex_cpu_state_t *c, uint32_t bf, int lt, int gt,
 cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
     uint32_t ins, op, rt, ra, rb, xo, imm, next;
     if (!c || !m) return CUBEX_CPU_BAD_ARGUMENT;
-    if (cubex_bus_read32be(m, c->pc, &ins)) {
+    if (cpu_read32(c, m, c->pc, &ins, 1)) {
         c->srr0 = c->pc;
         c->srr1 = c->msr & PPC_MSR_SRR1_EXTERNAL_MASK;
         c->msr &= ~PPC_MSR_EXCEPTION_CLEAR;
