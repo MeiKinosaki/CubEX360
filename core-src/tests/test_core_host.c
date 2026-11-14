@@ -1388,11 +1388,11 @@ int main(void) {
     cpu.msr=0x00008030u; /* EE + IR + DR, supervisor */
     assert(cubex_cpu_step(&cpu,&mem)==CUBEX_CPU_OK);
     assert(cpu.gpr[3]==42u && cpu.pc==0x80000404u);
-    cpu.pc=0x80000404u; cpu.gpr[3]=0u;
+    cpu.pc=0x80000404u; cpu.gpr[5]=0x00001000u; cpu.gpr[3]=0u;
     assert(cubex_cpu_step(&cpu,&mem)==CUBEX_CPU_OK);
     assert(cpu.gpr[3]==0xdecafbadu);
     /* BAT miss with data relocation enabled becomes a data-storage exception. */
-    cpu.pc=0x80000404u; cpu.gpr[3]=0x00002000u; cpu.dbat[0]=0u;
+    cpu.pc=0x80000404u; cpu.gpr[5]=0x00002000u; cpu.dbat[0]=0u;
     assert(cubex_cpu_step(&cpu,&mem)==CUBEX_CPU_OK);
     assert(cpu.pc==0x00000300u && cpu.dar==0x00002000u);
     cpu.msr=0u; cpu.ibat[0]=cpu.ibat[1]=cpu.dbat[0]=cpu.dbat[1]=0u;
