@@ -243,11 +243,13 @@ int main(void) {
     assert(cubex_machine_step(&machine) == CUBEX_CPU_OK);
     assert(machine.timer.interrupt_pending && machine.timer.remaining == 2u);
 
-    /* A fetch fault must not consume a device tick or retire an instruction. */
+    /* Instruction Storage exception must not consume a device tick or retire. */
     cubex_machine_destroy(&machine);
     assert(cubex_machine_init(&machine, 0x70000000u, 3u, 1) == 0);
     assert(cubex_timer_enable(&machine.timer, 1) == 0);
-    assert(cubex_machine_step(&machine) == CUBEX_CPU_MEMORY_FAULT);
+    assert(cubex_machine_step(&machine) == CUBEX_CPU_OK);
+    assert(machine.cpu.pc == 0x00000400u);
+    assert(machine.cpu.srr0 == 0x70000000u);
     assert(machine.cpu.retired_instructions == 0u);
     assert(machine.timer.remaining == 3u && !machine.timer.interrupt_pending);
 
