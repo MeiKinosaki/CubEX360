@@ -5,6 +5,7 @@
 static void machine_sync_device_irqs(cubex_machine_t *machine) {
     uint32_t causes = 0u;
     if (!machine) return;
+    if (cubex_cp_irq_pending(&machine->cp)) causes |= CUBEX_PI_IRQ_CP;
     if (cubex_pe_finish_irq(&machine->pe)) causes |= CUBEX_PI_IRQ_PE_FINISH;
     if (cubex_pe_token_irq(&machine->pe)) causes |= CUBEX_PI_IRQ_PE_TOKEN;
     if (causes) cubex_pi_raise(&machine->pi, causes);
