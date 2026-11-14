@@ -23,9 +23,24 @@ jobs:
         run: |
           git clone https://github.com/xenosworks/xsdk.git "$HOME/xsdk"
           git -C "$HOME/xsdk" checkout ade2c81d914634834d77394c5d9f8c4575f395bc
+      - name: Restore PowerPC-XSDK toolchain cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/xsdk-gcc
+            ~/xsdk-gcc-work
+          key: cubex360-xsdk-${{ runner.os }}-ade2c81d914634834d77394c5d9f8c4575f395bc-v1
       - name: Build PowerPC-XSDK cross toolchain
         run: |
           PREFIX="$HOME/xsdk-gcc" WORK="$HOME/xsdk-gcc-work" JOBS="$(nproc)" bash "$HOME/xsdk/tools/toolchain/build.sh"
+      - name: Save PowerPC-XSDK toolchain cache
+        if: success()
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/xsdk-gcc
+            ~/xsdk-gcc-work
+          key: cubex360-xsdk-${{ runner.os }}-ade2c81d914634834d77394c5d9f8c4575f395bc-v1
       - name: Build xsdk runtime library
         run: |
           make -C "$HOME/xsdk" -j"$(nproc)" build/libxsdk.a
