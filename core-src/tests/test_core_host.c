@@ -507,6 +507,22 @@ int main(void) {
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK && cpu.gpr[5] == 0xf0fff0ffu);
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK && cpu.gpr[6] == 0x20000000u);
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK && cpu.xer == 0x80000000u);
+    /* SDR1 SPR 25 is supervisor-only; retain the programmed page-table base/mask. */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x274u,
+        (31u<<26)|(10u<<21)|(25u<<16)|(339u<<1)) == 0); /* mfspr r10,SDR1 */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x278u,
+        (31u<<26)|(11u<<21)|(25u<<16)|(467u<<1)) == 0); /* mtspr SDR1,r11 */
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x274u);
+    cpu.sdr1 = 0x12345678u;
+    cpu.gpr[11] = 0xabcde000u;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK && cpu.gpr[10] == 0x12345678u);
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK && cpu.sdr1 == 0xabcde000u);
+    /* User-mode access to SDR1 is a privileged-instruction exception. */
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x274u);
+    cpu.msr = 0x00004000u;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.pc == 0x00000700u && cpu.srr0 == CUBEX360_RAM_CACHED_BASE + 0x274u);
+    assert((cpu.srr1 & 0x00020000u) != 0u);
     /* MFCR reads all CR fields; MTCRF updates only fields selected by FXM. */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x26cu,
         (31u<<26)|(8u<<21)|(19u<<1)) == 0);
