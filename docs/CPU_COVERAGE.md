@@ -458,3 +458,10 @@ Helper isolado para lookup dos quatro pares BAT de instrução/dados, com compar
 ## BAT integration — v1.98b
 
 CPU fetch e loads/stores escalares passam pelos wrappers de tradução quando IR/DR estão ativos. BAT miss em dados chega ao caminho Data Storage. Page tables SDR1, PP/WIMG, Instruction Storage em miss IBAT e cobertura de todas as operações de memória permanecem pendentes.
+
+
+## v1.99b — alvo de aplicação Xbox 360
+
+Foi adicionado um alvo CMake que liga o núcleo atual memory.c, bus.c e cpu.c a um runtime de título Xbox 360 via xsdk. O entry point faz um smoke test de duas instruções e escreve o resultado no log do título. O alvo não inclui Flipper/GX, DSP, IPL, drive ou execução de jogos.
+
+O workflow Linux compila a toolchain xsdk, a biblioteca de runtime, liga o alvo e chama elf2xex.py do próprio xsdk. A validação do contêiner XEX2 e o SHA-256 são gates de artefato, não prova de inicialização no hardware. A execução do workflow para esta revisão ainda está pendente.
