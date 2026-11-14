@@ -1027,11 +1027,13 @@ int main(void) {
             assert(byte == 0u);
         }
     }
-    /* DCBZ must fault for a non-RAM effective address. */
+    /* DCBZ non-RAM effective address raises Data Storage. */
     cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x2bcu);
     cpu.gpr[4] = 0x70000000u;
     cpu.gpr[5] = 0u;
-    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_MEMORY_FAULT);
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.pc == 0x00000300u && cpu.dar == 0x70000000u);
+    assert(cpu.dsisr == 0x02000000u);
 
     /* DCBZ starting at the RAM end must fault without touching the preceding block. */
     {
