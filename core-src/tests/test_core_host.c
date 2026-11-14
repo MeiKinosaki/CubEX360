@@ -525,28 +525,28 @@ int main(void) {
     assert((cpu.srr1 & 0x00020000u) != 0u);
     /* 6xx hashed page-table walk: primary PTEG, R/C bits and PP protection. */
     {
-        uint32_t physical = 0u, ea = 0x80001234u, pte0 = 0x80000000u;
+        uint32_t physical = 0u, ea = 0x80000234u, pte0 = 0x80000000u;
         uint32_t pte1 = 0x00010002u;
         cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE);
         cpu.msr = 0x30u; /* IR + DR */
         cpu.sdr1 = 0x00004000u; /* HTABORG=0x4000, HTABMASK=0 */
         cpu.sr[8] = 0u; /* VSID=0, keys clear */
-        assert(cubex_bus_write32be(&mem, 0x40u, pte0) == 0);
-        assert(cubex_bus_write32be(&mem, 0x44u, pte1) == 0);
+        assert(cubex_bus_write32be(&mem, 0x4000u, pte0) == 0);
+        assert(cubex_bus_write32be(&mem, 0x4004u, pte1) == 0);
         assert(cubex_cpu_translate_hash(&cpu, &mem, ea, 0, 0, &physical) == 1);
         assert(physical == 0x00010234u);
-        assert(cubex_bus_read32be(&mem, 0x44u, &value) == 0);
+        assert(cubex_bus_read32be(&mem, 0x4004u, &value) == 0);
         assert((value & 0x100u) != 0u); /* referenced */
         assert(cubex_cpu_translate_hash(&cpu, &mem, ea, 0, 1, &physical) == 1);
-        assert(cubex_bus_read32be(&mem, 0x44u, &value) == 0);
+        assert(cubex_bus_read32be(&mem, 0x4004u, &value) == 0);
         assert((value & 0x180u) == 0x180u); /* referenced + changed */
         /* Keyed user access with PP=0 is denied. */
         cpu.msr |= 0x00004000u;
         cpu.sr[8] = 0x20000000u; /* KP */
-        assert(cubex_bus_write32be(&mem, 0x44u, 0x00010000u) == 0);
+        assert(cubex_bus_write32be(&mem, 0x4004u, 0x00010000u) == 0);
         assert(cubex_cpu_translate_hash(&cpu, &mem, ea, 0, 0, &physical) == -1);
         /* Missing PTE returns a page miss rather than a fabricated address. */
-        assert(cubex_bus_write32be(&mem, 0x40u, 0u) == 0);
+        assert(cubex_bus_write32be(&mem, 0x4000u, 0u) == 0);
         assert(cubex_cpu_translate_hash(&cpu, &mem, ea, 0, 0, &physical) == 0);
     }
     /* MFCR reads all CR fields; MTCRF updates only fields selected by FXM. */
