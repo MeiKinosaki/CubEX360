@@ -36,6 +36,18 @@ void cubex_cpu_reset(cubex_cpu_state_t *c, uint32_t pc) {
                                   PPC_MSR_BE | PPC_MSR_FE1 | PPC_MSR_IR | \
                                   PPC_MSR_DR | PPC_MSR_PM | PPC_MSR_RI)
 
+int cubex_cpu_take_decrementer_interrupt(cubex_cpu_state_t *c) {
+    if (!c || !c->dec_pending || !(c->msr & PPC_MSR_EE)) return 0;
+    c->srr0 = c->pc;
+    c->srr1 = c->msr & PPC_MSR_SRR1_EXTERNAL_MASK;
+    c->msr &= ~PPC_MSR_EXCEPTION_CLEAR;
+    if (c->msr & PPC_MSR_ILE) c->msr |= PPC_MSR_LE;
+    else c->msr &= ~PPC_MSR_LE;
+    c->pc = (c->msr & PPC_MSR_IP) ? 0xfff00900u : 0x00000900u;
+    c->dec_pending = 0u;
+    return 1;
+}
+
 int cubex_cpu_take_external_interrupt(cubex_cpu_state_t *c) {
     uint32_t vector;
     if (!c || !(c->msr & PPC_MSR_EE)) return 0;
@@ -304,6 +316,19 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
             uint32_t b = (c->cr >> (31u - bb)) & 1u;
             uint32_t result;
             switch (xo) {
+        case 339: { /* MFSPR: decrementer SPR 22 */
+            uint32_t spr = (((ins >> 16) & 31u) << 5) | ((ins >> 11) & 31u);
+            if (spr != 22u) return CUBEX_CPU_UNSUPPORTED;
+            c->gpr[rt] = c->dec;
+            break;
+        }
+        case 467: { /* MTSPR: decrementer SPR 22 */
+            uint32_t spr = (((ins >> 16) & 31u) << 5) | ((ins >> 11) & 31u);
+            if (spr != 22u) return CUBEX_CPU_UNSUPPORTED;
+            c->dec = c->gpr[rt];
+            c->dec_pending = 0u;
+            break;
+        }
             case 33:  result = !(a | b); break;       /* CRNOR */
             case 129: result = a & !b; break;         /* CRANDC */
             case 193: result = a ^ b; break;          /* CRXOR */
