@@ -216,3 +216,13 @@ O teste integrado de CP watermark → PI Cause bit 11 passou nos testes host. A 
 - O modelo PI ainda não está ligado a todos os dispositivos reais; apenas CP/PE estão roteados.
 - O caminho de exceção precisa ser confrontado com testes de referência Gekko/PowerPC, inclusive preservação detalhada de bits MSR.
 - Sem boot de jogo GameCube e sem execução em Xbox 360 comprovados.
+
+
+### Precisão arquitetural da exceção externa — revisão pelo manual IBM 750CL
+
+- Revisado contra IBM PowerPC 750CL User's Manual, §4.5.5 e Tabela 4-7: o vetor é offset 0x500 na base física indicada por MSR[IP] (0x00000500 ou 0xFFF00500).
+- SRR1 agora aplica máscara arquitetural 0x87C0FFFF (bits MSR 0, 5–9 e 16–31), em vez de copiar o MSR inteiro.
+- Entrada limpa POW, EE, PR, FP, FE0, SE, BE, FE1, IR, DR, PM e RI; preserva ILE, ME e IP, e transfere ILE para LE.
+- Adicionado teste com múltiplos bits MSR ativos, verificando SRR1 mascarado, MSR do handler e restauração por RFI.
+- Referência primária: IBM 750CL User's Manual, §4.3.4, §4.5.5 e Tabela 4-7: https://fail0verflow.com/media/files/ppc_750cl.pdf
+- CI #43624411135 (commit `f15bb68c20fba1c25da9ddb5cd706c4c772f1f75`) terminou 6/6 jobs com sucesso, incluindo save-state v2 + SRR0/SRR1 round-trip e ASan/UBSan. A correção arquitetural de SRR1/MSR e o teste mais estrito foram adicionados depois desse run; aguardam CI #43624502524 ou posterior.
