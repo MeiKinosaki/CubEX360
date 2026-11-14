@@ -332,6 +332,17 @@ int main(void) {
     assert(cpu.srr0 == CUBEX360_RAM_CACHED_BASE + 0x2a0u);
     assert(cpu.dar == 0x70000000u);
     assert(cpu.dsisr == 0u);
+    /* Unmapped STW sets the architectural DSISR store indicator. */
+    assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x2a4u,
+        (36u<<26)|(21u<<21)|(16u<<16)) == 0);
+    cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x2a4u);
+    cpu.gpr[16] = 0x70000000u;
+    cpu.gpr[21] = 0xfeedfaceu;
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.pc == 0x00000300u);
+    assert(cpu.srr0 == CUBEX360_RAM_CACHED_BASE + 0x2a4u);
+    assert(cpu.dar == 0x70000000u);
+    assert(cpu.dsisr == 0x02000000u);
     cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 68u);
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_UNSUPPORTED);
     assert(cpu.pc == CUBEX360_RAM_CACHED_BASE + 68u);
