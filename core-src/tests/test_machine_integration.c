@@ -34,11 +34,11 @@ int main(void) {
     /* CPU accesses to the MMIO bank must traverse the unified bus. */
     assert(cubex_bus_write32be(&machine.memory, entry + 0x20u, 0x3ca0cc00u) == 0); /* lis r5,0xcc00 */
     assert(cubex_bus_write32be(&machine.memory, entry + 0x24u, 0x38c01234u) == 0); /* li r6,0x1234 */
-    assert(cubex_bus_write32be(&machine.memory, entry + 0x28u, 0x90c50004u) == 0); /* stw r6,4(r5) */
-    assert(cubex_bus_write32be(&machine.memory, entry + 0x2cu, 0x80e50004u) == 0); /* lwz r7,4(r5) */
+    assert(cubex_bus_write32be(&machine.memory, entry + 0x28u, 0x90c50104u) == 0); /* stw r6,4(r5) */
+    assert(cubex_bus_write32be(&machine.memory, entry + 0x2cu, 0x80e50104u) == 0); /* lwz r7,4(r5) */
     assert(cubex_bus_write32be(&machine.memory, entry + 0x30u, 0x39000055u) == 0); /* li r8,0x55 */
-    assert(cubex_bus_write32be(&machine.memory, entry + 0x34u, 0x99050005u) == 0); /* stb r8,5(r5) */
-    assert(cubex_bus_write32be(&machine.memory, entry + 0x38u, 0x89250005u) == 0); /* lbz r9,5(r5) */
+    assert(cubex_bus_write32be(&machine.memory, entry + 0x34u, 0x99050105u) == 0); /* stb r8,5(r5) */
+    assert(cubex_bus_write32be(&machine.memory, entry + 0x38u, 0x89250105u) == 0); /* lbz r9,5(r5) */
     machine.cpu.pc = entry + 0x20u;
     assert(cubex_machine_run(&machine, 7u) == CUBEX_CPU_OK);
     assert(machine.cpu.gpr[7] == 0x1234u);
@@ -68,7 +68,7 @@ int main(void) {
 
     /* CPU STH/LHZ instructions reach the CP's 16-bit callback. */
     assert(cubex_bus_write32be(&machine.memory, entry + 0x60u, 0x3ca0cc00u) == 0);
-    assert(cubex_bus_write32be(&machine.memory, entry + 0x64u, 0x38c00022u) == 0);
+    assert(cubex_bus_write32be(&machine.memory, entry + 0x64u, 0x38c00002u) == 0);
     assert(cubex_bus_write32be(&machine.memory, entry + 0x68u, 0xb0c50002u) == 0);
     assert(cubex_bus_write32be(&machine.memory, entry + 0x6cu, 0xa0e50002u) == 0);
     machine.cpu.pc = entry + 0x60u;
