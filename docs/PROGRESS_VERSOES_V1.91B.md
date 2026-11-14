@@ -94,3 +94,18 @@ Substituir o banco genérico por despacho de regiões/dispositivos com mapa docu
 2. Introduzir callbacks MMIO de 16 bits sem read-modify-write destrutivo.
 3. Integrar o CP ao despacho por região, mantendo FIFO como porta especial.
 4. Depois modelar PE e PI; somente então ligar as fontes de interrupção reais.
+
+
+### Integração CP ao barramento — extensão v1.93b
+
+- Adicionados callbacks de MMIO de 16 bits em `cubex_memory_t`; inicialização e destruição limpam os quatro callbacks de 16/32 bits.
+- O barramento consulta callbacks nativos para meia-palavra alinhada. Retorno `-2` significa que o dispositivo não reivindica o endereço e permite fallback ao banco genérico; erros reais do CP não fazem fallback.
+- O CP foi incluído no estado da máquina e conectado ao caminho de acesso de 16 bits.
+- Acesso de 32 bits à janela CP é rejeitado, evitando read-modify-write contra registradores com side effects.
+- O banco genérico de teste foi deslocado para `0xCC000100`, fora da abertura CP.
+- Teste integrado acrescentado: leitura de SR, escrita/leitura de CR, clear de overflow, rejeição de larguras/alinhamentos incorretos e execução de `STH`/`LHZ` da CPU contra o CP.
+- Os alvos de integração strict/sanitizer agora linkam explicitamente `cp.c` e `flipper_map.c`.
+
+**Validação:** GitHub Actions run #43623131846 foi criado para o commit `c4ff3fa0839bb696fcd79c8a8305c4f23d51d60a`. No momento do registro, o run estava queued/in progress; não marcar como aprovado até conclusão. Se falhar, corrigir com base nos logs e repetir.
+
+**Limite:** o CP ainda não gera nem consome FIFO GX, não processa display lists, não sincroniza PE e não dispara interrupções reais via PI. O mapa e o CP permanecem em desenvolvimento.
