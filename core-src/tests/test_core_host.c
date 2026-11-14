@@ -1365,6 +1365,16 @@ int main(void) {
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
     assert(cpu.pc == 0x00000700u && cpu.srr0 == CUBEX360_RAM_CACHED_BASE + 0x350u);
     assert(cpu.srr1 == (0x00004000u | 0x00020000u));
+    /* Experimental BAT block lookup: 128 KiB, privilege bits and miss. */
+    cpu.ibat[0]=0x80000002u; cpu.ibat[1]=0x10000000u;
+    cpu.dbat[0]=0x90000003u; cpu.dbat[1]=0x20000000u;
+    { uint32_t translated=0u;
+      assert(cubex_cpu_translate_bat(&cpu,0x80001234u,1,0,&translated)==1); assert(translated==0x10001234u);
+      assert(cubex_cpu_translate_bat(&cpu,0x80001234u,1,1,&translated)==0);
+      assert(cubex_cpu_translate_bat(&cpu,0x90005678u,0,1,&translated)==1); assert(translated==0x20005678u);
+      assert(cubex_cpu_translate_bat(&cpu,0xa0000000u,0,1,&translated)==0);
+    }
+    cpu.ibat[0]=0u; cpu.ibat[1]=0u; cpu.dbat[0]=0u; cpu.dbat[1]=0u;
     /* BAT SPR access is supervisor-only; this tests register plumbing, not address translation. */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x35cu,
         (31u<<26)|(3u<<21)|((528u&31u)<<16)|((528u&0x3e0u)<<6)|(467u<<1)) == 0);
