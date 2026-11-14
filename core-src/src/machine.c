@@ -15,19 +15,27 @@ static int machine_bus_mmio_read16(void *context, uint32_t address,
     cubex_machine_t *machine = (cubex_machine_t *)context;
     cubex_flipper_decoded_address_t decoded;
     if (!machine || !value) return -1;
-    if (cubex_flipper_decode_address(address, &decoded) != 0 ||
-        decoded.region != CUBEX_FLIPPER_REGION_CP) return -2;
-    return cubex_cp_read16(&machine->cp, address, value);
+    if (cubex_flipper_decode_address(address, &decoded) != 0) return -2;
+    if (decoded.region == CUBEX_FLIPPER_REGION_CP)
+        return cubex_cp_read16(&machine->cp, address, value);
+    if (decoded.region == CUBEX_FLIPPER_REGION_PE)
+        return cubex_pe_read16(&machine->pe, address, value);
+    return -2;
 }
 
 static int machine_bus_mmio_write16(void *context, uint32_t address,
                                     uint16_t value) {
     cubex_machine_t *machine = (cubex_machine_t *)context;
     cubex_flipper_decoded_address_t decoded;
+    int result;
     if (!machine) return -1;
-    if (cubex_flipper_decode_address(address, &decoded) != 0 ||
-        decoded.region != CUBEX_FLIPPER_REGION_CP) return -2;
-    return cubex_cp_write16(&machine->cp, address, value);
+    if (cubex_flipper_decode_address(address, &decoded) != 0) return -2;
+    if (decoded.region == CUBEX_FLIPPER_REGION_CP)
+        return cubex_cp_write16(&machine->cp, address, value);
+    if (decoded.region != CUBEX_FLIPPER_REGION_PE) return -2;
+    result = cubex_pe_write16(&machine->pe, address, value);
+    machine_sync_device_irqs(machine);
+    return result;
 }
 
 static int machine_bus_mmio_read32(void *context, uint32_t address,
@@ -35,8 +43,11 @@ static int machine_bus_mmio_read32(void *context, uint32_t address,
     cubex_machine_t *machine = (cubex_machine_t *)context;
     cubex_flipper_decoded_address_t decoded;
     if (!machine || !value) return -1;
-    if (cubex_flipper_decode_address(address, &decoded) == 0 &&
-        decoded.region == CUBEX_FLIPPER_REGION_CP) return -1;
+    if (cubex_flipper_decode_address(address, &decoded) == 0) {
+        if (decoded.region == CUBEX_FLIPPER_REGION_PI)
+            return cubex_pi_read32(&machine->pi, address, value);
+        return -1;
+    }
     return cubex_mmio_read32(&machine->mmio, address, value);
 }
 
@@ -45,33 +56,12 @@ static int machine_bus_mmio_write32(void *context, uint32_t address,
     cubex_machine_t *machine = (cubex_machine_t *)context;
     cubex_flipper_decoded_address_t decoded;
     if (!machine) return -1;
-    if (cubex_flipper_decode_address(address, &decoded) == 0 &&
-        decoded.region == CUBEX_FLIPPER_REGION_CP) return -1;
+    if (cubex_flipper_decode_address(address, &decoded) == 0) {
+        if (decoded.region == CUBEX_FLIPPER_REGION_PI)
+            return cubex_pi_write32(&machine->pi, address, value);
+        return -1;
+    }
     return cubex_mmio_write32(&machine->mmio, address, value);
-}
-
-static int machine_bus_mmio_read32_device(void *context, uint32_t address,
-                                         uint32_t *value) {
-    cubex_machine_t *machine = (cubex_machine_t *)context;
-    cubex_flipper_decoded_address_t decoded;
-    if (!machine || !value) return -1;
-    if (cubex_flipper_decode_address(address, &decoded) != 0) return -2;
-    if (decoded.region == CUBEX_FLIPPER_REGION_PI)
-        return cubex_pi_read32(&machine->pi, address, value);
-    return -1;
-}
-
-static int machine_bus_mmio_write32_device(void *context, uint32_t address,
-                                          uint32_t value) {
-    cubex_machine_t *machine = (cubex_machine_t *)context;
-    cubex_flipper_decoded_address_t decoded;
-    int result;
-    if (!machine) return -1;
-    if (cubex_flipper_decode_address(address, &decoded) != 0) return -2;
-    if (decoded.region != CUBEX_FLIPPER_REGION_PI) return -1;
-    result = cubex_pi_write32(&machine->pi, address, value);
-    machine_sync_device_irqs(machine);
-    return result;
 }
 
 int cubex_machine_init(cubex_machine_t *machine, uint32_t entry_pc,
@@ -91,6 +81,8 @@ int cubex_machine_init(cubex_machine_t *machine, uint32_t entry_pc,
     machine->memory.mmio_read16 = machine_bus_mmio_read16;
     machine->memory.mmio_write16 = machine_bus_mmio_write16;
     cubex_cp_init(&machine->cp);
+    cubex_pe_init(&machine->pe);
+    cubex_pi_init(&machine->pi);
     if (cubex_timer_init(&machine->timer, timer_period,
                          timer_periodic != 0) != 0) {
         cubex_memory_destroy(&machine->memory);
