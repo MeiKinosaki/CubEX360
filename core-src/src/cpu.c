@@ -224,6 +224,21 @@ static cubex_cpu_result_t fp_unavailable(cubex_cpu_state_t *c) {
     c->pc = (c->msr & PPC_MSR_IP) ? 0xfff00800u : 0x00000800u;
     return CUBEX_CPU_OK;
 }
+static int cpu_read64(cubex_cpu_state_t *c, const cubex_memory_t *m,
+                      uint32_t address, uint64_t *value) {
+    uint32_t high, low;
+    if ((address & 3u) || cpu_read32(c, m, address, &high, 0) ||
+        cpu_read32(c, m, address + 4u, &low, 0)) return -1;
+    *value = ((uint64_t)high << 32) | low;
+    return 0;
+}
+static int cpu_write64(cubex_cpu_state_t *c, cubex_memory_t *m,
+                       uint32_t address, uint64_t value) {
+    if ((address & 3u) ||
+        cpu_write32(c, m, address, (uint32_t)(value >> 32)) ||
+        cpu_write32(c, m, address + 4u, (uint32_t)value)) return -1;
+    return 0;
+}
 static double fpr_double(const cubex_cpu_state_t *c, uint32_t index) {
     double value;
     memcpy(&value, &c->fpr[index], sizeof(value));
@@ -519,6 +534,44 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
             c->cr = (c->cr & ~(1u << (31u - bt))) | (result << (31u - bt));
         }
         break;
+    case 48: /* LFS */
+    case 50: { /* LFD */
+        uint32_t address = (ra ? c->gpr[ra] : 0u) + (uint32_t)sx16(imm);
+        if (!(c->msr & 0x00002000u)) return fp_unavailable(c);
+        if (address & 3u) return alignment_fault(c, address, 0);
+        if (op == 50u) {
+            uint64_t value;
+            if (cpu_read64(c, m, address, &value)) return data_fault(c, address, 0);
+            c->fpr[rt] = value;
+        } else {
+            uint32_t bits;
+            float single;
+            double widened;
+            if (cpu_read32(c, m, address, &bits, 0)) return data_fault(c, address, 0);
+            memcpy(&single, &bits, sizeof(single));
+            widened = (double)single;
+            memcpy(&c->fpr[rt], &widened, sizeof(widened));
+        }
+        break;
+    }
+    case 52: /* STFS */
+    case 54: { /* STFD */
+        uint32_t address = (ra ? c->gpr[ra] : 0u) + (uint32_t)sx16(imm);
+        if (!(c->msr & 0x00002000u)) return fp_unavailable(c);
+        if (address & 3u) return alignment_fault(c, address, 1);
+        if (op == 54u) {
+            if (cpu_write64(c, m, address, c->fpr[rt])) return data_fault(c, address, 1);
+        } else {
+            double source;
+            float single;
+            uint32_t bits;
+            memcpy(&source, &c->fpr[rt], sizeof(source));
+            single = (float)source;
+            memcpy(&bits, &single, sizeof(bits));
+            if (cpu_write32(c, m, address, bits)) return data_fault(c, address, 1);
+        }
+        break;
+    }
     case 63: { /* Gekko double-precision floating-point arithmetic subset */
         uint32_t frt = rt, fra = ra, frb = rb, frc = (ins >> 6) & 31u;
         double a, b, result;
