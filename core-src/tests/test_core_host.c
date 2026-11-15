@@ -1642,6 +1642,55 @@ int main(void) {
         assert(cpu.pc == 0x00000800u);
         (void)bits;
     }
+
+    /* FPU compare, FPSCR sticky exceptions, FRSP rounding and single arithmetic. */
+    {
+        double a, b, result;
+        uint32_t fcmpu = (63u<<26) | (2u<<23) | (1u<<16) | (2u<<11);
+        uint32_t fcmpo = (63u<<26) | (3u<<23) | (1u<<16) | (2u<<11) | (32u<<1);
+        uint32_t fdiv = (63u<<26) | (4u<<21) | (1u<<16) | (2u<<11) | (18u<<1);
+        uint32_t frsp = (63u<<26) | (5u<<21) | (2u<<16) | (12u<<1);
+        uint32_t fadds = (59u<<26) | (6u<<21) | (1u<<16) | (2u<<11) | (21u<<1);
+        cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x500u);
+        cpu.msr = 0x00002000u;
+        a = 1.0; memcpy(&cpu.fpr[1], &a, sizeof(a));
+        b = 2.0; memcpy(&cpu.fpr[2], &b, sizeof(b));
+        assert(cubex_bus_write32be(&mem, cpu.pc, fcmpu) == 0);
+        assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+        assert((cpu.cr & 0x0f000000u) == 0x08000000u); /* BF=2: LT */
+        assert((cpu.fpscr & 0x0000f000u) == 0x00008000u);
+        /* Ordered compare with a quiet NaN raises VXVC and records unordered. */
+        cpu.pc = CUBEX360_RAM_CACHED_BASE + 0x500u;
+        cpu.fpr[1] = 0x7ff8000000000000ULL;
+        assert(cubex_bus_write32be(&mem, cpu.pc, fcmpo) == 0);
+        assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+        assert((cpu.fpscr & 0x00080000u) != 0u);
+        assert((cpu.fpscr & 0x20000000u) != 0u);
+        /* Divide-by-zero sets sticky ZX; exception enable controls FEX. */
+        cpu.pc = CUBEX360_RAM_CACHED_BASE + 0x500u;
+        a = 1.0; memcpy(&cpu.fpr[1], &a, sizeof(a));
+        b = 0.0; memcpy(&cpu.fpr[2], &b, sizeof(b));
+        assert(cubex_bus_write32be(&mem, cpu.pc, fdiv) == 0);
+        assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+        assert((cpu.fpscr & 0x04000000u) != 0u);
+        assert((cpu.fpscr & 0x40000000u) == 0u);
+        /* FRSP converts the source to a widened single-precision value. */
+        cpu.pc = CUBEX360_RAM_CACHED_BASE + 0x500u;
+        a = 1.1; memcpy(&cpu.fpr[2], &a, sizeof(a));
+        assert(cubex_bus_write32be(&mem, cpu.pc, frsp) == 0);
+        assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+        memcpy(&result, &cpu.fpr[5], sizeof(result));
+        assert(result == (double)(float)1.1);
+        assert((cpu.fpscr & 0x02000000u) != 0u);
+        /* Single precision add computes with float operands. */
+        cpu.pc = CUBEX360_RAM_CACHED_BASE + 0x500u;
+        a = 1.25; memcpy(&cpu.fpr[1], &a, sizeof(a));
+        b = 2.5; memcpy(&cpu.fpr[2], &b, sizeof(b));
+        assert(cubex_bus_write32be(&mem, cpu.pc, fadds) == 0);
+        assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+        memcpy(&result, &cpu.fpr[6], sizeof(result));
+        assert(result == 3.75);
+    }
     cubex_memory_destroy(&mem);
     puts("CubEX360 core host smoke: PASS");
     return 0;
