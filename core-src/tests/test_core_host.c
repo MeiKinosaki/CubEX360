@@ -5,6 +5,7 @@
 #include "cubex360/mmio.h"
 #include "cubex360/dma.h"
 #include "cubex360/timer.h"
+#include "cubex360/gx_fifo.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
@@ -1706,6 +1707,30 @@ int main(void) {
         assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
         memcpy(&result, &cpu.fpr[6], sizeof(result));
         assert(result == 3.75);
+    }
+    /* GX FIFO ring-buffer watermark, overflow and underflow diagnostics. */
+    {
+        cubex_gx_fifo_t fifo;
+        uint32_t word = 0u;
+        unsigned i;
+        cubex_gx_fifo_reset(&fifo);
+        assert(cubex_gx_fifo_read(&fifo, &word) == -2);
+        assert(cubex_gx_fifo_error_flags(&fifo) == CUBEX_GX_FIFO_ERROR_UNDERFLOW);
+        for (i = 0u; i < CUBEX_GX_FIFO_CAPACITY; ++i)
+            assert(cubex_gx_fifo_write(&fifo, 0x80000000u | i) == 0);
+        assert(cubex_gx_fifo_high_water(&fifo) == CUBEX_GX_FIFO_CAPACITY);
+        assert(cubex_gx_fifo_is_full(&fifo));
+        assert(cubex_gx_fifo_write(&fifo, 0xdeadbeefu) == -2);
+        assert((cubex_gx_fifo_error_flags(&fifo) &
+                (CUBEX_GX_FIFO_ERROR_OVERFLOW | CUBEX_GX_FIFO_ERROR_UNDERFLOW)) ==
+               (CUBEX_GX_FIFO_ERROR_OVERFLOW | CUBEX_GX_FIFO_ERROR_UNDERFLOW));
+        for (i = 0u; i < CUBEX_GX_FIFO_CAPACITY; ++i) {
+            assert(cubex_gx_fifo_read(&fifo, &word) == 0);
+            assert(word == (0x80000000u | i));
+        }
+        cubex_gx_fifo_clear_errors(&fifo, CUBEX_GX_FIFO_ERROR_OVERFLOW |
+                                          CUBEX_GX_FIFO_ERROR_UNDERFLOW);
+        assert(cubex_gx_fifo_error_flags(&fifo) == 0u);
     }
     cubex_memory_destroy(&mem);
     puts("CubEX360 core host smoke: PASS");
