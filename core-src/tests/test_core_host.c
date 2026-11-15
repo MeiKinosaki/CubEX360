@@ -1495,11 +1495,11 @@ int main(void) {
         cpu.lr = 0x12345678u;
         cpu.cr = 0xa5a5a5a5u;
         cpu.xer = 0x000000e0u;
-        cpu.msr = 0x00008000u; cpu.srr0 = 0x80001234u; cpu.srr1 = 0x0000abcdu; cpu.dec = 0x12345678u; cpu.dec_pending = 1u; cpu.dar = 0x81234567u; cpu.dsisr = 0x02000000u; cpu.sr[0] = 0x11112222u; cpu.sr[15] = 0xeeeeffffu; cpu.ibat[0] = 0x80001fffu; cpu.dbat[7] = 0xc00003ffu;
+        cpu.msr = 0x00008000u; cpu.srr0 = 0x80001234u; cpu.srr1 = 0x0000abcdu; cpu.dec = 0x12345678u; cpu.dec_pending = 1u; cpu.dar = 0x81234567u; cpu.dsisr = 0x02000000u; cpu.fpr[0] = 0x3ff0000000000000ULL; cpu.fpr[31] = 0xc004000000000000ULL; cpu.fpscr = 0xa5000000u; cpu.sr[0] = 0x11112222u; cpu.sr[15] = 0xeeeeffffu; cpu.ibat[0] = 0x80001fffu; cpu.dbat[7] = 0xc00003ffu;
         assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x1000u, 0xc001d00du) == 0);
         assert(cubex_state_save(state_path, &cpu, &mem) == 0);
         cpu.gpr[3] = 0u; cpu.pc = 0u; cpu.lr = 0u; cpu.cr = 0u; cpu.xer = 0u;
-        cpu.msr = 0u; cpu.srr0 = 0u; cpu.srr1 = 0u; cpu.dec = 0u; cpu.dec_pending = 0u; cpu.dar = 0u; cpu.dsisr = 0u; cpu.sr[0] = 0u; cpu.sr[15] = 0u; cpu.ibat[0] = 0u; cpu.dbat[7] = 0u;
+        cpu.msr = 0u; cpu.srr0 = 0u; cpu.srr1 = 0u; cpu.dec = 0u; cpu.dec_pending = 0u; cpu.dar = 0u; cpu.dsisr = 0u; cpu.fpr[0] = 0u; cpu.fpr[31] = 0u; cpu.fpscr = 0u; cpu.sr[0] = 0u; cpu.sr[15] = 0u; cpu.ibat[0] = 0u; cpu.dbat[7] = 0u;
         assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x1000u, 0u) == 0);
         assert(cubex_state_load(state_path, &cpu, &mem) == 0);
         assert(cpu.gpr[3] == 0x13579bdfu && cpu.pc == CUBEX360_RAM_CACHED_BASE + 0x400u);
@@ -1507,6 +1507,8 @@ int main(void) {
         assert(cpu.msr == 0x00008000u && cpu.srr0 == 0x80001234u && cpu.srr1 == 0x0000abcdu);
         assert(cpu.dec == 0x12345678u && cpu.dec_pending == 1u);
         assert(cpu.dar == 0x81234567u && cpu.dsisr == 0x02000000u);
+        assert(cpu.fpr[0] == 0x3ff0000000000000ULL && cpu.fpr[31] == 0xc004000000000000ULL);
+        assert(cpu.fpscr == 0xa5000000u);
         assert(cpu.sr[0] == 0x11112222u && cpu.sr[15] == 0xeeeeffffu);
         assert(cpu.ibat[0] == 0x80001fffu && cpu.dbat[7] == 0xc00003ffu);
         assert(cubex_bus_read32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x1000u, &before) == 0);
@@ -1516,7 +1518,7 @@ int main(void) {
             FILE *state_file = fopen(state_path, "r+b");
             int byte;
             assert(state_file != NULL);
-            assert(fseek(state_file, 20L + 312L + 0x1000L, SEEK_SET) == 0);
+            assert(fseek(state_file, 20L + 572L + 0x1000L, SEEK_SET) == 0);
             byte = fgetc(state_file);
             assert(byte != EOF);
             assert(fseek(state_file, -1L, SEEK_CUR) == 0);
