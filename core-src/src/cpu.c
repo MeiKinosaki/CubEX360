@@ -858,32 +858,8 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
             c->gpr[ra] = address;
             break;
         }
-        case 210: { /* MTSR: move GPR to selected segment register */
-            uint32_t index = (ins >> 16) & 15u;
-            if (c->msr & PPC_MSR_PR) return program_exception(c, 0x00020000u);
-            c->sr[index] = c->gpr[rt];
-            break;
-        }
-        case 242: { /* MTSRIN: indexed segment-register write */
-            uint32_t index = c->gpr[rb] >> 28;
-            if (c->msr & PPC_MSR_PR) return program_exception(c, 0x00020000u);
-            c->sr[index] = c->gpr[rt];
-            break;
-        }
-        case 595: { /* MFSR: move selected segment register to GPR */
-            uint32_t index = (ins >> 16) & 15u;
-            if (c->msr & PPC_MSR_PR) return program_exception(c, 0x00020000u);
-            c->gpr[rt] = c->sr[index];
-            break;
-        }
-        case 659: { /* MFSRIN: indexed segment-register read */
-            uint32_t index = c->gpr[rb] >> 28;
-            if (c->msr & PPC_MSR_PR) return program_exception(c, 0x00020000u);
-            c->gpr[rt] = c->sr[index];
-            break;
-        }
-        case 306: /* TLBIE: no software TLB cache is active yet; preserve privileged decode. */
-        case 370: /* TLBIA: page-table walks remain uncached in this core. */
+        case 306: /* TLBIE: no software TLB cache is active yet; page walks are uncached. */
+        case 370: /* TLBIA: uncached hashed-page walks need no invalidation. */
             if (c->msr & PPC_MSR_PR) return program_exception(c, 0x00020000u);
             break;
         case 512: { /* MCRXR: move XER SO/OV/CA to CR field and clear them */
