@@ -564,12 +564,12 @@ int main(void) {
     /* Secondary PTEG fallback: H=1 entry is consulted after primary miss. */
     {
         uint32_t pa = 0u;
-        const uint32_t secondary_pteg = 0x0001ffc0u; /* (~hash & 0x3ff) << 6 */
+        const uint32_t secondary_pteg = 0x000172c0u; /* HTABORG + ((~0x234 & 0x3ff) << 6) */
         cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE);
         cpu.sdr1 = 0x00010000u; /* HTABORG=0x0001, HTABMASK=0 */
-        cpu.sr[8] = 0u;
+        cpu.sr[8] = 0x1234u;
         assert(cubex_bus_write32be(&mem, secondary_pteg,
-            0x80000040u) == 0); /* V=1, H=1, VSID=0, page index=0 */
+            0x80091a40u) == 0); /* V=1, H=1, VSID=0x1234, page index=0 */
         assert(cubex_bus_write32be(&mem, secondary_pteg + 4u,
             0x00030000u) == 0);
         assert(cubex_cpu_translate_hash(&cpu, &mem, 0x80000234u,
