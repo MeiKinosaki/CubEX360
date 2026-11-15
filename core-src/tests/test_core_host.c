@@ -344,8 +344,9 @@ int main(void) {
     assert(cpu.dar == 0x70000000u);
     assert(cpu.dsisr == 0x02000000u);
     cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 68u);
-    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_UNSUPPORTED);
-    assert(cpu.pc == CUBEX360_RAM_CACHED_BASE + 68u);
+    cpu.msr = 0x00002000u; /* FP enabled: reserved FP XO must raise Program Exception */
+    assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+    assert(cpu.pc == 0x00000700u && cpu.srr0 == CUBEX360_RAM_CACHED_BASE + 68u);
     assert(cpu.retired_instructions == 0u);
     cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 72u);
     cpu.cr = 0x20000000u;
