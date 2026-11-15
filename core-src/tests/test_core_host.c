@@ -533,6 +533,12 @@ int main(void) {
         cpu.sr[8] = 0u; /* VSID=0, keys clear */
         assert(cubex_bus_write32be(&mem, 0x10000u, pte0) == 0);
         assert(cubex_bus_write32be(&mem, 0x10004u, pte1) == 0);
+        /* Segment no-execute rejects instruction fetch before touching PTE R/C. */
+        cpu.sr[8] = 0x10000000u;
+        assert(cubex_cpu_translate_hash(&cpu, &mem, ea, 1, 0, &physical) == -1);
+        assert(cubex_bus_read32be(&mem, 0x10004u, &value) == 0);
+        assert((value & 0x180u) == 0u);
+        cpu.sr[8] = 0u;
         assert(cubex_cpu_translate_hash(&cpu, &mem, ea, 0, 0, &physical) == 1);
         assert(physical == 0x00010234u);
         assert(cubex_bus_read32be(&mem, 0x10004u, &value) == 0);
