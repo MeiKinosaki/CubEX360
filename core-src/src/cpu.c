@@ -1,6 +1,8 @@
 #include "cubex360/cpu.h"
 #include <string.h>
 #include <limits.h>
+#include <float.h>
+#include <math.h>
 
 #define PPC_CR0_LT 0x80000000u
 #define PPC_CR0_GT 0x40000000u
@@ -246,6 +248,91 @@ static double fpr_double(const cubex_cpu_state_t *c, uint32_t index) {
 }
 static void fpr_set_double(cubex_cpu_state_t *c, uint32_t index, double value) {
     memcpy(&c->fpr[index], &value, sizeof(value));
+}
+
+/* FPSCR sticky exception state and the five architecturally visible enables. */
+#define PPC_FPSCR_FX       0x80000000u
+#define PPC_FPSCR_FEX      0x40000000u
+#define PPC_FPSCR_VX       0x20000000u
+#define PPC_FPSCR_OX       0x10000000u
+#define PPC_FPSCR_UX       0x08000000u
+#define PPC_FPSCR_ZX       0x04000000u
+#define PPC_FPSCR_XX       0x02000000u
+#define PPC_FPSCR_VXZDZ    0x00200000u
+#define PPC_FPSCR_VXVC     0x00080000u
+#define PPC_FPSCR_FR       0x00040000u
+#define PPC_FPSCR_FI       0x00020000u
+#define PPC_FPSCR_FPCC     0x0000f000u
+#define PPC_FPSCR_VE       0x00000080u
+#define PPC_FPSCR_OE       0x00000040u
+#define PPC_FPSCR_UE       0x00000020u
+#define PPC_FPSCR_ZE       0x00000010u
+#define PPC_FPSCR_XE       0x00000008u
+
+static void fpscr_raise(cubex_cpu_state_t *c, uint32_t flags) {
+    uint32_t enables, pending = 0u;
+    if (!flags) return;
+    c->fpscr |= PPC_FPSCR_FX | flags;
+    if (flags & (PPC_FPSCR_VXZDZ | PPC_FPSCR_VXVC)) c->fpscr |= PPC_FPSCR_VX;
+    enables = c->fpscr & 0xf8u;
+    if ((c->fpscr & PPC_FPSCR_VX) && (enables & PPC_FPSCR_VE)) pending = 1u;
+    if ((c->fpscr & PPC_FPSCR_OX) && (enables & PPC_FPSCR_OE)) pending = 1u;
+    if ((c->fpscr & PPC_FPSCR_UX) && (enables & PPC_FPSCR_UE)) pending = 1u;
+    if ((c->fpscr & PPC_FPSCR_ZX) && (enables & PPC_FPSCR_ZE)) pending = 1u;
+    if ((c->fpscr & PPC_FPSCR_XX) && (enables & PPC_FPSCR_XE)) pending = 1u;
+    if (pending) c->fpscr |= PPC_FPSCR_FEX;
+    else c->fpscr &= ~PPC_FPSCR_FEX;
+}
+static void fpscr_set_fpcc(cubex_cpu_state_t *c, uint32_t field) {
+    c->fpscr = (c->fpscr & ~PPC_FPSCR_FPCC) | ((field & 0xfu) << 12);
+}
+static float fp_next_up(float value) {
+    uint32_t bits;
+    if (value == 0.0f) { bits = 1u; memcpy(&value, &bits, sizeof(value)); return value; }
+    memcpy(&bits, &value, sizeof(bits));
+    bits += (bits & 0x80000000u) ? (uint32_t)-1 : 1u;
+    memcpy(&value, &bits, sizeof(value));
+    return value;
+}
+static float fp_next_down(float value) {
+    uint32_t bits;
+    if (value == 0.0f) { bits = 0x80000001u; memcpy(&value, &bits, sizeof(value)); return value; }
+    memcpy(&bits, &value, sizeof(bits));
+    bits += (bits & 0x80000000u) ? 1u : (uint32_t)-1;
+    memcpy(&value, &bits, sizeof(value));
+    return value;
+}
+static float fp_round_single(const cubex_cpu_state_t *c, double value) {
+    float rounded = (float)value;
+    unsigned mode = c->fpscr & 3u;
+    if (isnan(value) || isinf(value)) return rounded;
+    if (mode == 1u) { /* toward zero */
+        if (value > 0.0 && (double)rounded > value) rounded = fp_next_down(rounded);
+        if (value < 0.0 && (double)rounded < value) rounded = fp_next_up(rounded);
+    } else if (mode == 2u) { /* toward +infinity */
+        if ((double)rounded < value) rounded = fp_next_up(rounded);
+    } else if (mode == 3u) { /* toward -infinity */
+        if ((double)rounded > value) rounded = fp_next_down(rounded);
+    }
+    return rounded;
+}
+static void fp_record_arithmetic(cubex_cpu_state_t *c, double a, double b,
+                                 double result, uint32_t operation) {
+    uint32_t flags = 0u;
+    if (isnan(result)) {
+        if (operation == 18u && a == 0.0 && b == 0.0)
+            flags |= PPC_FPSCR_VXZDZ;
+        else
+            flags |= PPC_FPSCR_VXZDZ;
+    } else if (operation == 18u && b == 0.0 && a != 0.0) {
+        flags |= PPC_FPSCR_ZX;
+    }
+    if (isinf(result) && isfinite(a) && isfinite(b)) flags |= PPC_FPSCR_OX;
+    if (result == 0.0 && a != 0.0 && b != 0.0) flags |= PPC_FPSCR_UX;
+    fpscr_raise(c, flags);
+}
+static void fp_update_cr1(cubex_cpu_state_t *c, uint32_t instruction) {
+    if (instruction & 1u) set_cr_field(c, 1u, (c->fpscr >> 28) & 0xfu);
 }
 static cubex_cpu_result_t illegal_instruction(cubex_cpu_state_t *c) {
     return program_exception(c, 0x00100000u);
@@ -572,29 +659,71 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
         }
         break;
     }
-    case 63: { /* Gekko double-precision floating-point arithmetic subset */
+    case 59: /* Gekko single-precision arithmetic */
+    case 63: { /* Gekko double-precision arithmetic and floating-point compares */
         uint32_t frt = rt, fra = ra, frb = rb, frc = (ins >> 6) & 31u;
         double a, b, result;
-        if (!(c->msr & 0x00002000u)) return fp_unavailable(c);
+        if (!(c->msr & PPC_MSR_FP)) return fp_unavailable(c);
         a = fpr_double(c, fra);
         b = fpr_double(c, frb);
-        switch (xo & 31u) {
-        case 18: /* FDIV */
-            result = a / b;
+        if (op == 63u && (xo == 0u || xo == 32u)) {
+            uint32_t bf = (ins >> 23) & 7u;
+            uint32_t field;
+            if (isnan(a) || isnan(b)) {
+                field = 1u; /* unordered */
+                if (xo == 32u) fpscr_raise(c, PPC_FPSCR_VXVC);
+            } else if (a < b) field = 8u;
+            else if (a > b) field = 4u;
+            else field = 2u;
+            set_cr_field(c, bf, field);
+            fpscr_set_fpcc(c, field);
             break;
-        case 20: /* FSUB */
-            result = a - b;
-            break;
-        case 21: /* FADD */
-            result = a + b;
-            break;
-        case 25: /* FMUL: FRB field is reserved; multiplicand is FRC */
-            result = a * fpr_double(c, frc);
-            break;
-        default:
-            return illegal_instruction(c);
         }
-        fpr_set_double(c, frt, result);
+        if (op == 63u) {
+            switch (xo) {
+            case 12: { /* FRSP: round double to single using FPSCR[RN]. */
+                float rounded = fp_round_single(c, b);
+                double widened = (double)rounded;
+                if (widened != b) {
+                    fpscr_raise(c, PPC_FPSCR_XX);
+                    c->fpscr |= PPC_FPSCR_FI;
+                    if ((b >= 0.0 && widened > b) || (b < 0.0 && widened < b))
+                        c->fpscr |= PPC_FPSCR_FR;
+                    else c->fpscr &= ~PPC_FPSCR_FR;
+                } else {
+                    c->fpscr &= ~(PPC_FPSCR_FI | PPC_FPSCR_FR);
+                }
+                fpr_set_double(c, frt, widened);
+                break;
+            }
+            case 23: /* FSEL: choose FRC for non-negative FRA, otherwise FRB. */
+                c->fpr[frt] = (a >= 0.0) ? c->fpr[frc] : c->fpr[frb];
+                break;
+            case 40: fpr_set_double(c, frt, -b); break; /* FNEG */
+            case 72: c->fpr[frt] = c->fpr[frb]; break; /* FMR */
+            case 136: fpr_set_double(c, frt, -fabs(b)); break; /* FNABS */
+            case 264: fpr_set_double(c, frt, fabs(b)); break; /* FABS */
+            case 18: result = a / b; fp_record_arithmetic(c, a, b, result, 18u); fpr_set_double(c, frt, result); break;
+            case 20: result = a - b; fp_record_arithmetic(c, a, b, result, 20u); fpr_set_double(c, frt, result); break;
+            case 21: result = a + b; fp_record_arithmetic(c, a, b, result, 21u); fpr_set_double(c, frt, result); break;
+            case 25: result = a * fpr_double(c, frc); fp_record_arithmetic(c, a, fpr_double(c, frc), result, 25u); fpr_set_double(c, frt, result); break;
+            default: return illegal_instruction(c);
+            }
+        } else {
+            float fa = (float)a, fb = (float)b, fc = (float)fpr_double(c, frc);
+            float single_result;
+            switch (xo & 31u) {
+            case 18: single_result = fa / fb; break; /* FDIVS */
+            case 20: single_result = fa - fb; break; /* FSUBS */
+            case 21: single_result = fa + fb; break; /* FADDS */
+            case 25: single_result = fa * fc; break; /* FMULS */
+            default: return illegal_instruction(c);
+            }
+            result = (double)single_result;
+            fp_record_arithmetic(c, (double)fa, (double)fb, result, xo & 31u);
+            fpr_set_double(c, frt, result);
+        }
+        fp_update_cr1(c, ins);
         break;
     }
     case 31:
@@ -727,6 +856,34 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
             c->gpr[ra] = address;
             break;
         }
+        case 210: { /* MTSR: move GPR to selected segment register */
+            uint32_t index = (ins >> 16) & 15u;
+            if (c->msr & PPC_MSR_PR) return program_exception(c, 0x00020000u);
+            c->sr[index] = c->gpr[rt];
+            break;
+        }
+        case 242: { /* MTSRIN: indexed segment-register write */
+            uint32_t index = c->gpr[rb] >> 28;
+            if (c->msr & PPC_MSR_PR) return program_exception(c, 0x00020000u);
+            c->sr[index] = c->gpr[rt];
+            break;
+        }
+        case 595: { /* MFSR: move selected segment register to GPR */
+            uint32_t index = (ins >> 16) & 15u;
+            if (c->msr & PPC_MSR_PR) return program_exception(c, 0x00020000u);
+            c->gpr[rt] = c->sr[index];
+            break;
+        }
+        case 659: { /* MFSRIN: indexed segment-register read */
+            uint32_t index = c->gpr[rb] >> 28;
+            if (c->msr & PPC_MSR_PR) return program_exception(c, 0x00020000u);
+            c->gpr[rt] = c->sr[index];
+            break;
+        }
+        case 306: /* TLBIE: no software TLB cache is active yet; preserve privileged decode. */
+        case 370: /* TLBIA: page-table walks remain uncached in this core. */
+            if (c->msr & PPC_MSR_PR) return program_exception(c, 0x00020000u);
+            break;
         case 512: { /* MCRXR: move XER SO/OV/CA to CR field and clear them */
             uint32_t bf = (ins >> 23) & 7u;
             uint32_t field = ((c->xer >> 31) & 1u) << 3;
