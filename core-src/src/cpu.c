@@ -215,6 +215,23 @@ static cubex_cpu_result_t program_exception(cubex_cpu_state_t *c,
     c->pc = (c->msr & PPC_MSR_IP) ? 0xfff00700u : 0x00000700u;
     return CUBEX_CPU_OK;
 }
+static cubex_cpu_result_t fp_unavailable(cubex_cpu_state_t *c) {
+    c->srr0 = c->pc;
+    c->srr1 = c->msr & PPC_MSR_SRR1_EXTERNAL_MASK;
+    c->msr &= ~PPC_MSR_EXCEPTION_CLEAR;
+    if (c->msr & PPC_MSR_ILE) c->msr |= PPC_MSR_LE;
+    else c->msr &= ~PPC_MSR_LE;
+    c->pc = (c->msr & PPC_MSR_IP) ? 0xfff00800u : 0x00000800u;
+    return CUBEX_CPU_OK;
+}
+static double fpr_double(const cubex_cpu_state_t *c, uint32_t index) {
+    double value;
+    memcpy(&value, &c->fpr[index], sizeof(value));
+    return value;
+}
+static void fpr_set_double(cubex_cpu_state_t *c, uint32_t index, double value) {
+    memcpy(&c->fpr[index], &value, sizeof(value));
+}
 static cubex_cpu_result_t illegal_instruction(cubex_cpu_state_t *c) {
     return program_exception(c, 0x00100000u);
 }
@@ -502,6 +519,31 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
             c->cr = (c->cr & ~(1u << (31u - bt))) | (result << (31u - bt));
         }
         break;
+    case 63: { /* Gekko double-precision floating-point arithmetic subset */
+        uint32_t frt = rt, fra = ra, frb = rb, frc = (ins >> 6) & 31u;
+        double a, b, result;
+        if (!(c->msr & 0x00002000u)) return fp_unavailable(c);
+        a = fpr_double(c, fra);
+        b = fpr_double(c, frb);
+        switch (xo) {
+        case 18: /* FDIV */
+            result = a / b;
+            break;
+        case 20: /* FSUB */
+            result = a - b;
+            break;
+        case 21: /* FADD */
+            result = a + b;
+            break;
+        case 25: /* FMUL: FRB field is reserved; multiplicand is FRC */
+            result = a * fpr_double(c, frc);
+            break;
+        default:
+            return illegal_instruction(c);
+        }
+        fpr_set_double(c, frt, result);
+        break;
+    }
     case 31:
         switch (xo) {
         case 0:
