@@ -549,6 +549,18 @@ int main(void) {
         assert(cubex_bus_write32be(&mem, 0x10000u, 0u) == 0);
         assert(cubex_cpu_translate_hash(&cpu, &mem, ea, 0, 0, &physical) == 0);
     }
+    /* Hashed page walk uses the 6-bit API field, not low page-index bits. */
+    {
+        uint32_t pa = 0u;
+        cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE);
+        cpu.sdr1 = 0x00010000u;
+        cpu.sr[8] = 0u;
+        /* EA 0x80000400 has page-index 1; primary hash PTEG remains zero. */
+        assert(cubex_bus_write32be(&mem, 0x10000u, 0x80000000u) == 0);
+        assert(cubex_bus_write32be(&mem, 0x10004u, 0x00020001u) == 0);
+        assert(cubex_cpu_translate_hash(&cpu, &mem, 0x80000400u, 0, 0, &pa) == 1);
+        assert(pa == 0x00020400u);
+    }
     /* MFCR reads all CR fields; MTCRF updates only fields selected by FXM. */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x26cu,
         (31u<<26)|(8u<<21)|(19u<<1)) == 0);
