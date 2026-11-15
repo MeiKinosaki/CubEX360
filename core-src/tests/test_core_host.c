@@ -1612,6 +1612,29 @@ int main(void) {
         assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
         memcpy(&result, &cpu.fpr[6], sizeof(result));
         assert(result == 1.5);
+        /* Floating-point memory transfers preserve guest big-endian bit patterns. */
+        cpu.gpr[10] = CUBEX360_RAM_CACHED_BASE + 0x1100u;
+        assert(cubex_bus_write32be(&mem, cpu.gpr[10], 0x40040000u) == 0);
+        assert(cubex_bus_write32be(&mem, cpu.gpr[10] + 4u, 0x00000000u) == 0);
+        assert(cubex_bus_write32be(&mem, cpu.gpr[10] + 16u, 0x3fa00000u) == 0);
+        assert(cubex_bus_write32be(&mem, cpu.pc,
+            (50u<<26) | (7u<<21) | (10u<<16)) == 0); /* lfd f7,0(r10) */
+        assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+        assert(cpu.fpr[7] == 0x4004000000000000ULL);
+        assert(cubex_bus_write32be(&mem, cpu.pc,
+            (54u<<26) | (7u<<21) | (10u<<16) | 8u) == 0); /* stfd f7,8(r10) */
+        assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+        assert(cubex_bus_read32be(&mem, cpu.gpr[10] + 8u, &value) == 0 && value == 0x40040000u);
+        assert(cubex_bus_read32be(&mem, cpu.gpr[10] + 12u, &value) == 0 && value == 0u);
+        assert(cubex_bus_write32be(&mem, cpu.pc,
+            (48u<<26) | (8u<<21) | (10u<<16) | 16u) == 0); /* lfs f8,16(r10) */
+        assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+        memcpy(&result, &cpu.fpr[8], sizeof(result));
+        assert(result == 1.25);
+        assert(cubex_bus_write32be(&mem, cpu.pc,
+            (52u<<26) | (8u<<21) | (10u<<16) | 20u) == 0); /* stfs f8,20(r10) */
+        assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+        assert(cubex_bus_read32be(&mem, cpu.gpr[10] + 20u, &value) == 0 && value == 0x3fa00000u);
         cpu.pc = CUBEX360_RAM_CACHED_BASE + 0x3c0u;
         cpu.msr = 0u;
         assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
