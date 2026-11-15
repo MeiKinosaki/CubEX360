@@ -708,8 +708,16 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
             case 18: result = a / b; fp_record_arithmetic(c, a, b, result, 18u); fpr_set_double(c, frt, result); break;
             case 20: result = a - b; fp_record_arithmetic(c, a, b, result, 20u); fpr_set_double(c, frt, result); break;
             case 21: result = a + b; fp_record_arithmetic(c, a, b, result, 21u); fpr_set_double(c, frt, result); break;
-            case 25: result = a * fpr_double(c, frc); fp_record_arithmetic(c, a, fpr_double(c, frc), result, 25u); fpr_set_double(c, frt, result); break;
-            default: return illegal_instruction(c);
+            default:
+                /* FRC occupies the upper five bits of the XO field for FMUL. */
+                if ((xo & 31u) == 25u) {
+                    double multiplicand = fpr_double(c, frc);
+                    result = a * multiplicand;
+                    fp_record_arithmetic(c, a, multiplicand, result, 25u);
+                    fpr_set_double(c, frt, result);
+                    break;
+                }
+                return illegal_instruction(c);
             }
         } else {
             float fa = (float)a, fb = (float)b, fc = (float)fpr_double(c, frc);
