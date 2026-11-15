@@ -10,4 +10,4 @@ add_executable(cubex360
 )
 target_include_directories(cubex360 PRIVATE ../core-src/include)
 target_compile_options(cubex360 PRIVATE -Wall -Wextra -Werror)
-xsdk_add_xex(cubex360 TITLE_ID 0x43554258 NAME "CubEX360" VERSION 1.99.0.0)
+xsdk_add_xex(cubex360 TITLE_ID 0x43554258 NAME "CubEX360" VERSION 1.9.0.0)
