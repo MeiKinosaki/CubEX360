@@ -578,7 +578,7 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
         if (!(c->msr & 0x00002000u)) return fp_unavailable(c);
         a = fpr_double(c, fra);
         b = fpr_double(c, frb);
-        switch (xo) {
+        switch (xo & 31u) {
         case 18: /* FDIV */
             result = a / b;
             break;
