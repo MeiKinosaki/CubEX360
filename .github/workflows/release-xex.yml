@@ -1,0 +1,91 @@
+name: CubEX360 release (default.xex)
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag existente a publicar (ex.: v2.6.1b)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - name: Checkout CubEX360 source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential bison flex texinfo libgmp-dev libmpfr-dev libmpc-dev curl xz-utils patch python3 cmake ninja-build git
+
+      - name: Fetch pinned open Xbox 360 SDK
+        run: |
+          git clone https://github.com/xenosworks/xsdk.git "$HOME/xsdk"
+          git -C "$HOME/xsdk" checkout ade2c81d914634834d77394c5d9f8c4575f395bc
+
+      - name: Restore PowerPC-XSDK toolchain cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/xsdk-gcc
+            ~/xsdk-gcc-work
+          key: cubex360-xsdk-${{ runner.os }}-ade2c81d914634834d77394c5d9f8c4575f395bc-v1
+
+      - name: Build PowerPC-XSDK cross toolchain
+        run: |
+          PREFIX="$HOME/xsdk-gcc" WORK="$HOME/xsdk-gcc-work" JOBS="$(nproc)" bash "$HOME/xsdk/tools/toolchain/build.sh"
+
+      - name: Save PowerPC-XSDK toolchain cache
+        if: success()
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/xsdk-gcc
+            ~/xsdk-gcc-work
+          key: cubex360-xsdk-${{ runner.os }}-ade2c81d914634834d77394c5d9f8c4575f395bc-v1
+
+      - name: Build XSDK runtime library
+        run: make -C "$HOME/xsdk" -j"$(nproc)" build/libxsdk.a
+
+      - name: Configure CubEX360 XEX title
+        run: |
+          cmake -S xex-target -B build-xex -G Ninja \
+            -DCMAKE_TOOLCHAIN_FILE="$HOME/xsdk/cmake/xsdk.cmake" \
+            -DXSDK_TOOLCHAIN="$HOME/xsdk-gcc" \
+            -DCMAKE_BUILD_TYPE=Release
+
+      - name: Compile and pack default.xex
+        run: |
+          cmake --build build-xex --verbose
+          test -s build-xex/cubex360.xex
+          cp build-xex/cubex360.xex default.xex
+          file default.xex
+
+      - name: Validate XEX2 and calculate SHA-256
+        env:
+          CUBEX_XEX_OUTPUT: default.xex
+        run: |
+          python3 scripts/validate_xex_build.py
+          sha256sum default.xex | tee SHA256SUMS.txt
+
+      - name: Publish GitHub Release with executable
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+          name: CubEX360 ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: |
+            default.xex
+            SHA256SUMS.txt
