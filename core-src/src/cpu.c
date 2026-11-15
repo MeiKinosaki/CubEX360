@@ -327,7 +327,8 @@ static void fp_record_arithmetic(cubex_cpu_state_t *c, double a, double b,
     } else if (operation == 18u && b == 0.0 && a != 0.0) {
         flags |= PPC_FPSCR_ZX;
     }
-    if (isinf(result) && isfinite(a) && isfinite(b)) flags |= PPC_FPSCR_OX;
+    if (isinf(result) && isfinite(a) && isfinite(b) &&
+        !(operation == 18u && b == 0.0)) flags |= PPC_FPSCR_OX;
     if (result == 0.0 && a != 0.0 && b != 0.0) flags |= PPC_FPSCR_UX;
     fpscr_raise(c, flags);
 }
