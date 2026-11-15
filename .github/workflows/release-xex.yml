@@ -22,7 +22,7 @@ jobs:
       - name: Checkout CubEX360 source
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && 'main' || github.ref }}
 
       - name: Install build dependencies
         run: |
