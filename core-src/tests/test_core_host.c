@@ -1666,7 +1666,7 @@ int main(void) {
         uint32_t fcmpu = (63u<<26) | (2u<<23) | (1u<<16) | (2u<<11);
         uint32_t fcmpo = (63u<<26) | (3u<<23) | (1u<<16) | (2u<<11) | (32u<<1);
         uint32_t fdiv = (63u<<26) | (4u<<21) | (1u<<16) | (2u<<11) | (18u<<1);
-        uint32_t frsp = (63u<<26) | (5u<<21) | (2u<<16) | (12u<<1);
+        uint32_t frsp = (63u<<26) | (5u<<21) | (2u<<11) | (12u<<1);
         uint32_t fadds = (59u<<26) | (6u<<21) | (1u<<16) | (2u<<11) | (21u<<1);
         cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x500u);
         cpu.msr = 0x00002000u;
