@@ -1584,6 +1584,40 @@ int main(void) {
     assert(cpu.dec_pending == 0u);
     assert(cpu.srr1 == 0x00008040u);
 
+    /* Gekko FPU arithmetic subset: FP enable, double arithmetic and unavailable exception. */
+    {
+        uint64_t bits;
+        double result;
+        uint32_t fadd = (63u<<26) | (3u<<21) | (1u<<16) | (2u<<11) | (21u<<1);
+        uint32_t fmul = (63u<<26) | (4u<<21) | (1u<<16) | (0u<<11) | (25u<<1) | (2u<<6);
+        uint32_t fsub = (63u<<26) | (5u<<21) | (4u<<16) | (2u<<11) | (20u<<1);
+        uint32_t fdiv = (63u<<26) | (6u<<21) | (4u<<16) | (2u<<11) | (18u<<1);
+        cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x3c0u);
+        cpu.msr = 0x00002000u; /* MSR[FP] */
+        result = 1.5; memcpy(&cpu.fpr[1], &result, sizeof(result));
+        result = 2.25; memcpy(&cpu.fpr[2], &result, sizeof(result));
+        assert(cubex_bus_write32be(&mem, cpu.pc, fadd) == 0);
+        assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+        memcpy(&result, &cpu.fpr[3], sizeof(result));
+        assert(result == 3.75);
+        assert(cubex_bus_write32be(&mem, cpu.pc, fmul) == 0);
+        assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+        memcpy(&result, &cpu.fpr[4], sizeof(result));
+        assert(result == 3.375);
+        assert(cubex_bus_write32be(&mem, cpu.pc, fsub) == 0);
+        assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+        memcpy(&result, &cpu.fpr[5], sizeof(result));
+        assert(result == 1.125);
+        assert(cubex_bus_write32be(&mem, cpu.pc, fdiv) == 0);
+        assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+        memcpy(&result, &cpu.fpr[6], sizeof(result));
+        assert(result == 1.5);
+        cpu.pc = CUBEX360_RAM_CACHED_BASE + 0x3c0u;
+        cpu.msr = 0u;
+        assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+        assert(cpu.pc == 0x00000800u);
+        (void)bits;
+    }
     cubex_memory_destroy(&mem);
     puts("CubEX360 core host smoke: PASS");
     return 0;
