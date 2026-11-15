@@ -526,7 +526,7 @@ int main(void) {
     /* 6xx hashed page-table walk: primary PTEG, R/C bits and PP protection. */
     {
         uint32_t physical = 0u, ea = 0x80000234u, pte0 = 0x80000000u;
-        uint32_t pte1 = 0x00010002u;
+        uint32_t pte1 = 0x00010000u;
         cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE);
         cpu.msr = 0x30u; /* IR + DR */
         cpu.sdr1 = 0x00010000u; /* HTABORG=0x0001, HTABMASK=0 */
