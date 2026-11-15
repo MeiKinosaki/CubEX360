@@ -29,8 +29,8 @@ int cubex_cpu_translate_hash(const cubex_cpu_state_t *c, const cubex_memory_t *m
                              uint32_t ea, int instruction, int is_store,
                              uint32_t *pa) {
     const uint32_t page_mask = 0xfffff000u;
-    const uint32_t htab_base = c ? ((c->sdr1 & 0xffffu) << 16) : 0u;
-    const uint32_t htab_mask = c ? ((c->sdr1 >> 23) & 0x1ffu) : 0u;
+    const uint32_t htab_base = c ? (c->sdr1 & 0xffff0000u) : 0u;
+    const uint32_t htab_mask = c ? (c->sdr1 & 0x1ffu) : 0u;
     uint32_t sr, vsid, pgidx, hash, ptem, pteg, pte0, pte1;
     uint32_t pte_offset = 0xffffffffu, i, secondary;
     int key, pp, can_read, can_write, can_exec;
@@ -115,7 +115,7 @@ static int cpu_write32(const cubex_cpu_state_t *c, cubex_memory_t *m,
 }
 static int cpu_write16(const cubex_cpu_state_t *c, cubex_memory_t *m,
                        uint32_t ea, uint16_t v) {
-    uint32_t pa; if (cpu_translate_address(c, ea, 0, &pa)) return -1;
+    uint32_t pa; if (cpu_translate_address(c, m, ea, 0, 1, &pa)) return -1;
     return cubex_bus_write16be(m, pa, v);
 }
 static int cpu_write8(const cubex_cpu_state_t *c, cubex_memory_t *m,
