@@ -1643,6 +1643,22 @@ int main(void) {
         (void)bits;
     }
 
+    /* Segment register moves: supervisor MTSR/MFSR and indexed MTSRIN. */
+    {
+        uint32_t mtsr = (31u<<26) | (3u<<21) | (5u<<16) | (210u<<1);
+        uint32_t mfsr = (31u<<26) | (4u<<21) | (5u<<16) | (595u<<1);
+        uint32_t mtsrin = (31u<<26) | (6u<<21) | (7u<<11) | (242u<<1);
+        assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x4e0u, mtsr) == 0);
+        assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x4e4u, mfsr) == 0);
+        assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x4e8u, mtsrin) == 0);
+        cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x4e0u);
+        cpu.gpr[3] = 0x12345678u;
+        cpu.gpr[6] = 0xabcdef01u;
+        cpu.gpr[7] = 0x90000000u;
+        assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK && cpu.sr[5] == 0x12345678u);
+        assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK && cpu.gpr[4] == 0x12345678u);
+        assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK && cpu.sr[9] == 0xabcdef01u);
+    }
     /* FPU compare, FPSCR sticky exceptions, FRSP rounding and single arithmetic. */
     {
         double a, b, result;
