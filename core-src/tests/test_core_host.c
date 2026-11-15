@@ -529,7 +529,7 @@ int main(void) {
         uint32_t pte1 = 0x00010002u;
         cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE);
         cpu.msr = 0x30u; /* IR + DR */
-        cpu.sdr1 = 0x00000001u; /* HTABORG=0x0001, HTABMASK=0 */
+        cpu.sdr1 = 0x00010000u; /* HTABORG=0x0001, HTABMASK=0 */
         cpu.sr[8] = 0u; /* VSID=0, keys clear */
         assert(cubex_bus_write32be(&mem, 0x10000u, pte0) == 0);
         assert(cubex_bus_write32be(&mem, 0x10004u, pte1) == 0);
