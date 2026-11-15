@@ -1674,7 +1674,7 @@ int main(void) {
         b = 2.0; memcpy(&cpu.fpr[2], &b, sizeof(b));
         assert(cubex_bus_write32be(&mem, cpu.pc, fcmpu) == 0);
         assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
-        assert((cpu.cr & 0x000f0000u) == 0x00080000u); /* BF=2: LT */
+        assert((cpu.cr & 0x00f00000u) == 0x00800000u); /* BF=2: LT */
         assert((cpu.fpscr & 0x0000f000u) == 0x00008000u);
         /* Ordered compare with a quiet NaN raises VXVC and records unordered. */
         cpu.pc = CUBEX360_RAM_CACHED_BASE + 0x500u;
