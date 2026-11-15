@@ -331,6 +331,7 @@ static void fp_record_arithmetic(cubex_cpu_state_t *c, double a, double b,
     if (result == 0.0 && a != 0.0 && b != 0.0) flags |= PPC_FPSCR_UX;
     fpscr_raise(c, flags);
 }
+static void set_cr_field(cubex_cpu_state_t *c, uint32_t bf, uint32_t field);
 static void fp_update_cr1(cubex_cpu_state_t *c, uint32_t instruction) {
     if (instruction & 1u) set_cr_field(c, 1u, (c->fpscr >> 28) & 0xfu);
 }
