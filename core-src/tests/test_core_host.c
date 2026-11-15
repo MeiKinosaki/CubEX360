@@ -561,6 +561,21 @@ int main(void) {
         assert(cubex_cpu_translate_hash(&cpu, &mem, 0x80000400u, 0, 0, &pa) == 1);
         assert(pa == 0x00020400u);
     }
+    /* Secondary PTEG fallback: H=1 entry is consulted after primary miss. */
+    {
+        uint32_t pa = 0u;
+        const uint32_t secondary_pteg = 0x0001ffc0u; /* (~hash & 0x3ff) << 6 */
+        cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE);
+        cpu.sdr1 = 0x00010000u; /* HTABORG=0x0001, HTABMASK=0 */
+        cpu.sr[8] = 0u;
+        assert(cubex_bus_write32be(&mem, secondary_pteg,
+            0x80000040u) == 0); /* V=1, H=1, VSID=0, page index=0 */
+        assert(cubex_bus_write32be(&mem, secondary_pteg + 4u,
+            0x00030000u) == 0);
+        assert(cubex_cpu_translate_hash(&cpu, &mem, 0x80000234u,
+            0, 0, &pa) == 1);
+        assert(pa == 0x00030234u);
+    }
     /* MFCR reads all CR fields; MTCRF updates only fields selected by FXM. */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x26cu,
         (31u<<26)|(8u<<21)|(19u<<1)) == 0);
