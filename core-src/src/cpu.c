@@ -117,11 +117,13 @@ int cubex_cpu_translate_address(cubex_cpu_state_t *c, cubex_memory_t *m,
             if (key) { can_read = (pp == 1 || pp == 2); can_write = 0; }
             else { can_read = (pp != 3); can_write = (pp == 0 || pp == 1); }
             if ((instruction && (sr & 0x10000000u)) || (!instruction && !is_store && !can_read) || (!instruction && is_store && !can_write)) return -1;
-            if (!(pte1 & 0x100u) || (is_store && !(pte1 & 0x80u))) {
-                if (!(pte1 & 0x100u)) pte1 |= 0x100u;
-                if (is_store) pte1 |= 0x80u;
-                if (cubex_bus_write32be((cubex_memory_t *)m, entry->pte1_address, pte1) != 0) return -1;
-                entry->pte1 = pte1;
+            {
+                uint32_t live_pte1;
+                if (cubex_bus_read32be(m, entry->pte1_address, &live_pte1) != 0) return -1;
+                live_pte1 |= 0x100u;
+                if (is_store) live_pte1 |= 0x80u;
+                if (cubex_bus_write32be(m, entry->pte1_address, live_pte1) != 0) return -1;
+                entry->pte1 = (entry->pte1 & ~0x180u) | (live_pte1 & 0x180u);
             }
             *pa = entry->physical_page | (ea & 0xfffu);
             return 0;
