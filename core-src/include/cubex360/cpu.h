@@ -9,7 +9,7 @@ void cubex_cpu_reset(cubex_cpu_state_t *cpu,uint32_t entry_pc);
 void cubex_cpu_tlb_invalidate_all(cubex_cpu_state_t *cpu);
 void cubex_cpu_tlb_invalidate_page(cubex_cpu_state_t *cpu,uint32_t effective_address);
 int cubex_cpu_translate_bat(const cubex_cpu_state_t *cpu,uint32_t effective_address,int is_instruction,int user_mode,uint32_t *physical_address);
-int cubex_cpu_translate_hash(cubex_cpu_state_t *cpu,const cubex_memory_t *mem,uint32_t effective_address,int is_instruction,int is_store,uint32_t *physical_address);
+int cubex_cpu_translate_hash(cubex_cpu_state_t *cpu,cubex_memory_t *mem,uint32_t effective_address,int is_instruction,int is_store,uint32_t *physical_address);
 int cubex_cpu_take_external_interrupt(cubex_cpu_state_t *cpu);
 int cubex_cpu_take_decrementer_interrupt(cubex_cpu_state_t *cpu);
 cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *cpu,cubex_memory_t *mem);
