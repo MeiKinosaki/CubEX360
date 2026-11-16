@@ -27,7 +27,7 @@ int cubex_cpu_translate_bat(const cubex_cpu_state_t *c, uint32_t ea, int is_inst
 
 /* PowerPC 6xx hashed page-table walk (4 KiB pages, 8-entry PTEGs).
  * Returns 1 on translation, 0 on miss and -1 on protection violation. */
-int cubex_cpu_translate_hash(cubex_cpu_state_t *c, const cubex_memory_t *m,
+int cubex_cpu_translate_hash(cubex_cpu_state_t *c, cubex_memory_t *m,
                              uint32_t ea, int instruction, int is_store,
                              uint32_t *pa) {
     const uint32_t page_mask = 0xfffff000u;
@@ -96,7 +96,7 @@ int cubex_cpu_translate_hash(cubex_cpu_state_t *c, const cubex_memory_t *m,
     }
     return 1;
 }
-static int cpu_translate_address(cubex_cpu_state_t *c, const cubex_memory_t *m,
+static int cpu_translate_address(cubex_cpu_state_t *c, cubex_memory_t *m,
                                  uint32_t ea, int instruction, int is_store,
                                  uint32_t *pa) {
     uint32_t enable = instruction ? 0x20u : 0x10u;
@@ -130,18 +130,18 @@ static int cpu_translate_address(cubex_cpu_state_t *c, const cubex_memory_t *m,
     hash_result = cubex_cpu_translate_hash(c, m, ea, instruction, is_store, pa);
     return hash_result == 1 ? 0 : -1;
 }
-static int cpu_read32(cubex_cpu_state_t *c, const cubex_memory_t *m,
+static int cpu_read32(cubex_cpu_state_t *c, cubex_memory_t *m,
                       uint32_t ea, uint32_t *v, int instruction) {
     uint32_t pa;
     if (cpu_translate_address(c, m, ea, instruction, 0, &pa)) return -1;
     return cubex_bus_read32be(m, pa, v);
 }
-static int cpu_read16(cubex_cpu_state_t *c, const cubex_memory_t *m,
+static int cpu_read16(cubex_cpu_state_t *c, cubex_memory_t *m,
                       uint32_t ea, uint16_t *v) {
     uint32_t pa; if (cpu_translate_address(c, m, ea, 0, 0, &pa)) return -1;
     return cubex_bus_read16be(m, pa, v);
 }
-static int cpu_read8(cubex_cpu_state_t *c, const cubex_memory_t *m,
+static int cpu_read8(cubex_cpu_state_t *c, cubex_memory_t *m,
                      uint32_t ea, uint8_t *v) {
     uint32_t pa; if (cpu_translate_address(c, m, ea, 0, 0, &pa)) return -1;
     return cubex_bus_read8(m, pa, v);
@@ -269,7 +269,7 @@ static cubex_cpu_result_t fp_unavailable(cubex_cpu_state_t *c) {
     c->pc = (c->msr & PPC_MSR_IP) ? 0xfff00800u : 0x00000800u;
     return CUBEX_CPU_OK;
 }
-static int cpu_read64(cubex_cpu_state_t *c, const cubex_memory_t *m,
+static int cpu_read64(cubex_cpu_state_t *c, cubex_memory_t *m,
                       uint32_t address, uint64_t *value) {
     uint32_t high, low;
     if ((address & 3u) || cpu_read32(c, m, address, &high, 0) ||
@@ -1065,7 +1065,7 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
             else if (spr == 9u) c->ctr = c->gpr[rt];
             else if (spr == 1u) c->xer = c->gpr[rt];
             else if (spr == 22u) { c->dec = c->gpr[rt]; c->dec_pending = 0u; }
-            else if (spr == 25u) { if (c->msr & PPC_MSR_PR) return program_exception(c, 0x00020000u); c->sdr1 = c->gpr[rt]; }
+            else if (spr == 25u) { if (c->msr & PPC_MSR_PR) return program_exception(c, 0x00020000u); c->sdr1 = c->gpr[rt]; cubex_cpu_tlb_invalidate_all(c); }
             else if (spr >= 528u && spr <= 535u) {
                 if (c->msr & PPC_MSR_PR) return program_exception(c, 0x00020000u);
                 c->ibat[spr - 528u] = c->gpr[rt];
