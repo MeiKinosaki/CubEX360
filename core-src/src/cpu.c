@@ -27,7 +27,7 @@ int cubex_cpu_translate_bat(const cubex_cpu_state_t *c, uint32_t ea, int is_inst
 
 /* PowerPC 6xx hashed page-table walk (4 KiB pages, 8-entry PTEGs).
  * Returns 1 on translation, 0 on miss and -1 on protection violation. */
-int cubex_cpu_translate_hash(const cubex_cpu_state_t *c, const cubex_memory_t *m,
+int cubex_cpu_translate_hash(cubex_cpu_state_t *c, const cubex_memory_t *m,
                              uint32_t ea, int instruction, int is_store,
                              uint32_t *pa) {
     const uint32_t page_mask = 0xfffff000u;
@@ -83,6 +83,17 @@ int cubex_cpu_translate_hash(const cubex_cpu_state_t *c, const cubex_memory_t *m
         if (cubex_bus_write32be((cubex_memory_t *)m, pte_offset + 4u, pte1) != 0) return 0;
     }
     *pa = (pte1 & page_mask) | (ea & 0xfffu);
+    {
+        cubex_tlb_entry_t *entry = &c->tlb[c->tlb_replace % CUBEX_TLB_ENTRIES];
+        entry->effective_page = ea & page_mask;
+        entry->vsid = vsid;
+        entry->physical_page = pte1 & page_mask;
+        entry->pte1_address = pte_offset + 4u;
+        entry->pte1 = pte1;
+        entry->secondary = (uint8_t)secondary;
+        entry->valid = 1u;
+        c->tlb_replace = (c->tlb_replace + 1u) % CUBEX_TLB_ENTRIES;
+    }
     return 1;
 }
 static int cpu_translate_address(const cubex_cpu_state_t *c, const cubex_memory_t *m,
@@ -93,6 +104,29 @@ static int cpu_translate_address(const cubex_cpu_state_t *c, const cubex_memory_
     if (!(c->msr & enable)) { *pa = ea; return 0; }
     if (cubex_cpu_translate_bat(c, ea, instruction,
                                 (c->msr & 0x00004000u) != 0u, pa)) return 0;
+    {
+        uint32_t sr = c->sr[ea >> 28], vsid = sr & 0x00ffffffu;
+        unsigned i;
+        int key = (c->msr & PPC_MSR_PR) ? !!(sr & 0x20000000u) : !!(sr & 0x40000000u);
+        for (i = 0u; i < CUBEX_TLB_ENTRIES; ++i) {
+            cubex_tlb_entry_t *entry = &c->tlb[i];
+            int pp, can_read, can_write;
+            uint32_t pte1;
+            if (!entry->valid || entry->effective_page != (ea & 0xfffff000u) || entry->vsid != vsid) continue;
+            pte1 = entry->pte1; pp = (int)(pte1 & 3u);
+            if (key) { can_read = (pp == 1 || pp == 2); can_write = 0; }
+            else { can_read = (pp != 3); can_write = (pp == 0 || pp == 1); }
+            if ((instruction && (sr & 0x10000000u)) || (!instruction && !is_store && !can_read) || (!instruction && is_store && !can_write)) return -1;
+            if (!(pte1 & 0x100u) || (is_store && !(pte1 & 0x80u))) {
+                if (!(pte1 & 0x100u)) pte1 |= 0x100u;
+                if (is_store) pte1 |= 0x80u;
+                if (cubex_bus_write32be((cubex_memory_t *)m, entry->pte1_address, pte1) != 0) return -1;
+                entry->pte1 = pte1;
+            }
+            *pa = entry->physical_page | (ea & 0xfffu);
+            return 0;
+        }
+    }
     hash_result = cubex_cpu_translate_hash(c, m, ea, instruction, is_store, pa);
     return hash_result == 1 ? 0 : -1;
 }
@@ -132,6 +166,15 @@ void cubex_cpu_reset(cubex_cpu_state_t *c, uint32_t pc) {
     if (!c) return;
     memset(c, 0, sizeof(*c));
     c->pc = pc;
+}
+void cubex_cpu_tlb_invalidate_all(cubex_cpu_state_t *c) {
+    if (c) { memset(c->tlb, 0, sizeof(c->tlb)); c->tlb_replace = 0u; }
+}
+void cubex_cpu_tlb_invalidate_page(cubex_cpu_state_t *c, uint32_t ea) {
+    unsigned i; uint32_t page = ea & 0xfffff000u;
+    if (!c) return;
+    for (i = 0u; i < CUBEX_TLB_ENTRIES; ++i)
+        if (c->tlb[i].valid && c->tlb[i].effective_page == page) c->tlb[i].valid = 0u;
 }
 
 /* PowerPC/Gekko MSR bit definitions use architectural bit numbering. */
@@ -866,9 +909,13 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
             c->gpr[ra] = address;
             break;
         }
-        case 306: /* TLBIE: no software TLB cache is active yet; page walks are uncached. */
-        case 370: /* TLBIA: uncached hashed-page walks need no invalidation. */
+        case 306: /* TLBIE */
             if (c->msr & PPC_MSR_PR) return program_exception(c, 0x00020000u);
+            cubex_cpu_tlb_invalidate_page(c, c->gpr[rb]);
+            break;
+        case 370: /* TLBIA */
+            if (c->msr & PPC_MSR_PR) return program_exception(c, 0x00020000u);
+            cubex_cpu_tlb_invalidate_all(c);
             break;
         case 512: { /* MCRXR: move XER SO/OV/CA to CR field and clear them */
             uint32_t bf = (ins >> 23) & 7u;
