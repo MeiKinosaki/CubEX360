@@ -74,7 +74,7 @@ static void decode_cpu(cubex_cpu_state_t *c, const uint8_t *in, uint32_t version
     if (version >= 7u) {
         if (version >= 8u) { /* SDR1 precedes the floating-point register bank. */ }
         for(i=0;i<32;i++,o+=8) c->fpr[i]=get64(in+o);
-        c->fpscr=get32(in+o);
+        c->fpscr=get32(in+o); o+=4;
     } else { for(i=0;i<32;i++) c->fpr[i]=0u; c->fpscr=0u; }
     if (version >= 9u) {
         for(i=0;i<CUBEX_TLB_ENTRIES;i++) {
