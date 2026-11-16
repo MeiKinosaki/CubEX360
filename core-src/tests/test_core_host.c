@@ -1704,13 +1704,14 @@ int main(void) {
         cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE);
         cpu.msr = 0x10u; cpu.sdr1 = 0x00010000u; cpu.sr[8] = 0u;
         assert(cubex_bus_write32be(&mem, 0x10000u, 0x80000000u) == 0);
-        assert(cubex_bus_write32be(&mem, 0x10004u, 0x00010001u) == 0); /* PP=1 */
+        assert(cubex_bus_write32be(&mem, 0x10004u, 0x00010000u) == 0); /* PP=0 */
         assert(cubex_cpu_translate_address(&cpu, &mem, ea, 0, 0, &pa) == 0);
         assert(cpu.tlb[0].valid == 1u);
         cpu.sr[8] = 0x20000000u; cpu.msr |= 0x4000u; /* KP, user */
+        assert(cubex_cpu_translate_address(&cpu, &mem, ea, 0, 0, &pa) == -1);
+        cpu.sr[8] = 0x40000000u; /* KS set, KP clear: user remains unkeyed */
         assert(cubex_cpu_translate_address(&cpu, &mem, ea, 0, 0, &pa) == 0);
-        cpu.sr[8] = 0u; cpu.msr &= ~0x4000u;
-        cpu.sr[8] = 0x40000000u; /* KS, supervisor */
+        cpu.msr &= ~0x4000u; /* supervisor now selects KS */
         assert(cubex_cpu_translate_address(&cpu, &mem, ea, 0, 0, &pa) == -1);
         cpu.sr[8] = 0u; /* neither key set */
         assert(cubex_cpu_translate_address(&cpu, &mem, ea, 0, 0, &pa) == 0);
