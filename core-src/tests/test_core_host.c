@@ -1645,6 +1645,19 @@ int main(void) {
         (void)bits;
     }
 
+    /* Software TLB invalidation primitives: targeted page and global flush. */
+    {
+        cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE);
+        cpu.tlb[0].valid = 1u; cpu.tlb[0].effective_page = 0x12345000u;
+        cpu.tlb[1].valid = 1u; cpu.tlb[1].effective_page = 0x23456000u;
+        cpu.tlb_replace = 2u;
+        cubex_cpu_tlb_invalidate_page(&cpu, 0x12345abcu);
+        assert(cpu.tlb[0].valid == 0u && cpu.tlb[1].valid == 1u);
+        cubex_cpu_tlb_invalidate_all(&cpu);
+        assert(cpu.tlb[0].valid == 0u && cpu.tlb[1].valid == 0u);
+        assert(cpu.tlb_replace == 0u);
+    }
+
     /* Segment register moves: supervisor MTSR/MFSR and indexed MTSRIN. */
     {
         uint32_t mtsr = (31u<<26) | (3u<<21) | (5u<<16) | (210u<<1);
