@@ -4,7 +4,8 @@
 #include <string.h>
 
 #define STATE_HEADER_SIZE 20u
-#define STATE_CPU_SIZE 576u
+#define STATE_CPU_SIZE 1284u
+#define STATE_CPU_SIZE_V8 576u
 #define STATE_CPU_SIZE_V4 184u
 #define STATE_CPU_SIZE_V3 176u
 #define STATE_CPU_SIZE_V2 168u
@@ -39,6 +40,15 @@ static void encode_cpu(uint8_t out[STATE_CPU_SIZE], const cubex_cpu_state_t *c) 
     put32(out+o,c->sdr1); o+=4;
     for(i=0;i<32;i++,o+=8) put64(out+o,c->fpr[i]);
     put32(out+o,c->fpscr); o+=4;
+    for(i=0;i<CUBEX_TLB_ENTRIES;i++) {
+        put32(out+o,c->tlb[i].effective_page); o+=4;
+        put32(out+o,c->tlb[i].vsid); o+=4;
+        put32(out+o,c->tlb[i].physical_page); o+=4;
+        put32(out+o,c->tlb[i].pte1_address); o+=4;
+        put32(out+o,c->tlb[i].pte1); o+=4;
+        out[o++]=c->tlb[i].valid; out[o++]=c->tlb[i].secondary;
+    }
+    put32(out+o,c->tlb_replace); o+=4;
 }
 static void decode_cpu(cubex_cpu_state_t *c, const uint8_t *in, uint32_t version) {
     unsigned i; size_t o=0;
@@ -66,6 +76,17 @@ static void decode_cpu(cubex_cpu_state_t *c, const uint8_t *in, uint32_t version
         for(i=0;i<32;i++,o+=8) c->fpr[i]=get64(in+o);
         c->fpscr=get32(in+o);
     } else { for(i=0;i<32;i++) c->fpr[i]=0u; c->fpscr=0u; }
+    if (version >= 9u) {
+        for(i=0;i<CUBEX_TLB_ENTRIES;i++) {
+            c->tlb[i].effective_page=get32(in+o); o+=4;
+            c->tlb[i].vsid=get32(in+o); o+=4;
+            c->tlb[i].physical_page=get32(in+o); o+=4;
+            c->tlb[i].pte1_address=get32(in+o); o+=4;
+            c->tlb[i].pte1=get32(in+o); o+=4;
+            c->tlb[i].valid=in[o++]; c->tlb[i].secondary=in[o++];
+        }
+        c->tlb_replace=get32(in+o);
+    } else { memset(c->tlb,0,sizeof(c->tlb)); c->tlb_replace=0u; }
 }
 static uint32_t crc32_update(uint32_t crc, const uint8_t *p, size_t n) {
     size_t i; unsigned b;
@@ -91,7 +112,7 @@ int cubex_state_save(const char *path, const cubex_cpu_state_t *cpu, const cubex
     encode_cpu(cpu_blob,cpu);
     crc=crc32_update(crc,cpu_blob,sizeof(cpu_blob));
     crc=crc32_update(crc,mem->main_ram,mem->main_ram_size)^0xffffffffu;
-    memcpy(header,state_magic,8); put32(header+8,8u); put32(header+12,(uint32_t)mem->main_ram_size); put32(header+16,crc);
+    memcpy(header,state_magic,8); put32(header+8,9u); put32(header+12,(uint32_t)mem->main_ram_size); put32(header+16,crc);
     f=fopen(tmp,"wb");
     if(f) {
         if(write_all(f,header,sizeof(header))==0 &&
@@ -120,7 +141,8 @@ int cubex_state_load(const char *path, cubex_cpu_state_t *cpu, cubex_memory_t *m
     else if (version == 5u) cpu_size=248u;
     else if (version == 6u) cpu_size=312u;
     else if (version == 7u) cpu_size=572u;
-    else if (version == 8u) cpu_size=STATE_CPU_SIZE;
+    else if (version == 8u) cpu_size=STATE_CPU_SIZE_V8;
+    else if (version == 9u) cpu_size=STATE_CPU_SIZE;
     else { fclose(f); return -1; }
     if (read_all(f,cpu_blob,cpu_size)) { fclose(f); return -1; }
     ram=(uint8_t*)malloc(mem->main_ram_size); if(!ram) { fclose(f); return -1; }
