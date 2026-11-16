@@ -96,7 +96,7 @@ int cubex_cpu_translate_hash(cubex_cpu_state_t *c, const cubex_memory_t *m,
     }
     return 1;
 }
-static int cpu_translate_address(const cubex_cpu_state_t *c, const cubex_memory_t *m,
+static int cpu_translate_address(cubex_cpu_state_t *c, const cubex_memory_t *m,
                                  uint32_t ea, int instruction, int is_store,
                                  uint32_t *pa) {
     uint32_t enable = instruction ? 0x20u : 0x10u;
@@ -107,7 +107,7 @@ static int cpu_translate_address(const cubex_cpu_state_t *c, const cubex_memory_
     {
         uint32_t sr = c->sr[ea >> 28], vsid = sr & 0x00ffffffu;
         unsigned i;
-        int key = (c->msr & PPC_MSR_PR) ? !!(sr & 0x20000000u) : !!(sr & 0x40000000u);
+        int key = (c->msr & 0x00004000u) ? !!(sr & 0x20000000u) : !!(sr & 0x40000000u);
         for (i = 0u; i < CUBEX_TLB_ENTRIES; ++i) {
             cubex_tlb_entry_t *entry = &c->tlb[i];
             int pp, can_read, can_write;
@@ -130,33 +130,33 @@ static int cpu_translate_address(const cubex_cpu_state_t *c, const cubex_memory_
     hash_result = cubex_cpu_translate_hash(c, m, ea, instruction, is_store, pa);
     return hash_result == 1 ? 0 : -1;
 }
-static int cpu_read32(const cubex_cpu_state_t *c, const cubex_memory_t *m,
+static int cpu_read32(cubex_cpu_state_t *c, const cubex_memory_t *m,
                       uint32_t ea, uint32_t *v, int instruction) {
     uint32_t pa;
     if (cpu_translate_address(c, m, ea, instruction, 0, &pa)) return -1;
     return cubex_bus_read32be(m, pa, v);
 }
-static int cpu_read16(const cubex_cpu_state_t *c, const cubex_memory_t *m,
+static int cpu_read16(cubex_cpu_state_t *c, const cubex_memory_t *m,
                       uint32_t ea, uint16_t *v) {
     uint32_t pa; if (cpu_translate_address(c, m, ea, 0, 0, &pa)) return -1;
     return cubex_bus_read16be(m, pa, v);
 }
-static int cpu_read8(const cubex_cpu_state_t *c, const cubex_memory_t *m,
+static int cpu_read8(cubex_cpu_state_t *c, const cubex_memory_t *m,
                      uint32_t ea, uint8_t *v) {
     uint32_t pa; if (cpu_translate_address(c, m, ea, 0, 0, &pa)) return -1;
     return cubex_bus_read8(m, pa, v);
 }
-static int cpu_write32(const cubex_cpu_state_t *c, cubex_memory_t *m,
+static int cpu_write32(cubex_cpu_state_t *c, cubex_memory_t *m,
                        uint32_t ea, uint32_t v) {
     uint32_t pa; if (cpu_translate_address(c, m, ea, 0, 1, &pa)) return -1;
     return cubex_bus_write32be(m, pa, v);
 }
-static int cpu_write16(const cubex_cpu_state_t *c, cubex_memory_t *m,
+static int cpu_write16(cubex_cpu_state_t *c, cubex_memory_t *m,
                        uint32_t ea, uint16_t v) {
     uint32_t pa; if (cpu_translate_address(c, m, ea, 0, 1, &pa)) return -1;
     return cubex_bus_write16be(m, pa, v);
 }
-static int cpu_write8(const cubex_cpu_state_t *c, cubex_memory_t *m,
+static int cpu_write8(cubex_cpu_state_t *c, cubex_memory_t *m,
                       uint32_t ea, uint8_t v) {
     uint32_t pa; if (cpu_translate_address(c, m, ea, 0, 1, &pa)) return -1;
     return cubex_bus_write8(m, pa, v);
