@@ -1521,7 +1521,7 @@ int main(void) {
             FILE *state_file = fopen(state_path, "r+b");
             int byte;
             assert(state_file != NULL);
-            assert(fseek(state_file, 20L + 576L + 0x1000L, SEEK_SET) == 0);
+            assert(fseek(state_file, 20L + 1284L + 0x1000L, SEEK_SET) == 0);
             byte = fgetc(state_file);
             assert(byte != EOF);
             assert(fseek(state_file, -1L, SEEK_CUR) == 0);
