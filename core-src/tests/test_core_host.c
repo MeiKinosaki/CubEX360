@@ -557,6 +557,38 @@ int main(void) {
         assert(cubex_bus_write32be(&mem, 0x10000u, 0u) == 0);
         assert(cubex_cpu_translate_hash(&cpu, &mem, ea, 0, 0, &physical) == 0);
     }
+    /* Software TLB: fill, hit, stale PTE, targeted invalidation and protection. */
+    {
+        uint32_t pa = 0u, pte1 = 0u;
+        const uint32_t ea = 0x80000234u;
+        cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE);
+        cpu.msr = 0x10u; /* DR */
+        cpu.sdr1 = 0x00010000u;
+        cpu.sr[8] = 0u;
+        assert(cubex_bus_write32be(&mem, 0x10000u, 0x80000000u) == 0);
+        assert(cubex_bus_write32be(&mem, 0x10004u, 0x00010000u) == 0);
+        assert(cubex_cpu_translate_address(&cpu, &mem, ea, 0, 0, &pa) == 0);
+        assert(pa == 0x00010234u);
+        assert(cpu.tlb[0].valid == 1u);
+        /* Changing the PTE does not change a cached translation until invalidation. */
+        assert(cubex_bus_write32be(&mem, 0x10004u, 0x00020000u) == 0);
+        assert(cubex_cpu_translate_address(&cpu, &mem, ea, 0, 0, &pa) == 0);
+        assert(pa == 0x00010234u);
+        cubex_cpu_tlb_invalidate_page(&cpu, ea);
+        assert(cpu.tlb[0].valid == 0u);
+        assert(cubex_cpu_translate_address(&cpu, &mem, ea, 0, 0, &pa) == 0);
+        assert(pa == 0x00020234u);
+        assert(cubex_bus_read32be(&mem, 0x10004u, &pte1) == 0);
+        assert((pte1 & 0x100u) != 0u);
+        cubex_cpu_tlb_invalidate_all(&cpu);
+        assert(cubex_cpu_translate_address(&cpu, &mem, ea, 0, 0, &pa) == 0);
+        assert(pa == 0x00020234u);
+        /* PP=11 denies an unkeyed read and must not be cached as a valid hit. */
+        cubex_cpu_tlb_invalidate_all(&cpu);
+        assert(cubex_bus_write32be(&mem, 0x10004u, 0x00020003u) == 0);
+        assert(cubex_cpu_translate_address(&cpu, &mem, ea, 0, 0, &pa) == -1);
+        assert(cpu.tlb[0].valid == 0u);
+    }
     /* Hashed page walk uses the 6-bit API field, not low page-index bits. */
     {
         uint32_t pa = 0u;
