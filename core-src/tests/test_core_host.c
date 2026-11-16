@@ -1681,6 +1681,76 @@ int main(void) {
         (void)bits;
     }
 
+    /* Execute TLBIE/TLBIA instructions, not only their helper routines. */
+    {
+        const uint32_t code = CUBEX360_RAM_CACHED_BASE + 0x3a0u;
+        cubex_cpu_reset(&cpu, code);
+        cpu.tlb[0].valid = 1u; cpu.tlb[0].effective_page = 0x12345000u;
+        cpu.tlb[1].valid = 1u; cpu.tlb[1].effective_page = 0x23456000u;
+        cpu.gpr[4] = 0x12345abcu;
+        assert(cubex_bus_write32be(&mem, code, (31u<<26)|(4u<<11)|(306u<<1)) == 0);
+        assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+        assert(cpu.tlb[0].valid == 0u && cpu.tlb[1].valid == 1u);
+        cubex_cpu_reset(&cpu, code);
+        cpu.tlb[0].valid = 1u; cpu.tlb[1].valid = 1u;
+        assert(cubex_bus_write32be(&mem, code, (31u<<26)|(370u<<1)) == 0);
+        assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
+        assert(cpu.tlb[0].valid == 0u && cpu.tlb[1].valid == 0u);
+    }
+    /* KP/KS are selected by PR on TLB hits; protection is not bypassed by cache. */
+    {
+        uint32_t pa = 0u;
+        const uint32_t ea = 0x80000234u;
+        cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE);
+        cpu.msr = 0x10u; cpu.sdr1 = 0x00010000u; cpu.sr[8] = 0u;
+        assert(cubex_bus_write32be(&mem, 0x10000u, 0x80000000u) == 0);
+        assert(cubex_bus_write32be(&mem, 0x10004u, 0x00010001u) == 0); /* PP=1 */
+        assert(cubex_cpu_translate_address(&cpu, &mem, ea, 0, 0, &pa) == 0);
+        assert(cpu.tlb[0].valid == 1u);
+        cpu.sr[8] = 0x20000000u; cpu.msr |= 0x4000u; /* KP, user */
+        assert(cubex_cpu_translate_address(&cpu, &mem, ea, 0, 0, &pa) == 0);
+        cpu.sr[8] = 0u; cpu.msr &= ~0x4000u;
+        cpu.sr[8] = 0x40000000u; /* KS, supervisor */
+        assert(cubex_cpu_translate_address(&cpu, &mem, ea, 0, 0, &pa) == -1);
+        cpu.sr[8] = 0u; /* neither key set */
+        assert(cubex_cpu_translate_address(&cpu, &mem, ea, 0, 0, &pa) == 0);
+    }
+    /* A TLB hit must set R/C in the live PTE, including after software clears them. */
+    {
+        uint32_t pa = 0u, pte1 = 0u;
+        const uint32_t ea = 0x80000234u;
+        cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE);
+        cpu.msr = 0x10u; cpu.sdr1 = 0x00010000u; cpu.sr[8] = 0u;
+        assert(cubex_bus_write32be(&mem, 0x10000u, 0x80000000u) == 0);
+        assert(cubex_bus_write32be(&mem, 0x10004u, 0x00010001u) == 0);
+        assert(cubex_cpu_translate_address(&cpu, &mem, ea, 0, 0, &pa) == 0);
+        assert(cubex_bus_write32be(&mem, 0x10004u, 0x00010001u) == 0);
+        assert(cubex_cpu_translate_address(&cpu, &mem, ea, 0, 0, &pa) == 0);
+        assert(cubex_bus_read32be(&mem, 0x10004u, &pte1) == 0);
+        assert((pte1 & 0x100u) != 0u);
+        assert(cubex_bus_write32be(&mem, 0x10004u, 0x00010001u) == 0);
+        assert(cubex_cpu_translate_address(&cpu, &mem, ea, 0, 1, &pa) == 0);
+        assert(cubex_bus_read32be(&mem, 0x10004u, &pte1) == 0);
+        assert((pte1 & 0x180u) == 0x180u);
+    }
+    /* The 32-entry TLB replaces the oldest slot after the 33rd distinct page. */
+    {
+        uint32_t pa = 0u;
+        unsigned i, valid = 0u;
+        cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE);
+        cpu.msr = 0x10u; cpu.sdr1 = 0x00010000u;
+        for (i = 0u; i < 33u; ++i) {
+            uint32_t ea = 0x80000000u + i * 0x1000u;
+            uint32_t pteg = 0x10000u + i * 0x40u;
+            assert(cubex_bus_write32be(&mem, pteg, 0x80000000u) == 0);
+            assert(cubex_bus_write32be(&mem, pteg + 4u, ((i + 1u) << 12) | 1u) == 0);
+            assert(cubex_cpu_translate_address(&cpu, &mem, ea, 0, 0, &pa) == 0);
+        }
+        for (i = 0u; i < CUBEX_TLB_ENTRIES; ++i) if (cpu.tlb[i].valid) ++valid;
+        assert(valid == CUBEX_TLB_ENTRIES);
+        assert(cpu.tlb[0].effective_page == 0x80020000u);
+        assert(cpu.tlb_replace == 1u);
+    }
     /* Software TLB invalidation primitives: targeted page and global flush. */
     {
         cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE);
