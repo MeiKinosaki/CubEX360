@@ -1511,13 +1511,30 @@ int main(void) {
     assert(cpu.pc == 0x00000700u && cpu.srr0 == CUBEX360_RAM_CACHED_BASE + 0x350u);
     assert(cpu.srr1 == (0x00004000u | 0x00020000u));
     /* Experimental BAT block lookup: 128 KiB, privilege bits and miss. */
-    cpu.ibat[0]=0x80000002u; cpu.ibat[1]=0x10000000u;
-    cpu.dbat[0]=0x90000003u; cpu.dbat[1]=0x20000000u;
+    cpu.ibat[0]=0x80000002u; cpu.ibat[1]=0x10000002u;
+    cpu.dbat[0]=0x90000003u; cpu.dbat[1]=0x20000002u;
     { uint32_t translated=0u;
       assert(cubex_cpu_translate_bat(&cpu,0x80001234u,1,0,&translated)==1); assert(translated==0x10001234u);
       assert(cubex_cpu_translate_bat(&cpu,0x80001234u,1,1,&translated)==0);
       assert(cubex_cpu_translate_bat(&cpu,0x90005678u,0,1,&translated)==1); assert(translated==0x20005678u);
       assert(cubex_cpu_translate_bat(&cpu,0xa0000000u,0,1,&translated)==0);
+    }
+    /* BAT PP matrix: Key=1, PP=00 deny, 01 read-only, 10 RW, 11 read-only. */
+    {
+      uint32_t translated=0u; unsigned pp;
+      cpu.dbat[0]=0x90000003u;
+      for (pp=0u; pp<4u; ++pp) {
+        cpu.dbat[1]=0x20000000u|pp;
+        assert(cubex_cpu_translate_bat(&cpu,0x90000010u,0,1,&translated)==(pp==0u?-1:1));
+        if (pp!=0u) assert(translated==0x20000010u);
+      }
+      cpu.ibat[0]=0x80000002u;
+      for (pp=0u; pp<4u; ++pp) {
+        cpu.ibat[1]=0x10000000u|pp;
+        assert(cubex_cpu_translate_bat(&cpu,0x80000010u,1,0,&translated)==(pp==0u?-1:1));
+        if (pp!=0u) assert(translated==0x10000010u);
+      }
+      cpu.dbat[1]=0x20000000u; cpu.ibat[1]=0x10000000u;
     }
     cpu.ibat[0]=0u; cpu.ibat[1]=0u; cpu.dbat[0]=0u; cpu.dbat[1]=0u;
     /* Integrated BAT path: IR/DR translate effective addresses before bus access. */
@@ -1525,8 +1542,8 @@ int main(void) {
     assert(cubex_bus_write32be(&mem, 0x00000404u, 0x80650000u) == 0); /* lwz r3,0(r5) */
     assert(cubex_bus_write32be(&mem, 0x00001000u, 0xdecafbad) == 0);
     cubex_cpu_reset(&cpu, 0x80000400u);
-    cpu.ibat[0]=0x80000002u; cpu.ibat[1]=0x00000000u;
-    cpu.dbat[0]=0x00000002u; cpu.dbat[1]=0x00000000u;
+    cpu.ibat[0]=0x80000002u; cpu.ibat[1]=0x00000002u;
+    cpu.dbat[0]=0x00000002u; cpu.dbat[1]=0x00000002u;
     cpu.msr=0x00008030u; /* EE + IR + DR, supervisor */
     assert(cubex_cpu_step(&cpu,&mem)==CUBEX_CPU_OK);
     assert(cpu.gpr[3]==42u && cpu.pc==0x80000404u);
