@@ -589,6 +589,39 @@ int main(void) {
         assert(cubex_cpu_translate_address(&cpu, &mem, ea, 0, 0, &pa) == -1);
         assert(cpu.tlb[0].valid == 0u);
     }
+    /* Exhaustive PP permission matrix on both first translation and TLB hit. */
+    {
+        uint32_t pa = 0u, pte1 = 0u;
+        const uint32_t ea = 0x80000234u;
+        unsigned pp;
+        cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE);
+        cpu.msr = 0x10u; /* DR, supervisor with both segment keys clear */
+        cpu.sdr1 = 0x00010000u;
+        cpu.sr[8] = 0u;
+        assert(cubex_bus_write32be(&mem, 0x10000u, 0x80000000u) == 0);
+        for (pp = 0u; pp < 4u; ++pp) {
+            int read_allowed = (pp != 3u);
+            int write_allowed = (pp == 0u || pp == 1u);
+            cubex_cpu_tlb_invalidate_all(&cpu);
+            assert(cubex_bus_write32be(&mem, 0x10004u,
+                0x00010000u | pp) == 0);
+            assert((cubex_cpu_translate_address(&cpu, &mem, ea, 0, 0, &pa) == 0)
+                   == read_allowed);
+            if (read_allowed) {
+                assert(cpu.tlb[0].valid == 1u);
+                /* The write permission is checked again on the cached hit. */
+                assert((cubex_cpu_translate_address(&cpu, &mem, ea, 0, 1, &pa) == 0)
+                       == write_allowed);
+                assert(cubex_bus_read32be(&mem, 0x10004u, &pte1) == 0);
+                assert((pte1 & 0x100u) != 0u);
+                assert(((pte1 & 0x80u) != 0u) == write_allowed);
+            } else {
+                assert(cpu.tlb[0].valid == 0u);
+                assert(cubex_bus_read32be(&mem, 0x10004u, &pte1) == 0);
+                assert((pte1 & 0x180u) == 0u);
+            }
+        }
+    }
     /* Hashed page walk uses the 6-bit API field, not low page-index bits. */
     {
         uint32_t pa = 0u;
