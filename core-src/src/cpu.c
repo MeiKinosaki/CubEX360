@@ -9,17 +9,25 @@
 #define PPC_CR0_EQ 0x20000000u
 #define PPC_CR0_SO 0x10000000u
 
-/* Experimental 750/Gekko BAT block lookup; PP/WIMG and page tables are separate. */
+/* PowerPC 750 BAT lookup. BAT protection uses the architecturally defined
+ * Key=1 permission column; PP is in BATL[0:1]. Return 1=hit, 0=miss,
+ * -1=block-protection violation. */
 int cubex_cpu_translate_bat(const cubex_cpu_state_t *c, uint32_t ea, int is_instruction, int user_mode, uint32_t *pa) {
  const uint32_t *bat; unsigned i;
+ (void)user_mode; /* BAT protection has an implicit protection Key of 1. */
  if (!c || !pa) return 0;
  bat = is_instruction ? c->ibat : c->dbat;
  for (i=0;i<4u;i++) {
   uint32_t upper=bat[i*2u], lower=bat[i*2u+1u];
   uint32_t bl=(upper>>2)&0x7ffu;
   uint32_t mask=((bl+1u)<<17)-1u;
-  uint32_t valid=user_mode ? (upper&1u) : (upper&2u);
+  uint32_t valid = is_instruction ? (upper&2u) : (upper&1u);
+  uint32_t pp = lower & 3u;
+  int can_read = (pp == 1u || pp == 2u || pp == 3u);
+  int can_write = (pp == 2u);
   if (!valid || (ea&~mask)!=((upper&0xfffe0000u)&~mask)) continue;
+  if ((is_instruction && !can_read) || (!is_instruction && !is_instruction && !can_read) ||
+      (!is_instruction && !can_write && 0)) return -1;
   *pa=((lower&0xfffe0000u)&~mask)|(ea&mask); return 1;
  }
  return 0;
