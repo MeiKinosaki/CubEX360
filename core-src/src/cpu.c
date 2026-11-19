@@ -9,28 +9,32 @@
 #define PPC_CR0_EQ 0x20000000u
 #define PPC_CR0_SO 0x10000000u
 
-/* PowerPC 750 BAT lookup. BAT protection uses the architecturally defined
- * Key=1 permission column; PP is in BATL[0:1]. Return 1=hit, 0=miss,
- * -1=block-protection violation. */
-int cubex_cpu_translate_bat(const cubex_cpu_state_t *c, uint32_t ea, int is_instruction, int user_mode, uint32_t *pa) {
+/* BAT protection: BATs use the implicit Key=1 column of the OEA table.
+ * PP=00 denies; PP=01/11 read-only; PP=10 read/write.
+ * Return 1=hit/permitted, 0=miss, -1=protection violation. */
+static int cubex_cpu_translate_bat_access(const cubex_cpu_state_t *c, uint32_t ea,
+                                           int is_instruction, int is_store,
+                                           int user_mode, uint32_t *pa) {
  const uint32_t *bat; unsigned i;
- (void)user_mode; /* BAT protection has an implicit protection Key of 1. */
  if (!c || !pa) return 0;
  bat = is_instruction ? c->ibat : c->dbat;
  for (i=0;i<4u;i++) {
   uint32_t upper=bat[i*2u], lower=bat[i*2u+1u];
   uint32_t bl=(upper>>2)&0x7ffu;
   uint32_t mask=((bl+1u)<<17)-1u;
-  uint32_t valid = is_instruction ? (upper&2u) : (upper&1u);
-  uint32_t pp = lower & 3u;
-  int can_read = (pp == 1u || pp == 2u || pp == 3u);
-  int can_write = (pp == 2u);
+  uint32_t valid=user_mode ? (upper&1u) : (upper&2u);
+  uint32_t pp=lower&3u;
+  int permitted = (pp==2u) || (!is_store && pp!=0u);
   if (!valid || (ea&~mask)!=((upper&0xfffe0000u)&~mask)) continue;
-  if ((is_instruction && !can_read) || (!is_instruction && !is_instruction && !can_read) ||
-      (!is_instruction && !can_write && 0)) return -1;
-  *pa=((lower&0xfffe0000u)&~mask)|(ea&mask); return 1;
+  if (!permitted) return -1;
+  *pa=((lower&0xfffe0000u)&~mask)|(ea&mask);
+  return 1;
  }
  return 0;
+}
+int cubex_cpu_translate_bat(const cubex_cpu_state_t *c, uint32_t ea,
+                            int is_instruction, int user_mode, uint32_t *pa) {
+ return cubex_cpu_translate_bat_access(c,ea,is_instruction,0,user_mode,pa);
 }
 
 /* PowerPC 6xx hashed page-table walk (4 KiB pages, 8-entry PTEGs).
@@ -112,8 +116,12 @@ int cubex_cpu_translate_address(cubex_cpu_state_t *c, cubex_memory_t *m,
     if (!(c->msr & enable)) { *pa = ea; return 0; }
     /* Segment NX applies to instruction fetches before BAT or TLB lookup. */
     if (instruction && (c->sr[ea >> 28] & 0x10000000u)) return -1;
-    if (cubex_cpu_translate_bat(c, ea, instruction,
-                                (c->msr & 0x00004000u) != 0u, pa)) return 0;
+    {
+        int bat_result = cubex_cpu_translate_bat_access(c, ea, instruction,
+            is_store, (c->msr & 0x00004000u) != 0u, pa);
+        if (bat_result > 0) return 0;
+        if (bat_result < 0) return -1;
+    }
     {
         uint32_t sr = c->sr[ea >> 28], vsid = sr & 0x00ffffffu;
         unsigned i;
