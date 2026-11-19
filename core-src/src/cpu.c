@@ -102,6 +102,8 @@ int cubex_cpu_translate_address(cubex_cpu_state_t *c, cubex_memory_t *m,
     uint32_t enable = instruction ? 0x20u : 0x10u;
     int hash_result;
     if (!(c->msr & enable)) { *pa = ea; return 0; }
+    /* Segment NX applies to instruction fetches before BAT or TLB lookup. */
+    if (instruction && (c->sr[ea >> 28] & 0x10000000u)) return -1;
     if (cubex_cpu_translate_bat(c, ea, instruction,
                                 (c->msr & 0x00004000u) != 0u, pa)) return 0;
     {
