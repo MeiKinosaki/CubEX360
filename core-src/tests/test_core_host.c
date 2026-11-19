@@ -1769,6 +1769,20 @@ int main(void) {
         assert(cubex_bus_read32be(&mem, 0x10004u, &pte1) == 0);
         assert((pte1 & 0x100u) != 0u);
     }
+    /* Segment NX must also override an otherwise valid instruction BAT mapping. */
+    {
+        uint32_t pa = 0u;
+        cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE);
+        cpu.msr = 0x20u; /* instruction relocation */
+        cpu.ibat[0] = 0x80000002u; /* valid supervisor IBAT, 128 KiB */
+        cpu.ibat[1] = 0x00000000u;
+        cpu.sr[8] = 0x10000000u; /* segment no-execute */
+        assert(cubex_cpu_translate_bat(&cpu, 0x80000100u, 1, 0, &pa) == 1);
+        assert(cubex_cpu_translate_address(&cpu, &mem, 0x80000100u, 1, 0, &pa) == -1);
+        cpu.sr[8] = 0u;
+        assert(cubex_cpu_translate_address(&cpu, &mem, 0x80000100u, 1, 0, &pa) == 0);
+        assert(pa == 0x00000100u);
+    }
     /* A TLB hit must set R/C in the live PTE, including after software clears them. */
     {
         uint32_t pa = 0u, pte1 = 0u;
