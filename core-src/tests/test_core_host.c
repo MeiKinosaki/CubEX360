@@ -1749,6 +1749,26 @@ int main(void) {
         cpu.sr[8] = 0u; /* neither key set */
         assert(cubex_cpu_translate_address(&cpu, &mem, ea, 0, 0, &pa) == 0);
     }
+    /* Segment NX must reject instruction fetches even on a cached TLB translation. */
+    {
+        uint32_t pa = 0u, pte1 = 0u;
+        const uint32_t ea = 0x80000234u;
+        cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE);
+        cpu.msr = 0x10u; cpu.sdr1 = 0x00010000u; cpu.sr[8] = 0u;
+        assert(cubex_bus_write32be(&mem, 0x10000u, 0x80000000u) == 0);
+        assert(cubex_bus_write32be(&mem, 0x10004u, 0x00010001u) == 0);
+        assert(cubex_cpu_translate_address(&cpu, &mem, ea, 0, 0, &pa) == 0);
+        assert(cpu.tlb[0].valid == 1u);
+        assert(cubex_bus_write32be(&mem, 0x10004u, 0x00010001u) == 0);
+        cpu.sr[8] = 0x10000000u; /* segment no-execute */
+        assert(cubex_cpu_translate_address(&cpu, &mem, ea, 1, 0, &pa) == -1);
+        assert(cubex_bus_read32be(&mem, 0x10004u, &pte1) == 0);
+        assert((pte1 & 0x180u) == 0u); /* denied fetch must not set R/C */
+        cpu.sr[8] = 0u;
+        assert(cubex_cpu_translate_address(&cpu, &mem, ea, 1, 0, &pa) == 0);
+        assert(cubex_bus_read32be(&mem, 0x10004u, &pte1) == 0);
+        assert((pte1 & 0x100u) != 0u);
+    }
     /* A TLB hit must set R/C in the live PTE, including after software clears them. */
     {
         uint32_t pa = 0u, pte1 = 0u;
