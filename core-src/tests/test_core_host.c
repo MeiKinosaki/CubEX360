@@ -1765,11 +1765,11 @@ int main(void) {
         assert(cubex_cpu_translate_address(&cpu, &mem, ea, 0, 0, &pa) == 0);
         assert(cpu.tlb[0].valid == 1u);
         cpu.sr[8] = 0x20000000u; cpu.msr |= 0x4000u; /* KP, user */
-        assert(cubex_cpu_translate_address(&cpu, &mem, ea, 0, 0, &pa) == -1);
+        assert(cubex_cpu_translate_address(&cpu, &mem, ea, 0, 0, &pa) == -2);
         cpu.sr[8] = 0x40000000u; /* KS set, KP clear: user remains unkeyed */
         assert(cubex_cpu_translate_address(&cpu, &mem, ea, 0, 0, &pa) == 0);
         cpu.msr &= ~0x4000u; /* supervisor now selects KS */
-        assert(cubex_cpu_translate_address(&cpu, &mem, ea, 0, 0, &pa) == -1);
+        assert(cubex_cpu_translate_address(&cpu, &mem, ea, 0, 0, &pa) == -2);
         cpu.sr[8] = 0u; /* neither key set */
         assert(cubex_cpu_translate_address(&cpu, &mem, ea, 0, 0, &pa) == 0);
     }
