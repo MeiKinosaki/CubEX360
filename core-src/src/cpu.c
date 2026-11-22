@@ -264,7 +264,7 @@ static void take_data_exception(cubex_cpu_state_t *c, uint32_t vector,
     c->dsisr = is_store ? 0x02000000u : 0u;
     if (fault == CUBEX_MMU_PAGE_MISS) c->dsisr |= 0x40000000u;
     else if (fault == CUBEX_MMU_PROTECTION) c->dsisr |= 0x08000000u;
-    else if (fault == CUBEX_MMU_BUS_FAULT) c->dsisr |= 0x04000000u;
+
     c->msr &= ~PPC_MSR_EXCEPTION_CLEAR;
     if (c->msr & PPC_MSR_ILE) c->msr |= PPC_MSR_LE;
     else c->msr &= ~PPC_MSR_LE;
@@ -450,7 +450,6 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
         c->srr1 = c->msr & PPC_MSR_SRR1_EXTERNAL_MASK;
         if (fault == CUBEX_MMU_PAGE_MISS) c->srr1 |= 0x40000000u; /* SRR1[1] */
         else if (fault == CUBEX_MMU_PROTECTION) c->srr1 |= 0x08000000u; /* SRR1[4] */
-        else if (fault == CUBEX_MMU_BUS_FAULT) c->srr1 |= 0x04000000u;
         c->msr &= ~PPC_MSR_EXCEPTION_CLEAR;
         if (c->msr & PPC_MSR_ILE) c->msr |= PPC_MSR_LE;
         else c->msr &= ~PPC_MSR_LE;
