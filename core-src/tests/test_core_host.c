@@ -1554,6 +1554,13 @@ int main(void) {
     cpu.pc=0x80000404u; cpu.gpr[5]=0x00002000u; cpu.dbat[0]=0u;
     assert(cubex_cpu_step(&cpu,&mem)==CUBEX_CPU_OK);
     assert(cpu.pc==0x00000300u && cpu.dar==0x00002000u);
+    assert(cpu.dsisr==0x40000000u); /* DSI page miss: DSISR[1] */
+    /* A matching BAT with PP=00 is a protection fault, not a page miss. */
+    cpu.pc=0x80000404u; cpu.gpr[5]=0x00001000u;
+    cpu.dbat[0]=0x00000002u; cpu.dbat[1]=0x00000000u;
+    assert(cubex_cpu_step(&cpu,&mem)==CUBEX_CPU_OK);
+    assert(cpu.pc==0x00000300u && cpu.dar==0x00001000u);
+    assert(cpu.dsisr==0x08000000u); /* DSI protection: DSISR[4] */
     cpu.msr=0u; cpu.ibat[0]=cpu.ibat[1]=cpu.dbat[0]=cpu.dbat[1]=0u;
     /* BAT SPR access is supervisor-only; this tests register plumbing, not address translation. */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x35cu,
