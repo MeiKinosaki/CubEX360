@@ -26,7 +26,7 @@ static int cubex_cpu_translate_bat_access(const cubex_cpu_state_t *c, uint32_t e
   uint32_t pp=lower&3u;
   int permitted = (pp==2u) || (!is_store && pp!=0u);
   if (!valid || (ea&~mask)!=((upper&0xfffe0000u)&~mask)) continue;
-  if (!permitted) return -1;
+  if (!permitted) return -2;
   *pa=((lower&0xfffe0000u)&~mask)|(ea&mask);
   return 1;
  }
@@ -38,7 +38,7 @@ int cubex_cpu_translate_bat(const cubex_cpu_state_t *c, uint32_t ea,
 }
 
 /* PowerPC 6xx hashed page-table walk (4 KiB pages, 8-entry PTEGs).
- * Returns 1 on translation, 0 on miss and -1 on protection violation. */
+ * Returns 1 on translation, -1 on page miss, -2 on protection, -3 on bus fault. */
 int cubex_cpu_translate_hash(cubex_cpu_state_t *c, cubex_memory_t *m,
                              uint32_t ea, int instruction, int is_store,
                              uint32_t *pa) {
@@ -50,7 +50,7 @@ int cubex_cpu_translate_hash(cubex_cpu_state_t *c, cubex_memory_t *m,
     int key, pp, can_read, can_write, can_exec;
     if (!c || !m || !pa) return 0;
     sr = c->sr[ea >> 28];
-    if (instruction && (sr & 0x10000000u)) return -1; /* segment NX */
+    if (instruction && (sr & 0x10000000u)) return -2; /* segment NX protection */
     vsid = sr & 0x00ffffffu;
     pgidx = (ea & 0x0fffffffu) >> 12;
     hash = vsid ^ pgidx;
@@ -61,7 +61,7 @@ int cubex_cpu_translate_hash(cubex_cpu_state_t *c, cubex_memory_t *m,
         for (i = 0u; i < 8u; ++i) {
             uint32_t off = htab_base + pteg + i * 8u;
             if (cubex_bus_read32be(m, off, &pte0) != 0 ||
-                cubex_bus_read32be(m, off + 4u, &pte1) != 0) continue;
+                cubex_bus_read32be(m, off + 4u, &pte1) != 0) return -3;
             if ((pte0 & 0x80000000u) &&
                 (!!(pte0 & 0x40u) == (secondary != 0u)) &&
                 ((pte0 & 0x7fffffbfu) == ptem)) {
@@ -71,7 +71,7 @@ int cubex_cpu_translate_hash(cubex_cpu_state_t *c, cubex_memory_t *m,
         }
         if (pte_offset != 0xffffffffu) break;
     }
-    if (pte_offset == 0xffffffffu) return 0;
+    if (pte_offset == 0xffffffffu) return -1;
     key = (c->msr & 0x00004000u) ? !!(sr & 0x20000000u) : !!(sr & 0x40000000u);
     pp = (int)(pte1 & 3u);
     if (key) {
@@ -85,14 +85,14 @@ int cubex_cpu_translate_hash(cubex_cpu_state_t *c, cubex_memory_t *m,
     }
     can_exec = !(sr & 0x10000000u);
     if ((instruction && !can_exec) || (!instruction && !is_store && !can_read) ||
-        (!instruction && is_store && !can_write)) return -1;
+        (!instruction && is_store && !can_write)) return -2;
     if (!(pte1 & 0x100u)) {
         pte1 |= 0x100u;
-        if (cubex_bus_write32be((cubex_memory_t *)m, pte_offset + 4u, pte1) != 0) return 0;
+        if (cubex_bus_write32be((cubex_memory_t *)m, pte_offset + 4u, pte1) != 0) return -3;
     }
     if (is_store && !(pte1 & 0x80u)) {
         pte1 |= 0x80u;
-        if (cubex_bus_write32be((cubex_memory_t *)m, pte_offset + 4u, pte1) != 0) return 0;
+        if (cubex_bus_write32be((cubex_memory_t *)m, pte_offset + 4u, pte1) != 0) return -3;
     }
     *pa = (pte1 & page_mask) | (ea & 0xfffu);
     {
@@ -115,12 +115,12 @@ int cubex_cpu_translate_address(cubex_cpu_state_t *c, cubex_memory_t *m,
     int hash_result;
     if (!(c->msr & enable)) { *pa = ea; return 0; }
     /* Segment NX applies to instruction fetches before BAT or TLB lookup. */
-    if (instruction && (c->sr[ea >> 28] & 0x10000000u)) return -1;
+    if (instruction && (c->sr[ea >> 28] & 0x10000000u)) return -2;
     {
         int bat_result = cubex_cpu_translate_bat_access(c, ea, instruction,
             is_store, (c->msr & 0x00004000u) != 0u, pa);
         if (bat_result > 0) return 0;
-        if (bat_result < 0) return -1;
+        if (bat_result < 0) return bat_result;
     }
     {
         uint32_t sr = c->sr[ea >> 28], vsid = sr & 0x00ffffffu;
@@ -134,13 +134,13 @@ int cubex_cpu_translate_address(cubex_cpu_state_t *c, cubex_memory_t *m,
             pte1 = entry->pte1; pp = (int)(pte1 & 3u);
             if (key) { can_read = (pp == 1 || pp == 2); can_write = 0; }
             else { can_read = (pp != 3); can_write = (pp == 0 || pp == 1); }
-            if ((instruction && (sr & 0x10000000u)) || (!instruction && !is_store && !can_read) || (!instruction && is_store && !can_write)) return -1;
+            if ((instruction && (sr & 0x10000000u)) || (!instruction && !is_store && !can_read) || (!instruction && is_store && !can_write)) return -2;
             {
                 uint32_t live_pte1;
-                if (cubex_bus_read32be(m, entry->pte1_address, &live_pte1) != 0) return -1;
+                if (cubex_bus_read32be(m, entry->pte1_address, &live_pte1) != 0) return -3;
                 live_pte1 |= 0x100u;
                 if (is_store) live_pte1 |= 0x80u;
-                if (cubex_bus_write32be(m, entry->pte1_address, live_pte1) != 0) return -1;
+                if (cubex_bus_write32be(m, entry->pte1_address, live_pte1) != 0) return -3;
                 entry->pte1 = (entry->pte1 & ~0x180u) | (live_pte1 & 0x180u);
             }
             *pa = entry->physical_page | (ea & 0xfffu);
@@ -148,7 +148,7 @@ int cubex_cpu_translate_address(cubex_cpu_state_t *c, cubex_memory_t *m,
         }
     }
     hash_result = cubex_cpu_translate_hash(c, m, ea, instruction, is_store, pa);
-    return hash_result == 1 ? 0 : -1;
+    return hash_result == 1 ? 0 : hash_result;
 }
 static int cpu_read32(cubex_cpu_state_t *c, cubex_memory_t *m,
                       uint32_t ea, uint32_t *v, int instruction) {
