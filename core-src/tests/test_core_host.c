@@ -1443,7 +1443,7 @@ int main(void) {
     cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 0x340u);
     /* IR is enabled below: map this user-mode test page through a valid IBAT. */
     cpu.ibat[0] = (CUBEX360_RAM_CACHED_BASE & 0xfffe0000u) | 1u;
-    cpu.ibat[1] = CUBEX360_RAM_CACHED_BASE & 0xfffe0000u;
+    cpu.ibat[1] = (CUBEX360_RAM_CACHED_BASE & 0xfffe0000u) | 2u; /* PP=10: executable/readable */
     cpu.msr = 0x0000e032u;
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
     assert(cpu.pc == 0x00000700u);
