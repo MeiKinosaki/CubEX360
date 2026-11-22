@@ -2,6 +2,8 @@
 #define CUBEX360_CPU_H
 #include "cubex360/bus.h"
 #define CUBEX_TLB_ENTRIES 32u
+/* Address translation: 0=success, -1=page miss, -2=protection, -3=bus fault. */
+typedef enum cubex_mmu_result { CUBEX_MMU_OK=0, CUBEX_MMU_PAGE_MISS=-1, CUBEX_MMU_PROTECTION=-2, CUBEX_MMU_BUS_FAULT=-3 } cubex_mmu_result_t;
 typedef struct cubex_tlb_entry { uint32_t effective_page, vsid, physical_page, pte1_address, pte1; uint8_t valid, secondary; } cubex_tlb_entry_t;
 typedef struct cubex_cpu_state { uint32_t gpr[32], sr[16], ibat[8], dbat[8], sdr1; cubex_tlb_entry_t tlb[CUBEX_TLB_ENTRIES]; uint32_t tlb_replace; uint64_t fpr[32]; uint32_t fpscr; uint32_t pc,lr,ctr,cr,xer,msr,srr0,srr1,dec; uint32_t dec_pending,dar,dsisr; uint64_t retired_instructions; } cubex_cpu_state_t;
 typedef enum cubex_cpu_result { CUBEX_CPU_OK=0,CUBEX_CPU_UNSUPPORTED=1,CUBEX_CPU_MEMORY_FAULT=2,CUBEX_CPU_BAD_ARGUMENT=3 } cubex_cpu_result_t;
