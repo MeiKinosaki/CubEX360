@@ -537,7 +537,7 @@ int main(void) {
         assert(cubex_bus_write32be(&mem, 0x10004u, pte1) == 0);
         /* Segment no-execute rejects instruction fetch before touching PTE R/C. */
         cpu.sr[8] = 0x10000000u;
-        assert(cubex_cpu_translate_hash(&cpu, &mem, ea, 1, 0, &physical) == -1);
+        assert(cubex_cpu_translate_hash(&cpu, &mem, ea, 1, 0, &physical) == -2);
         assert(cubex_bus_read32be(&mem, 0x10004u, &value) == 0);
         assert((value & 0x180u) == 0u);
         cpu.sr[8] = 0u;
@@ -552,10 +552,10 @@ int main(void) {
         cpu.msr |= 0x00004000u;
         cpu.sr[8] = 0x20000000u; /* KP */
         assert(cubex_bus_write32be(&mem, 0x10004u, 0x00010000u) == 0);
-        assert(cubex_cpu_translate_hash(&cpu, &mem, ea, 0, 0, &physical) == -1);
+        assert(cubex_cpu_translate_hash(&cpu, &mem, ea, 0, 0, &physical) == -2);
         /* Missing PTE returns a page miss rather than a fabricated address. */
         assert(cubex_bus_write32be(&mem, 0x10000u, 0u) == 0);
-        assert(cubex_cpu_translate_hash(&cpu, &mem, ea, 0, 0, &physical) == 0);
+        assert(cubex_cpu_translate_hash(&cpu, &mem, ea, 0, 0, &physical) == -1);
     }
     /* Software TLB: fill, hit, stale PTE, targeted invalidation and protection. */
     {
@@ -586,7 +586,7 @@ int main(void) {
         /* PP=11 denies an unkeyed read and must not be cached as a valid hit. */
         cubex_cpu_tlb_invalidate_all(&cpu);
         assert(cubex_bus_write32be(&mem, 0x10004u, 0x00020003u) == 0);
-        assert(cubex_cpu_translate_address(&cpu, &mem, ea, 0, 0, &pa) == -1);
+        assert(cubex_cpu_translate_address(&cpu, &mem, ea, 0, 0, &pa) == -2);
         assert(cpu.tlb[0].valid == 0u);
     }
     /* Exhaustive PP permission matrix on both first translation and TLB hit. */
@@ -1778,7 +1778,7 @@ int main(void) {
         assert(cpu.tlb[0].valid == 1u);
         assert(cubex_bus_write32be(&mem, 0x10004u, 0x00010001u) == 0);
         cpu.sr[8] = 0x10000000u; /* segment no-execute */
-        assert(cubex_cpu_translate_address(&cpu, &mem, ea, 1, 0, &pa) == -1);
+        assert(cubex_cpu_translate_address(&cpu, &mem, ea, 1, 0, &pa) == -2);
         assert(cubex_bus_read32be(&mem, 0x10004u, &pte1) == 0);
         assert((pte1 & 0x180u) == 0u); /* denied fetch must not set R/C */
         cpu.sr[8] = 0u;
@@ -1795,7 +1795,7 @@ int main(void) {
         cpu.ibat[1] = 0x00000000u;
         cpu.sr[8] = 0x10000000u; /* segment no-execute */
         assert(cubex_cpu_translate_bat(&cpu, 0x80000100u, 1, 0, &pa) == 1);
-        assert(cubex_cpu_translate_address(&cpu, &mem, 0x80000100u, 1, 0, &pa) == -1);
+        assert(cubex_cpu_translate_address(&cpu, &mem, 0x80000100u, 1, 0, &pa) == -2);
         cpu.sr[8] = 0u;
         assert(cubex_cpu_translate_address(&cpu, &mem, 0x80000100u, 1, 0, &pa) == 0);
         assert(pa == 0x00000100u);
