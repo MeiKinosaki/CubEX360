@@ -1556,7 +1556,7 @@ int main(void) {
     assert(cpu.pc==0x00000300u && cpu.dar==0x00002000u);
     assert(cpu.dsisr==0x40000000u); /* DSI page miss: DSISR[1] */
     /* A matching BAT with PP=00 is a protection fault, not a page miss. */
-    cpu.pc=0x80000404u; cpu.gpr[5]=0x00001000u;
+    cpu.pc=0x80000404u; cpu.gpr[5]=0x00001000u; cpu.msr=0x00000030u;
     cpu.dbat[0]=0x00000002u; cpu.dbat[1]=0x00000000u;
     assert(cubex_cpu_step(&cpu,&mem)==CUBEX_CPU_OK);
     assert(cpu.pc==0x00000300u && cpu.dar==0x00001000u);
