@@ -332,7 +332,7 @@ int main(void) {
     assert(cpu.pc == 0x00000300u);
     assert(cpu.srr0 == CUBEX360_RAM_CACHED_BASE + 0x2a0u);
     assert(cpu.dar == 0x70000000u);
-    assert(cpu.dsisr == 0x40000000u); /* page miss */
+    assert(cpu.dsisr == 0u); /* translation disabled: physical bus fault */
     /* Unmapped STW sets the architectural DSISR store indicator. */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x2a4u,
         (36u<<26)|(21u<<21)|(16u<<16)) == 0);
@@ -343,7 +343,7 @@ int main(void) {
     assert(cpu.pc == 0x00000300u);
     assert(cpu.srr0 == CUBEX360_RAM_CACHED_BASE + 0x2a4u);
     assert(cpu.dar == 0x70000000u);
-    assert(cpu.dsisr == 0x42000000u); /* page miss + store */
+    assert(cpu.dsisr == 0x02000000u); /* physical bus fault; store indicator */
     cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 68u);
     cpu.msr = 0x00002000u; /* FP enabled: reserved FP XO must raise Program Exception */
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
