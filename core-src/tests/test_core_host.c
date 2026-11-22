@@ -332,7 +332,7 @@ int main(void) {
     assert(cpu.pc == 0x00000300u);
     assert(cpu.srr0 == CUBEX360_RAM_CACHED_BASE + 0x2a0u);
     assert(cpu.dar == 0x70000000u);
-    assert(cpu.dsisr == 0u);
+    assert(cpu.dsisr == 0x40000000u); /* page miss */
     /* Unmapped STW sets the architectural DSISR store indicator. */
     assert(cubex_bus_write32be(&mem, CUBEX360_RAM_CACHED_BASE + 0x2a4u,
         (36u<<26)|(21u<<21)|(16u<<16)) == 0);
@@ -343,7 +343,7 @@ int main(void) {
     assert(cpu.pc == 0x00000300u);
     assert(cpu.srr0 == CUBEX360_RAM_CACHED_BASE + 0x2a4u);
     assert(cpu.dar == 0x70000000u);
-    assert(cpu.dsisr == 0x02000000u);
+    assert(cpu.dsisr == 0x42000000u); /* page miss + store */
     cubex_cpu_reset(&cpu, CUBEX360_RAM_CACHED_BASE + 68u);
     cpu.msr = 0x00002000u; /* FP enabled: reserved FP XO must raise Program Exception */
     assert(cubex_cpu_step(&cpu, &mem) == CUBEX_CPU_OK);
@@ -1525,13 +1525,13 @@ int main(void) {
       cpu.dbat[0]=0x90000003u;
       for (pp=0u; pp<4u; ++pp) {
         cpu.dbat[1]=0x20000000u|pp;
-        assert(cubex_cpu_translate_bat(&cpu,0x90000010u,0,1,&translated)==(pp==0u?-1:1));
+        assert(cubex_cpu_translate_bat(&cpu,0x90000010u,0,1,&translated)==(pp==0u?-2:1));
         if (pp!=0u) assert(translated==0x20000010u);
       }
       cpu.ibat[0]=0x80000002u;
       for (pp=0u; pp<4u; ++pp) {
         cpu.ibat[1]=0x10000000u|pp;
-        assert(cubex_cpu_translate_bat(&cpu,0x80000010u,1,0,&translated)==(pp==0u?-1:1));
+        assert(cubex_cpu_translate_bat(&cpu,0x80000010u,1,0,&translated)==(pp==0u?-2:1));
         if (pp!=0u) assert(translated==0x10000010u);
       }
       cpu.dbat[1]=0x20000000u; cpu.ibat[1]=0x10000000u;
