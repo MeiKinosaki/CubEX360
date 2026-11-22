@@ -150,36 +150,45 @@ int cubex_cpu_translate_address(cubex_cpu_state_t *c, cubex_memory_t *m,
     hash_result = cubex_cpu_translate_hash(c, m, ea, instruction, is_store, pa);
     return hash_result == 1 ? 0 : hash_result;
 }
+static int cpu_finish_access(cubex_cpu_state_t *c, int result) {
+    c->mmu_fault = result;
+    return result;
+}
 static int cpu_read32(cubex_cpu_state_t *c, cubex_memory_t *m,
                       uint32_t ea, uint32_t *v, int instruction) {
-    uint32_t pa;
-    if (cubex_cpu_translate_address(c, m, ea, instruction, 0, &pa)) return -1;
-    return cubex_bus_read32be(m, pa, v);
+    uint32_t pa; int result = cubex_cpu_translate_address(c, m, ea, instruction, 0, &pa);
+    if (result != 0) return cpu_finish_access(c, result);
+    return cpu_finish_access(c, cubex_bus_read32be(m, pa, v) == 0 ? 0 : CUBEX_MMU_BUS_FAULT);
 }
 static int cpu_read16(cubex_cpu_state_t *c, cubex_memory_t *m,
                       uint32_t ea, uint16_t *v) {
-    uint32_t pa; if (cubex_cpu_translate_address(c, m, ea, 0, 0, &pa)) return -1;
-    return cubex_bus_read16be(m, pa, v);
+    uint32_t pa; int result = cubex_cpu_translate_address(c, m, ea, 0, 0, &pa);
+    if (result != 0) return cpu_finish_access(c, result);
+    return cpu_finish_access(c, cubex_bus_read16be(m, pa, v) == 0 ? 0 : CUBEX_MMU_BUS_FAULT);
 }
 static int cpu_read8(cubex_cpu_state_t *c, cubex_memory_t *m,
                      uint32_t ea, uint8_t *v) {
-    uint32_t pa; if (cubex_cpu_translate_address(c, m, ea, 0, 0, &pa)) return -1;
-    return cubex_bus_read8(m, pa, v);
+    uint32_t pa; int result = cubex_cpu_translate_address(c, m, ea, 0, 0, &pa);
+    if (result != 0) return cpu_finish_access(c, result);
+    return cpu_finish_access(c, cubex_bus_read8(m, pa, v) == 0 ? 0 : CUBEX_MMU_BUS_FAULT);
 }
 static int cpu_write32(cubex_cpu_state_t *c, cubex_memory_t *m,
                        uint32_t ea, uint32_t v) {
-    uint32_t pa; if (cubex_cpu_translate_address(c, m, ea, 0, 1, &pa)) return -1;
-    return cubex_bus_write32be(m, pa, v);
+    uint32_t pa; int result = cubex_cpu_translate_address(c, m, ea, 0, 1, &pa);
+    if (result != 0) return cpu_finish_access(c, result);
+    return cpu_finish_access(c, cubex_bus_write32be(m, pa, v) == 0 ? 0 : CUBEX_MMU_BUS_FAULT);
 }
 static int cpu_write16(cubex_cpu_state_t *c, cubex_memory_t *m,
                        uint32_t ea, uint16_t v) {
-    uint32_t pa; if (cubex_cpu_translate_address(c, m, ea, 0, 1, &pa)) return -1;
-    return cubex_bus_write16be(m, pa, v);
+    uint32_t pa; int result = cubex_cpu_translate_address(c, m, ea, 0, 1, &pa);
+    if (result != 0) return cpu_finish_access(c, result);
+    return cpu_finish_access(c, cubex_bus_write16be(m, pa, v) == 0 ? 0 : CUBEX_MMU_BUS_FAULT);
 }
 static int cpu_write8(cubex_cpu_state_t *c, cubex_memory_t *m,
                       uint32_t ea, uint8_t v) {
-    uint32_t pa; if (cubex_cpu_translate_address(c, m, ea, 0, 1, &pa)) return -1;
-    return cubex_bus_write8(m, pa, v);
+    uint32_t pa; int result = cubex_cpu_translate_address(c, m, ea, 0, 1, &pa);
+    if (result != 0) return cpu_finish_access(c, result);
+    return cpu_finish_access(c, cubex_bus_write8(m, pa, v) == 0 ? 0 : CUBEX_MMU_BUS_FAULT);
 }
 
 void cubex_cpu_reset(cubex_cpu_state_t *c, uint32_t pc) {
@@ -247,12 +256,15 @@ int cubex_cpu_take_external_interrupt(cubex_cpu_state_t *c) {
 /* Enter a synchronous storage/alignment exception.  The caller supplies
  * the faulting effective address and whether the access was a store. */
 static void take_data_exception(cubex_cpu_state_t *c, uint32_t vector,
-                                uint32_t address, int is_store,
+                                uint32_t address, int is_store, int fault,
                                 uint32_t saved_pc) {
     c->srr0 = saved_pc;
     c->srr1 = c->msr & PPC_MSR_SRR1_EXTERNAL_MASK;
     c->dar = address;
     c->dsisr = is_store ? 0x02000000u : 0u;
+    if (fault == CUBEX_MMU_PAGE_MISS) c->dsisr |= 0x40000000u;
+    else if (fault == CUBEX_MMU_PROTECTION) c->dsisr |= 0x08000000u;
+    else if (fault == CUBEX_MMU_BUS_FAULT) c->dsisr |= 0x04000000u;
     c->msr &= ~PPC_MSR_EXCEPTION_CLEAR;
     if (c->msr & PPC_MSR_ILE) c->msr |= PPC_MSR_LE;
     else c->msr &= ~PPC_MSR_LE;
@@ -260,12 +272,12 @@ static void take_data_exception(cubex_cpu_state_t *c, uint32_t vector,
 }
 static cubex_cpu_result_t data_fault(cubex_cpu_state_t *c, uint32_t address,
                                      int is_store) {
-    take_data_exception(c, 0x300u, address, is_store, c->pc);
+    take_data_exception(c, 0x300u, address, is_store, c->mmu_fault, c->pc);
     return CUBEX_CPU_OK;
 }
 static cubex_cpu_result_t alignment_fault(cubex_cpu_state_t *c, uint32_t address,
                                           int is_store) {
-    take_data_exception(c, 0x600u, address, is_store, c->pc);
+    take_data_exception(c, 0x600u, address, is_store, CUBEX_MMU_OK, c->pc);
     return CUBEX_CPU_OK;
 }
 /* SRR1 cause bits follow the PowerPC 750 program-exception encoding:
@@ -433,8 +445,12 @@ cubex_cpu_result_t cubex_cpu_step(cubex_cpu_state_t *c, cubex_memory_t *m) {
     uint32_t ins, op, rt, ra, rb, xo, imm, next;
     if (!c || !m) return CUBEX_CPU_BAD_ARGUMENT;
     if (cpu_read32(c, m, c->pc, &ins, 1)) {
+        int fault = c->mmu_fault;
         c->srr0 = c->pc;
         c->srr1 = c->msr & PPC_MSR_SRR1_EXTERNAL_MASK;
+        if (fault == CUBEX_MMU_PAGE_MISS) c->srr1 |= 0x40000000u; /* SRR1[1] */
+        else if (fault == CUBEX_MMU_PROTECTION) c->srr1 |= 0x08000000u; /* SRR1[4] */
+        else if (fault == CUBEX_MMU_BUS_FAULT) c->srr1 |= 0x04000000u;
         c->msr &= ~PPC_MSR_EXCEPTION_CLEAR;
         if (c->msr & PPC_MSR_ILE) c->msr |= PPC_MSR_LE;
         else c->msr &= ~PPC_MSR_LE;
